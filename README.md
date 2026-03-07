@@ -160,7 +160,7 @@ A -->|low π_F| A
 B -->|intermittent π_F| B
 C -->|π_F ≈ 1| C
 
-```markdown
+```
 ---
 
 ## Architecture
@@ -295,7 +295,7 @@ Causal coupling ΔR² helps determine directional influence:
 
 - **ΔR²_entropy > ΔR²_freeze**  
   → freeze states tend to **constrain entropy**
-  
+
 These signals help characterize the **phase geometry** of the system across parameter space.
 
 ---
