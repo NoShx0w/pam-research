@@ -43,6 +43,95 @@ PAM provides a controlled experimental environment in which recursive language d
 
 The research therefore evolved from a philosophical question about the emergence of understanding into a formal investigation of **phase structure in recursive generative systems**.
 
+---
+
+# First Empirical Breakthrough: Freeze Emergence
+
+The first major empirical breakthrough occurred when invariant signatures were tracked across sliding windows of the evolving corpus.
+
+Initially, the system was expected to show gradual semantic drift as recursive mutations accumulated. However, early experiments revealed an unexpected pattern: instead of drifting uniformly, the corpus began to organize into **distinct structural segments**.
+
+These segments exhibited two contrasting behaviors:
+
+1. **Stable windows**
+   - invariant signatures remained constant
+   - boundary density was low
+   - grain size was large
+
+2. **Mutable windows**
+   - signatures changed frequently
+   - segmentation boundaries were dense
+   - grains remained small
+
+This observation led to the identification of a new macrostate:
+
+Freeze
+
+Freeze windows represent regions where invariant structure persists across transformations.
+
+To quantify this behavior, a macro-observable was introduced:
+
+Freeze Occupancy (π_F)
+
+which measures the proportion of windows exhibiting freeze-like structure.
+
+This was the first moment where the system exhibited **clear regime-dependent behavior** rather than uniform stochastic drift.
+
+---
+
+## Key Insight
+
+Recursive mutation does not simply degrade structure.
+
+Instead, the system appears capable of entering **metastable structural regimes** in which invariant patterns become self-reinforcing.
+
+This observation motivated the introduction of additional macroscopic observables to characterize the system dynamics.
+
+---
+
+# Discovery of the Freeze–Entropy Anticorrelation
+
+After freeze occupancy (π_F) and signature entropy (H) were introduced as macroscopic observables, both metrics were tracked across time during quench experiments.
+
+The initial expectation was that these observables would vary somewhat independently:
+
+- entropy capturing structural diversity
+- freeze occupancy capturing segmentation behavior
+
+However, early lag-correlation analysis revealed a surprising empirical pattern.
+
+Across multiple runs and smoothing scales, the correlation between π_F and H consistently appeared as:
+
+corr(π_F, H) ≈ −0.90 to −0.97
+
+This was unexpectedly strong for two independently constructed metrics.
+
+The effect persisted across:
+
+- multiple seeds
+- smoothing windows
+- corpus variants
+- injector perturbations
+
+The relationship suggested that freeze formation and entropy reduction were tightly coupled aspects of the same underlying structural process.
+
+---
+
+## Initial Interpretation
+
+At first glance, the anticorrelation appeared to suggest a direct causal relationship:
+
+- increasing freeze might force entropy reduction
+- decreasing entropy might induce freeze formation
+
+However, this interpretation required further testing.
+
+Strong correlations can arise when two observables are controlled by a **shared latent variable** rather than directly influencing each other.
+
+To distinguish between these possibilities, minimal dynamical models were introduced.
+
+---
+
 # PAM Research Notes
 
 This document records noteworthy conceptual and experimental milestones during the development of PAM (Phase Analysis of Meaning).
