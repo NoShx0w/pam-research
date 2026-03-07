@@ -1,3 +1,48 @@
+# Project Origin
+
+The PAM project originated from an open-ended exploration of how understanding emerges in recursive language interactions.
+
+The initial question was not framed as a technical problem but as a conceptual one:
+
+**How does understanding arise when a system repeatedly interprets and transforms its own outputs?**
+
+Early conversations explored ideas from:
+
+- phenomenology of understanding
+- geometry and invariance
+- information dynamics
+- recursive self-reference in language models
+
+These discussions suggested that meaning might be better understood not as a static property of text, but as something that **emerges dynamically across transformations**.
+
+During this phase, several geometric metaphors appeared repeatedly:
+
+- manifolds
+- curvature
+- invariance
+- phase structure
+
+At first these were used informally to reason about language and meaning.  
+However, over time it became clear that these metaphors could be made operational.
+
+This led to a key shift:
+
+Rather than analyzing individual texts, the focus moved toward **observing the behavior of an evolving corpus**.
+
+The central insight was that recursive language systems could be treated as **dynamical systems over semantic state space**.
+
+From this perspective, the important objects are not individual texts but **macroscopic observables of the system**, such as:
+
+- structural convergence
+- entropy of semantic signatures
+- stability of semantic trajectories
+
+This realization led to the development of the PAM framework.
+
+PAM provides a controlled experimental environment in which recursive language dynamics can be studied using tools inspired by statistical physics and dynamical systems.
+
+The research therefore evolved from a philosophical question about the emergence of understanding into a formal investigation of **phase structure in recursive generative systems**.
+
 # PAM Research Notes
 
 This document records noteworthy conceptual and experimental milestones during the development of PAM (Phase Analysis of Meaning).
