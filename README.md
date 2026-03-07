@@ -11,24 +11,6 @@ The goal is to explore how stable semantic structure emerges in recursive text s
 
 ---
 
-## Research Summary
-
-PAM investigates the dynamics of recursively updated language-model corpora under controlled mutation and anchoring.
-
-The system is modeled as a discrete-time dynamical process over a semantic state space and analyzed using three orthogonal observables:
-
-- **Freeze Occupancy (π_F)** — structural convergence of the corpus
-- **Signature Entropy (H)** — diversity of invariant signatures
-- **Trajectory Invariance Metric (TIM)** — robustness of semantic trajectories under perturbation
-
-Parameter sweeps across anchor strength **α**, mutation ratio **r**, and smoothing scale **W** reveal regime-dependent behavior including entropy-dominated drift, metastable coexistence, and freeze-dominated structural persistence.
-
-Lag-correlation analysis shows strong anticorrelation between freeze occupancy and entropy, while nested regression tests indicate minimal direct cross-predictive power. This suggests that both observables reflect a shared latent regime variable rather than causal forcing.
-
-The framework provides a general protocol for discovering phase structure in recursive generative systems.
-
----
-
 # Repository Structure
 
 src/pam/
@@ -72,6 +54,24 @@ Outputs are written to:
 
 outputs/index.csv
 outputs/deep_*.json
+
+---
+
+# Visualization
+
+Render phase surfaces:
+
+PYTHONPATH=src python3 experiments/plot_phase_surfaces.py
+
+---
+
+# Requirements
+
+Python **3.10+**
+
+Install dependencies:
+
+pip install numpy pandas matplotlib
 
 ---
 
@@ -247,21 +247,25 @@ Observable signals of these phase transitions include:
 
 PAM provides a controlled experimental environment for probing the stability of semantic structure in recursively generated text systems.
 
-# Visualization
-
-Render phase surfaces:
-
-PYTHONPATH=src python3 experiments/plot_phase_surfaces.py
-
 ---
 
-# Requirements
+## Research Summary
 
-Python **3.10+**
+We study a controlled recursive text system designed to probe stability and collapse dynamics in self-generated language corpora.
 
-Install dependencies:
+PAM investigates the dynamics of recursively updated language-model corpora under controlled mutation and anchoring.
 
-pip install numpy pandas matplotlib
+The system is modeled as a discrete-time dynamical process over a semantic state space and analyzed using three orthogonal observables:
+
+- **Freeze Occupancy (π_F)** — structural convergence of the corpus
+- **Signature Entropy (H)** — diversity of invariant signatures
+- **Trajectory Invariance Metric (TIM)** — robustness of semantic trajectories under perturbation
+
+Parameter sweeps across anchor strength **α**, mutation ratio **r**, and smoothing scale **W** reveal regime-dependent behavior including entropy-dominated drift, metastable coexistence, and freeze-dominated structural persistence.
+
+Lag-correlation analysis shows strong anticorrelation between freeze occupancy and entropy, while nested regression tests indicate minimal direct cross-predictive power. This suggests that both observables reflect a shared latent regime variable rather than causal forcing.
+
+The framework provides a general protocol for discovering phase structure in recursive generative systems.
 
 ---
 
