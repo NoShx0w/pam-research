@@ -11,6 +11,24 @@ The goal is to explore how stable semantic structure emerges in recursive text s
 
 ---
 
+## Research Summary
+
+PAM investigates the dynamics of recursively updated language-model corpora under controlled mutation and anchoring.
+
+The system is modeled as a discrete-time dynamical process over a semantic state space and analyzed using three orthogonal observables:
+
+- **Freeze Occupancy (π_F)** — structural convergence of the corpus
+- **Signature Entropy (H)** — diversity of invariant signatures
+- **Trajectory Invariance Metric (TIM)** — robustness of semantic trajectories under perturbation
+
+Parameter sweeps across anchor strength **α**, mutation ratio **r**, and smoothing scale **W** reveal regime-dependent behavior including entropy-dominated drift, metastable coexistence, and freeze-dominated structural persistence.
+
+Lag-correlation analysis shows strong anticorrelation between freeze occupancy and entropy, while nested regression tests indicate minimal direct cross-predictive power. This suggests that both observables reflect a shared latent regime variable rather than causal forcing.
+
+The framework provides a general protocol for discovering phase structure in recursive generative systems.
+
+---
+
 # Repository Structure
 
 src/pam/
