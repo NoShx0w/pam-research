@@ -110,7 +110,7 @@ freeze = sliding_piF(result.states, W=30)
 print("final entropy:", entropy[-1])
 print("freeze occupancy:", freeze[-1])
 
-```markdown
+```
 Example output:
 
 final entropy: 0.74
@@ -140,7 +140,7 @@ H --> I
 I --> J[Next Corpus State]
 J --> A
 
-```markdown
+```
 ## Phase Geometry
 
 The system explores a phase space defined by the parameters:
@@ -200,7 +200,7 @@ C --> E
 E --> D
 D --> A
 
-```markdown
+```
 ---
 
 ## Key Hypothesis
@@ -295,7 +295,7 @@ Causal coupling ΔR² helps determine directional influence:
 
 - **ΔR²_entropy > ΔR²_freeze**  
   → freeze states tend to **constrain entropy**
-
+  
 These signals help characterize the **phase geometry** of the system across parameter space.
 
 ---
