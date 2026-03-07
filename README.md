@@ -300,12 +300,6 @@ These signals help characterize the **phase geometry** of the system across para
 
 ---
 
-# License
-
-This project is licensed under the MIT License — see the `LICENSE` file for details.
-
----
-
 ## Status
 
 PAM is an experimental research framework under active development.
@@ -315,6 +309,14 @@ Current work focuses on:
 - mapping the phase geometry across (r, α)
 - testing the stability of invariant signatures under recursive mutation
 - characterizing freeze–entropy causal coupling
+
+---
+
+# License
+
+This project is licensed under the MIT License — see the `LICENSE` file for details.
+
+
 
 
 
