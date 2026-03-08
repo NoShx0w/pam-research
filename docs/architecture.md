@@ -161,10 +161,11 @@ Microstructure analysis identifies:
 	•	grain size
 
 These features classify windows into macrostates:
-
+```code
 F = Freeze
 M = Mixed
 E = Entropy
+```
 
 Freeze occupancy:
 ```code
