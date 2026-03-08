@@ -44,12 +44,14 @@ TIP detects semantic invariant signatures in texts.
 
 Each text is mapped to a boolean signature vector:
 
+```code
 {
   reflective: True,
   coherent: True,
   playful_serious: False,
   geometric: True
 }
+```
 
 These signatures allow the system to measure structural properties of the evolving corpus.
 
