@@ -159,7 +159,10 @@ I --> J[Next Corpus State]
 J --> A
 
 ```
-## Phase Geometry
+PAM evolves a corpus under controlled mutation and anchoring.  
+Macroscopic observables are measured at each iteration to characterize system regimes.
+
+## Conceptual Phase Structure
 
 The system explores a phase space defined by the parameters:
 
@@ -179,6 +182,8 @@ B -->|intermittent π_F| B
 C -->|π_F ≈ 1| C
 
 ```
+The empirical phase diagram of this system is generated through parameter sweeps across (r, α).
+
 ---
 
 ## Architecture
