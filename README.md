@@ -13,13 +13,17 @@ The goal is to explore how stable semantic structure emerges in recursive text s
 
 # Repository Structure
 
+```code
 src/pam/
+```
 Core framework implementation
-
+```code
 experiments/
+```
 Runnable experiment scripts (quench, sweeps, batch)
-
+```code
 outputs/
+```
 Generated experiment data
 
 ---
