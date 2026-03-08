@@ -134,9 +134,10 @@ print("freeze occupancy:", freeze[-1])
 
 ```
 Example output:
-
+```code
 final entropy: 0.74
 freeze occupancy: 0.61
+```
 
 ## System Overview
 
