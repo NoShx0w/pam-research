@@ -302,21 +302,3 @@ Code and experiments:
 
 https://github.com/NoShx0w/pam-research
 
----
-
-## Why this document is powerful
-
-When someone opens your repo, they will now see:
-
-README.md
-docs/notes.md
-docs/architecture.md
-
-That combination is **exactly what serious research repositories look like**.
-
-It tells readers:
-
-• what the project is  
-• how it works  
-• how it was discovered
-
