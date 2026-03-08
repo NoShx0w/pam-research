@@ -61,9 +61,9 @@ Responsibilities:
 	•	support entropy and mutation filtering
 
 Source:
-
+```code
 src/pam/tip.py
-
+```
 
 ⸻
 
@@ -81,9 +81,9 @@ The metric measures how invariant the semantic signature remains under these tra
 TIM provides a measure of structural robustness.
 
 Source:
-
+```code
 src/pam/tim.py
-
+```
 
 ⸻
 
@@ -100,17 +100,18 @@ At each iteration:
 
 Control parameters:
 
+```code
 r  = replacement fraction
 α  = anchor injection probability
+```
 
 This creates a discrete-time dynamical system over corpus states.
 
 Source:
-
+```code
 src/pam/dynamics/
 src/pam/engine.py
-
-
+```
 ⸻
 
 Mutation System
@@ -126,10 +127,10 @@ Examples:
 Mutations are designed to preserve semantic structure while introducing variability.
 
 Source:
-
+```code
 src/pam/injectors.py
 src/pam/mutation.py
-
+```
 
 ⸻
 
@@ -147,9 +148,9 @@ Two variants:
 • Joint signature entropy
 
 Source:
-
+```code
 src/pam/metrics/entropy.py
-
+```
 
 ⸻
 
@@ -166,13 +167,13 @@ M = Mixed
 E = Entropy
 
 Freeze occupancy:
-
+```code
 π_F
-
+```
 Source:
-
+```code
 src/pam/metrics/macrostate.py
-
+```
 
 ⸻
 
@@ -181,31 +182,31 @@ Lag Correlation
 Measures temporal relationship between observables.
 
 Example:
-
+```code
 corr(π_F(t), H(t + lag))
-
+```
 Used to detect dynamic coupling.
 
 Source:
-
+```code
 src/pam/metrics/lag.py
-
+```
 
 ⸻
 
 Minimal Dynamical Models
 
 Two minimal autoregressive models are fitted:
-
+```code
 F_{t+1} = a + bF_t + cH_t
 H_{t+1} = d + eH_t + fF_t
-
+```
 These models test cross-variable predictive power.
 
 Source:
-
+```code
 src/pam/metrics/regression.py
-
+```
 
 ⸻
 
@@ -214,10 +215,11 @@ Experiment Layer
 Experiments orchestrate runs and parameter sweeps.
 
 Examples:
-
+```code
 experiments/exp_quench.py
 experiments/exp_alpha_sweep.py
 experiments/exp_batch.py
+```
 
 Experiments typically perform:
 	1.	corpus evolution
@@ -235,8 +237,9 @@ Experiments produce two output types.
 Deep Runs
 
 Detailed run data:
-
+```code
 outputs/deep_*.json
+```
 
 Contains:
 	•	entropy time series
@@ -249,8 +252,9 @@ Contains:
 Sweep Index
 
 Summary of runs:
-
+```code
 outputs/index.csv
+```
 
 Used to aggregate results across seeds and parameter sweeps.
 
@@ -260,6 +264,7 @@ Research Workflow
 
 Typical research workflow:
 
+```mermaid
 flowchart TD
 
 A[Define experiment parameters] --> B[Run batch experiments]
@@ -271,7 +276,7 @@ C --> D[Analyze index.csv]
 D --> E[Generate phase diagrams]
 
 E --> F[Interpret regimes]
-
+```
 
 ⸻
 
@@ -280,15 +285,17 @@ Phase Discovery Goal
 The goal of the PAM framework is to map phase structure in recursive language systems.
 
 Parameter space:
-
+```code
 (r, α)
+```
 
 Primary observables:
-
+```code
 π_F  = freeze occupancy
 H    = signature entropy
 K    = microstructure complexity
 ΔR²  = causal coupling
+```
 
 The system exhibits distinct regimes depending on these parameters.
 
