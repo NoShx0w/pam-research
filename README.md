@@ -285,13 +285,13 @@ The development of PAM emerged from an extended exploratory dialogue
 combining conceptual reasoning and empirical experimentation.
 
 Key milestones and reflections are documented in:
-
+```code
 docs/notes.md
-
+```
 Selected excerpts from the research conversation are preserved in:
-
+```code
 docs/conversations/
-
+```
 These notes function as an open research notebook capturing the
 conceptual development of the project.
 
