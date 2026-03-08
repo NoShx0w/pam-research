@@ -1,22 +1,3 @@
-Excellent — this is the document that makes people instantly understand the system when they open the repo.
-
-A good docs/architecture.md should:
-
-• explain the conceptual pipeline
-• show how the modules connect
-• connect code → research idea
-
-I’ll also include a Mermaid diagram, since GitHub renders those automatically (like your flowcharts).
-
-You can place this in:
-
-docs/architecture.md
-
-
-⸻
-
-docs/architecture.md
-
 # PAM Architecture
 
 This document explains the conceptual architecture of the PAM research framework.
