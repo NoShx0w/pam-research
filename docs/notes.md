@@ -1,17 +1,3 @@
-Perfect — this is exactly the moment where the project becomes more than code.
-A good docs/notes.md turns the repository into a research artifact instead of just a software repo.
-
-I’ll write this so it reads like a lab notebook + discovery narrative, but still concise enough for GitHub.
-
-You can drop this directly into:
-
-docs/notes.md
-
-
-⸻
-
-docs/notes.md
-
 # PAM Research Notes
 
 This document records the conceptual development of the PAM project.
