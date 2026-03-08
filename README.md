@@ -147,23 +147,49 @@ Invariant signatures are detected using TIP, and system dynamics are measured us
 ```mermaid
 flowchart LR
 
-A[Corpus] --> B[Mutation / Resampling]
-B --> C[Anchor Injection α]
-C --> D[TIP<br>Invariant Detection]
-D --> E[Signature Distribution]
+subgraph Corpus Evolution
+A[Initial Corpus]
+B[Mutation Operators]
+C[Anchor Injection α]
+end
 
-E --> F[Entropy H]
-E --> G[Macrostate π_F]
-E --> H[Microstructure K]
+subgraph PAM Engine
+D[Mixture Dynamics]
+E[Corpus Snapshots]
+end
 
-F --> I[Dynamical Analysis]
+subgraph Metrics
+F[Entropy H]
+G[Freeze Occupancy π_F]
+H2[Trajectory Invariance TIM]
+end
+
+subgraph Analysis
+I[Lag Correlation]
+J[Minimal Dynamical Models]
+K[Phase Diagram]
+end
+
+A --> D
+B --> D
+C --> D
+
+D --> E
+
+E --> F
+E --> G
+E --> H2
+
+F --> I
 G --> I
-H --> I
 
-I --> J[Next Corpus State]
-J --> A
+F --> J
+G --> J
 
+I --> K
+J --> K
 ```
+
 PAM evolves a corpus under controlled mutation and anchoring.  
 Macroscopic observables are measured at each iteration to characterize system regimes.
 
