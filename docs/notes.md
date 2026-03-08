@@ -132,6 +132,283 @@ To distinguish between these possibilities, minimal dynamical models were introd
 
 ---
 
+# Minimal Model Surprise: Strong Correlation, Weak Causation
+
+The strong anticorrelation between freeze occupancy (π_F) and entropy (H) suggested a potential causal relationship between the two observables.
+
+To test this hypothesis, minimal autoregressive dynamical models were introduced.
+
+The models took the form:
+
+F_{t+1} = a + bF_t + cH_t  
+H_{t+1} = d + eH_t + fF_t
+
+These models allow testing whether one observable provides predictive information about the other after accounting for its own persistence.
+
+A nested regression framework was used to measure cross-predictive power via ΔR²:
+
+- **Freeze equation:** effect of H_t on F_{t+1}
+- **Entropy equation:** effect of F_t on H_{t+1}
+
+Empirical results across multiple runs produced a surprising pattern.
+
+Typical values:
+
+ΔR²_freeze ≈ 0.08 – 0.12  
+ΔR²_entropy ≈ 0.002 – 0.005
+
+In other words:
+
+- entropy contributes modest predictive information to freeze dynamics
+- freeze contributes almost no predictive information to entropy dynamics
+
+Once autoregressive persistence is accounted for, the apparent coupling between the variables largely disappears.
+
+---
+
+## Interpretation
+
+These results indicate that the strong π_F–H anticorrelation does not arise from direct linear forcing.
+
+Instead, both observables appear to respond to a **shared latent regime variable** governing the global state of the system.
+
+The system therefore appears to evolve along a **slow manifold** in phase space, where freeze and entropy co-vary as different projections of the same underlying structural regime.
+
+This interpretation explains how extremely strong correlations can emerge without strong causal cross-coupling.
+
+---
+
+## Conceptual Shift
+
+This result marked a conceptual shift in the interpretation of the system.
+
+The key insight became:
+
+freeze and entropy are not causal drivers of one another
+
+but rather
+
+**co-manifestations of an underlying phase regime.**
+
+This reframed the research goal from identifying causal relationships between observables to **discovering the latent geometry of the regime space.**
+
+---
+
+# From Experiment to Framework
+
+As the system matured, the research focus shifted from analyzing a single experiment to building a reusable framework for studying recursive generative dynamics.
+
+Three core components emerged:
+
+TIP — Invariant Perceptron  
+Detects invariant semantic features within text samples.
+
+TIM — Trajectory Invariance Metric  
+Measures robustness of semantic trajectories under perturbations.
+
+PAM — Phase Analysis of Meaning  
+The dynamical system governing corpus evolution and macrostate analysis.
+
+These components operate at different conceptual levels:
+
+Text level
+    ↓
+Invariant signatures (TIP)
+    ↓
+Trajectory robustness (TIM)
+    ↓
+System dynamics and phase behavior (PAM)
+
+Together they form a layered experimental architecture for exploring the stability and collapse behavior of recursive generative systems.
+
+---
+
+## Emergence of a Phase Discovery Protocol
+
+Through repeated experimentation, the research process itself became structured into a repeatable protocol:
+
+1. Introduce a tunable control parameter.
+2. Define orthogonal macroscopic observables.
+3. Perform parameter sweeps.
+4. Detect regime transitions.
+5. Test causal relationships.
+6. Stress-test under adversarial perturbations.
+7. Compress invariant structure into a formal schema.
+
+This protocol generalizes beyond the specific PAM system and provides a methodology for investigating **phase structure in recursive generative systems.**
+
+---
+
+## Current Interpretation
+
+The experiments suggest that recursive language systems do not behave as simple autoregressive processes.
+
+Instead, they exhibit **phase-structured dynamics** governed by latent manifold geometry.
+
+Observable signals such as:
+
+π_F (freeze occupancy)  
+H (entropy)  
+K (microstructure complexity)
+
+appear to be projections of an underlying regime variable controlling the global structure of the evolving corpus.
+
+---
+
+## Current Status
+
+PAM now functions as a controlled experimental laboratory for studying recursive text dynamics.
+
+Current work focuses on:
+
+- mapping phase diagrams across (r, α)
+- studying metastability and regime transitions
+- extending trajectory invariance metrics
+- identifying latent geometric structure in recursive generative systems
+
+---
+
+# Research Timeline
+
+This timeline summarizes the major conceptual and experimental milestones in the development of the PAM framework.
+
+---
+
+## Phase 0 — Conceptual Exploration
+
+Initial discussions explored how **understanding emerges in recursive language interactions**.
+
+Key themes included:
+
+- invariance
+- geometry of meaning
+- recursive interpretation
+- phenomenology of understanding
+
+These discussions gradually suggested that meaning might emerge through **transformations across semantic space** rather than static textual properties.
+
+---
+
+## Phase 1 — Dynamical System Framing
+
+The system was reframed as a **discrete-time dynamical process**:
+
+Corpus_t → transformation → Corpus_{t+1}
+
+This shift moved the focus away from individual texts and toward **macroscopic properties of an evolving corpus**.
+
+---
+
+## Phase 2 — Invariant Detection (TIP)
+
+The **Invariant Perceptron (TIP)** was introduced to detect stable semantic features.
+
+Texts were mapped to invariant signatures representing coarse semantic coordinates in the corpus.
+
+This provided the first **structural representation of corpus state**.
+
+---
+
+## Phase 3 — Emergence of Freeze Regimes
+
+Sliding-window analysis revealed segmentation patterns in the evolving corpus.
+
+Two types of windows appeared:
+
+- stable windows with persistent invariant signatures
+- mutable windows with rapid structural change
+
+This led to the introduction of:
+
+Freeze Occupancy (π_F)
+
+which measures the fraction of frozen windows.
+
+This was the first evidence of **regime-dependent dynamics**.
+
+---
+
+## Phase 4 — Entropy Measurement
+
+Signature entropy (H) was introduced to measure structural diversity across the corpus.
+
+Joint signature entropy provided the most informative signal for tracking regime transitions.
+
+---
+
+## Phase 5 — Discovery of Strong π_F–H Anticorrelation
+
+Lag-correlation analysis revealed extremely strong anticorrelation between freeze occupancy and entropy:
+
+corr(π_F, H) ≈ −0.90 to −0.97
+
+This suggested that freeze formation and entropy reduction might reflect the same structural process.
+
+---
+
+## Phase 6 — Minimal Model Surprise
+
+Minimal autoregressive models were introduced to test causal coupling between observables.
+
+Despite strong correlations, nested regression showed **weak cross-predictive power**:
+
+ΔR²_freeze ≈ 0.08–0.12  
+ΔR²_entropy ≈ 0.002–0.005
+
+This indicated that freeze and entropy are likely **projections of a shared latent regime variable**.
+
+---
+
+## Phase 7 — Framework Formation
+
+The project evolved from a single experiment into a reusable research framework.
+
+Three components were formalized:
+
+TIP — invariant detection  
+TIM — trajectory invariance  
+PAM — corpus dynamics and phase analysis
+
+A general **Phase Discovery Protocol** emerged from the experimentation process.
+
+---
+
+## Phase 8 — Experimental Infrastructure
+
+The codebase was refactored into a modular framework:
+
+src/pam/
+experiments/
+outputs/
+
+Additional infrastructure was added:
+
+- seed sweeps
+- CSV logging for parameter sweeps
+- JSON export for deep runs
+- batch experiment runner
+
+This transformed PAM into a **controlled experimental laboratory for recursive generative dynamics**.
+
+---
+
+## Current Phase — Phase Diagram Exploration
+
+Current work focuses on mapping the **phase geometry of the system** across parameter space:
+
+(r, α)
+
+Key objectives:
+
+- identify phase boundaries
+- characterize metastability
+- analyze hysteresis under quench conditions
+- test trajectory invariance metrics
+
+The next milestone is generating the **first empirical phase diagram** for the system.
+
+---
+
 # PAM Research Notes
 
 This document records noteworthy conceptual and experimental milestones during the development of PAM (Phase Analysis of Meaning).
