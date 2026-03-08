@@ -31,12 +31,10 @@ D2 --> E
 D3 --> E
 
 E --> F[Experiments / Phase Diagram]
-
 '''
 
-The engine evolves the corpus while the metrics layer observes macroscopic behavior.
 
-⸻
+The engine evolves the corpus while the metrics layer observes macroscopic behavior.
 
 Core Components
 
