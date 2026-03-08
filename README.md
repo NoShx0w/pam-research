@@ -51,22 +51,22 @@ Corpus evolution through mutation, resampling, and anchor injection.
 # Quick Start
 
 Run a batch experiment:
-
+```code
 PYTHONPATH=src python3 experiments/exp_batch.py
-
+```
 Outputs are written to:
-
+```code
 outputs/index.csv
 outputs/deep_*.json
-
+```
 ---
 
 # Visualization
 
 Render phase surfaces:
-
+```code
 PYTHONPATH=src python3 experiments/plot_phase_surfaces.py
-
+```
 ---
 
 # Requirements
@@ -74,9 +74,9 @@ PYTHONPATH=src python3 experiments/plot_phase_surfaces.py
 Python **3.10+**
 
 Install dependencies:
-
-pip install numpy pandas matplotlib
-
+```code
+pip install -r requirements.txt
+```
 ---
 
 ## Minimal Example
@@ -281,9 +281,9 @@ The framework provides a general protocol for discovering phase structure in rec
 # Research Goal
 
 Map the **phase geometry** of the system in parameter space:
-
+```code
 (r, α)
-
+```
 Where:
 
 - **r** — replacement fraction
