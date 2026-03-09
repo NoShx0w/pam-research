@@ -60,6 +60,9 @@ INDEX_FIELDNAMES = [
     "W",
     "seed",
     "run_id",
+    "piF_mean",
+    "piF_tail",
+    "H_joint_mean",
     "var_H_joint",
     "H_min",
     "H_max",
@@ -84,7 +87,18 @@ def append_index_row(filename, meta, out, out_dir="outputs"):
     # --- extract series
     H_joint = np.array(out["H_joint"], dtype=float)
     K = np.array(out["K"], dtype=float)
+    states = out["states"]
 
+    # --- phase observables
+    F_raw = np.array([1.0 if s == "F" else 0.0 for s in states], dtype=float)
+
+    piF_mean = float(np.mean(F_raw))
+
+    tail_frac = 0.2
+    tail_n = max(1, int(round(len(F_raw) * tail_frac)))
+    piF_tail = float(np.mean(F_raw[-tail_n:]))
+
+    H_joint_mean = float(np.mean(H_joint))
     var_H = float(np.var(H_joint))
     H_min = float(np.min(H_joint))
     H_max = float(np.max(H_joint))
@@ -97,8 +111,6 @@ def append_index_row(filename, meta, out, out_dir="outputs"):
 
     best_lag = int(out["lag"]["best_lag"])
     best_corr = float(out["lag"]["best_corr"])
-
-    # lag=0 correlation if available
     corr0 = float(out["lag"].get("corr0", best_corr))
 
     row = {
@@ -109,7 +121,10 @@ def append_index_row(filename, meta, out, out_dir="outputs"):
         "iters": meta.get("iters"),
         "W": meta.get("W"),
         "seed": meta.get("seed"),
-        "run_id": meta.get("run_id"),
+        "run_id": meta.get("run_id", ""),
+        "piF_mean": piF_mean,
+        "piF_tail": piF_tail,
+        "H_joint_mean": H_joint_mean,
         "var_H_joint": var_H,
         "H_min": H_min,
         "H_max": H_max,
@@ -123,8 +138,6 @@ def append_index_row(filename, meta, out, out_dir="outputs"):
     }
 
     write_header = not index_path.exists()
-
-    # ensure stable columns even if row changes later
     safe_row = {k: row.get(k, "") for k in INDEX_FIELDNAMES}
 
     with index_path.open("a", newline="", encoding="utf-8") as f:
