@@ -135,7 +135,7 @@ def main():
     W = 30
 
     # Tune this for your M4 Pro
-    max_workers = 6
+    max_workers = 10
 
     # ---------------------------
     # Resume support
