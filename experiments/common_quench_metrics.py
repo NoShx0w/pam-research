@@ -153,3 +153,91 @@ def run_one(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W: int):
         "deltas_MI": deltas_MI,
         "lag": {"best_lag": int(best_lag), "best_corr": float(best_corr)},
     }
+
+def run_one_summary(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W: int):
+    """
+    Lightweight batch path:
+    computes only summary observables needed for index.csv / phase diagrams.
+    Returns a compact dict suitable for multiprocessing.
+    """
+    result = run_quench(
+        texts0=texts0,
+        tip=tip,
+        mixture_injector=mix_inj,
+        params=params,
+        alpha_schedule=lambda it: alpha,
+        source_window=10,
+        macrostate_fn=macro_fn_factory(),
+    )
+
+    corp_snaps = result.corp_snapshots
+    states = result.states
+
+    # --- entropy reports
+    entropy_reports = compute_entropy_series(
+        corp_snaps,
+        tip,
+        anchor_set_size=params.anchor_set_size,
+        sample_every=1,
+    )
+
+    H_joint = np.array([r.H_joint for r in entropy_reports], dtype=float)
+    K = np.array([r.K for r in entropy_reports], dtype=float)
+
+    # --- raw freeze series
+    F_raw = np.array([1.0 if s == "F" else 0.0 for s in states], dtype=float)
+
+    n = min(len(F_raw), len(H_joint))
+    F_raw = F_raw[:n]
+    H_joint = H_joint[:n]
+    K = K[:n]
+
+    # clamp tiny negative numerical noise
+    H_joint = np.maximum(H_joint, 0.0)
+
+    # --- summary observables
+    piF_mean = float(np.mean(F_raw))
+
+    tail_frac = 0.2
+    tail_n = max(1, int(round(len(F_raw) * tail_frac)))
+    piF_tail = float(np.mean(F_raw[-tail_n:]))
+
+    H_joint_mean = float(np.mean(H_joint))
+    var_H_joint = float(np.var(H_joint))
+    H_min = float(np.min(H_joint))
+    H_max = float(np.max(H_joint))
+
+    K_min = float(np.min(K))
+    K_max = float(np.max(K))
+
+    # --- minimal dynamical regression
+    deltas = granger_delta_r2(F_raw, H_joint)
+
+    # --- lag correlation on smoothed series
+    pi = sliding_piF(states, W=W)
+    Hj_sm = smooth(H_joint, W=W)
+
+    m = min(len(pi), len(Hj_sm))
+    pi = pi[:m]
+    Hj_sm = Hj_sm[:m]
+
+    lags, corrs, best_lag, best_corr = lag_corr(pi, Hj_sm, max_lag=80)
+
+    idx0 = int(np.where(np.array(lags) == 0)[0][0])
+    corr0 = float(corrs[idx0])
+
+    return {
+        "piF_mean": piF_mean,
+        "piF_tail": piF_tail,
+        "H_joint_mean": H_joint_mean,
+        "var_H_joint": var_H_joint,
+        "H_min": H_min,
+        "H_max": H_max,
+        "K_min": K_min,
+        "K_max": K_max,
+        "corr0": corr0,
+        "delta_r2_freeze": float(deltas["freeze_delta_r2"]),
+        "delta_r2_entropy": float(deltas["entropy_delta_r2"]),
+        "best_lag": int(best_lag),
+        "best_corr": float(best_corr),
+    }
