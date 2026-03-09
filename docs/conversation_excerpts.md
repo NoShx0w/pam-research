@@ -12,7 +12,75 @@ These are included as research provenance rather than full transcripts.
 
 ## 1 — Reframing Recursive Language Systems as Phase Systems
 
-Early in the project we reframed recursive LLM dynamics as a phase-structured system governed by control parameters rather than simple autoregressive feedback.
+The PAM project began with a conceptual reframing of recursive language model dynamics.
+
+Most discussions of recursive LLM behavior focus on autoregressive feedback: a model generates text, that text is fed back into the model, and the process repeats. When degradation appears, it is typically described in terms of distributional drift, error accumulation, or model collapse.
+
+While useful, this perspective treats the system primarily as a statistical process.
+
+An alternative viewpoint emerged during early exploration:
+
+A recursively updated corpus can be treated as a dynamical system evolving in a semantic state space.
+
+At each iteration, the corpus is transformed through a mixture of processes:
+	•	resampling from existing generated text
+	•	mutation of anchor texts drawn from a fixed reference subset
+
+The balance between these mechanisms is controlled by parameters such as:
+
+```code
+r   — replacement fraction
+α   — anchor injection probability
+```
+
+From this perspective, the evolving corpus becomes analogous to a state trajectory. Each update step moves the system through a high-dimensional semantic space.
+
+Once framed this way, a natural question arises:
+
+Does the system exhibit qualitatively different regimes as these parameters vary?
+
+In many physical and dynamical systems, changes in control parameters produce phase transitions: sharp shifts in macroscopic behavior despite continuous parameter changes.
+
+Examples include:
+	•	magnetization in spin systems
+	•	fluid turbulence
+	•	pattern formation in reaction–diffusion systems
+
+The hypothesis motivating PAM was that recursive generative systems might exhibit analogous regime behavior.
+
+Instead of focusing on the details of individual text mutations, we can observe the system through macroscopic observables, such as:
+
+```code
+π_F   — freeze occupancy
+H     — signature entropy
+K     — microstructure complexity
+```
+
+These observables summarize large-scale structural behavior of the evolving corpus.
+
+The research program then becomes a classical phase-discovery protocol:
+	1.	Introduce tunable control parameters.
+	2.	Define macroscopic observables.
+	3.	Sweep parameter space.
+	4.	Detect regime changes.
+
+Under this framing, recursive language model dynamics are no longer merely a question of degradation or drift. They become a phase-structured dynamical system whose behavior can be mapped empirically.
+
+The PAM framework is an attempt to construct exactly such a map.
+
+---
+
+### Epilogue — A Geometric View of Recursive Systems
+
+Viewed through this lens, recursive generative systems begin to resemble familiar objects from dynamical systems theory.
+
+Rather than evolving arbitrarily, the system’s trajectory appears to organize around a low-dimensional slow manifold embedded in a much larger semantic space. Macroscopic observables such as freeze occupancy and entropy then act as projections of this manifold onto measurable axes.
+
+The strong correlations observed between these observables do not necessarily indicate direct causal coupling. Instead, they may reflect the fact that both quantities track the system’s position along this latent manifold.
+
+From this perspective, the goal of the PAM experiments is not merely to characterize collapse or stability, but to recover the geometry of the system’s state space. By sweeping control parameters and observing the resulting macroscopic regimes, we gradually reconstruct an empirical phase surface describing how recursive generative dynamics organize themselves.
+
+In this sense, the experiments function less like isolated simulations and more like probes of an underlying geometric structure governing recursive language systems.
 
 ---
 
