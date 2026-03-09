@@ -12,7 +12,7 @@ These are included as research provenance rather than full transcripts.
 
 ## 1 — Reframing Recursive Language Systems as Phase Systems
 
-[excerpt]
+Early in the project we reframed recursive LLM dynamics as a phase-structured system governed by control parameters rather than simple autoregressive feedback.
 
 ---
 
