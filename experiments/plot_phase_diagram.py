@@ -19,7 +19,7 @@ def build_grid(df, value_col):
 
     return alphas, rs, Z
 
-
+'''
 def plot_surface(alphas, rs, Z, value_col, title):
     A, R = np.meshgrid(alphas, rs)
 
@@ -67,7 +67,38 @@ def plot_surface(alphas, rs, Z, value_col, title):
     plt.title(title)
     plt.tight_layout()
     plt.show()
+'''
 
+def plot_surface(df, alphas, rs, Z, value_col, title):
+
+    extent = [
+        min(alphas),
+        max(alphas),
+        min(rs) if len(rs) > 1 else rs[0] - 0.01,
+        max(rs) if len(rs) > 1 else rs[0] + 0.01,
+    ]
+
+    plt.figure(figsize=(6,4))
+
+    plt.imshow(
+        Z,
+        origin="lower",
+        aspect="auto",
+        extent=extent
+    )
+
+    plt.colorbar(label=value_col)
+
+    plt.xlabel("alpha (anchor injection)")
+    plt.ylabel("r (replacement fraction)")
+    plt.title(title)
+
+    # show sampled points
+    pts = df[["alpha", "r"]].drop_duplicates()
+    plt.scatter(pts["alpha"], pts["r"], c="black", s=10)
+
+    plt.tight_layout()
+    plt.show()
 
 def main():
     df = pd.read_csv(INDEX_CSV)
@@ -79,7 +110,7 @@ def main():
     df = df.dropna(subset=["alpha", "r", value_col])
 
     alphas, rs, Z = build_grid(df, value_col)
-    plot_surface(alphas, rs, Z, value_col, title)
+    plot_surface(df, alphas, rs, Z, value_col, title)
 
 
 if __name__ == "__main__":
