@@ -146,6 +146,7 @@ class PAMTUI(App):
         self.spec_panel.set_body(snap.sweep_spec_text)
         self.latest_panel.set_body(snap.latest_metrics_text)
         self.coverage_panel.set_lookup(lookup)
+        self.coverage_panel.set_selected_r(self.selected_r)
         self.detail_panel.show_row_detail(row_detail)
 
 

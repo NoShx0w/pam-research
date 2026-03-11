@@ -57,7 +57,16 @@ class CoverageHeatmap(Static):
         text.append("\n")
 
         for r in self.spec.r_values:
-            text.append(f"{display_float(r, 3):>{row_label_width}}")
+
+            highlight = (self.selected_r is not None and abs(r - self.selected_r) < 1e-9)
+
+            if highlight:
+                text.append("▶ ", style="bold yellow")
+            else:
+                text.append("  ")
+
+            label = f"{display_float(r,3):>5}"
+            text.append(label, style="bold yellow" if highlight else "")
             for a in self.spec.alpha_values:
                 n = self.lookup.get((round(r, 12), round(a, 12)), 0)
                 style, char = self.coverage_style_and_char(n, self.spec.seeds_per_cell)
