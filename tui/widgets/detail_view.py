@@ -38,19 +38,54 @@ class DetailView(Static):
         self.payload = row_summary
         self.update(self.render_detail())
 
+    def _build_metric_lines(
+        self,
+        series: list[tuple[float, float | None]],
+        label: str,
+    ) -> list[str]:
+        lines = [label]
+
+        values = [v for _, v in series if v is not None]
+        if not values:
+            lines.append("  no data")
+            return lines
+
+        vmin = min(values)
+        vmax = max(values)
+
+        for alpha, value in series:
+            if value is None:
+                lines.append(f"{display_float(alpha, 3):>6}  ·")
+            else:
+                glyph = sparkbar(float(value), float(vmin), float(vmax))
+                lines.append(f"{display_float(alpha, 3):>6}  {glyph}  {value:.4f}")
+
+        return lines
+
+    def _merge_columns(
+        self,
+        left_lines: list[str],
+        right_lines: list[str],
+        left_width: int = 34,
+        gap: str = "    ",
+    ) -> list[str]:
+        n = max(len(left_lines), len(right_lines))
+        out = []
+
+        for i in range(n):
+            left = left_lines[i] if i < len(left_lines) else ""
+            right = right_lines[i] if i < len(right_lines) else ""
+            out.append(f"{left:<{left_width}}{gap}{right}")
+
+        return out
+
     def render_empty(self) -> Text:
         text = Text()
         text.append("Detail view", style="bold")
         text.append("\n\n")
         text.append("No selection yet.", style="dim")
         text.append("\n")
-        text.append("Planned use:", style="dim")
-        text.append("\n")
-        text.append("• inspect fixed-r α sweeps", style="dim")
-        text.append("\n")
-        text.append("• inspect individual (r, α) cells", style="dim")
-        text.append("\n")
-        text.append("• show compact metric plots", style="dim")
+        text.append("Use ↑ and ↓ to inspect fixed-r α sweeps.", style="dim")
         return text
 
     def render_row_detail(self) -> Text:
@@ -71,45 +106,44 @@ class DetailView(Static):
         max_seed_count = coverage.get("max_seed_count", 0)
 
         text.append(
-            f"α cells observed: {completed_cells} / {total_cells}\n",
+            f"α cells observed: {completed_cells} / {total_cells}",
             style="cyan",
         )
+        text.append("    ")
         text.append(
-            f"seed coverage:    min {min_seed_count}   max {max_seed_count}\n",
+            f"seed coverage: min {min_seed_count}   max {max_seed_count}",
             style="cyan",
         )
+        text.append("\n\n")
+
+        left_top = self._build_metric_lines(
+            metrics.get("piF_tail_mean", []),
+            "πF_tail vs α",
+        )
+        right_top = self._build_metric_lines(
+            metrics.get("H_joint_mean_mean", []),
+            "H_joint vs α",
+        )
+        left_bottom = self._build_metric_lines(
+            metrics.get("best_corr_mean", []),
+            "best_corr vs α",
+        )
+        right_bottom = self._build_metric_lines(
+            metrics.get("delta_r2_freeze_mean", []),
+            "ΔR²_freeze vs α",
+        )
+
+        top_block = self._merge_columns(left_top, right_top)
+        bottom_block = self._merge_columns(left_bottom, right_bottom)
+
+        for line in top_block:
+            text.append(line)
+            text.append("\n")
+
         text.append("\n")
 
-        metric_order = [
-            ("piF_tail_mean", "πF_tail"),
-            ("H_joint_mean_mean", "H_joint"),
-            ("best_corr_mean", "best_corr"),
-            ("delta_r2_freeze_mean", "ΔR²_freeze"),
-        ]
-
-        for metric_key, metric_label in metric_order:
-            series = metrics.get(metric_key, [])
-            if not series:
-                continue
-
-            values = [v for _, v in series if v is not None]
-            if not values:
-                continue
-
-            vmin = min(values)
-            vmax = max(values)
-
-            text.append(f"{metric_label} vs α\n", style="bold")
-
-            for alpha, value in series:
-                if value is None:
-                    text.append(f"{display_float(alpha, 3):>6}  ·\n", style="dim")
-                else:
-                    glyph = sparkbar(float(value), float(vmin), float(vmax))
-                    text.append(f"{display_float(alpha, 3):>6}  ")
-                    text.append(glyph, style="magenta")
-                    text.append(f"  {value:.4f}\n")
-
+        for line in bottom_block:
+            text.append(line)
             text.append("\n")
 
         return text

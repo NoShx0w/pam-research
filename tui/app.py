@@ -17,8 +17,8 @@ from tui.widgets.panel import Panel
 
 class PAMTUI(App):
     BINDINGS = [
-        Binding("[", "prev_r", "Prev r"),
-        Binding("]", "next_r", "Next r"),
+        Binding("up", "prev_r", "Prev r"),
+        Binding("down", "next_r", "Next r"),
     ]
 
     CSS = """
@@ -137,7 +137,7 @@ class PAMTUI(App):
             f"throughput      {qph:8.2f} q/h\n"
             f"{snap.observed_grid_text}\n"
             f"selected r      {self.selected_r:.3f}\n"
-            f"controls        [ prev   ] next\n"
+            f"controls        ↑ prev   ↓ next\n"
             f"last modified   {snap.last_modified}\n"
             f"refresh every   {REFRESH_SECONDS:.1f}s"
         )
