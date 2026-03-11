@@ -79,6 +79,19 @@ class DetailView(Static):
 
         return out
 
+    def _merge_four_columns(self, cols, width=22, gap="  "):
+        max_rows = max(len(c) for c in cols)
+        out = []
+
+        for i in range(max_rows):
+            row = []
+            for c in cols:
+                val = c[i] if i < len(c) else ""
+                row.append(f"{val:<{width}}")
+            out.append(gap.join(row))
+
+        return out
+
     def render_empty(self) -> Text:
         text = Text()
         text.append("Detail view", style="bold")
@@ -132,7 +145,7 @@ class DetailView(Static):
             metrics.get("delta_r2_freeze_mean", []),
             "ΔR²_freeze vs α",
         )
-
+        """
         top_block = self._merge_columns(left_top, right_top)
         bottom_block = self._merge_columns(left_bottom, right_bottom)
 
@@ -145,6 +158,21 @@ class DetailView(Static):
         for line in bottom_block:
             text.append(line)
             text.append("\n")
+        """
+
+        columns = [
+            self._build_metric_lines(metrics.get("piF_tail_mean", []), "πF_tail"),
+            self._build_metric_lines(metrics.get("H_joint_mean_mean", []), "H_joint"),
+            self._build_metric_lines(metrics.get("best_corr_mean", []), "best_corr"),
+            self._build_metric_lines(metrics.get("delta_r2_freeze_mean", []), "ΔR²_freeze"),
+        ]
+
+        lines = self._merge_four_columns(columns)
+
+        for line in lines:
+            text.append(line)
+            text.append("\n")
+
 
         return text
 
