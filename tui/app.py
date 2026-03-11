@@ -3,6 +3,7 @@ from __future__ import annotations
 from time import time
 
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.reactive import reactive
 from textual.widgets import Footer, Header
@@ -15,6 +16,11 @@ from tui.widgets.panel import Panel
 
 
 class PAMTUI(App):
+    BINDINGS = [
+        Binding("[", "prev_r", "Prev r"),
+        Binding("]", "next_r", "Next r"),
+    ]
+
     CSS = """
     Screen {
         layout: vertical;
@@ -67,7 +73,11 @@ class PAMTUI(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.sweep_spec = load_or_create_sweep_spec(SWEEP_SPEC_PATH)
-        self.selected_r = self.sweep_spec.r_values[0]
+        self.selected_r_index = 0
+
+    @property
+    def selected_r(self) -> float:
+        return self.sweep_spec.r_values[self.selected_r_index]
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -102,6 +112,16 @@ class PAMTUI(App):
         self.refresh_data()
         self.set_interval(REFRESH_SECONDS, self.refresh_data)
 
+    def action_prev_r(self) -> None:
+        if self.selected_r_index > 0:
+            self.selected_r_index -= 1
+            self.refresh_data()
+
+    def action_next_r(self) -> None:
+        if self.selected_r_index < len(self.sweep_spec.r_values) - 1:
+            self.selected_r_index += 1
+            self.refresh_data()
+
     def refresh_data(self) -> None:
         snap, lookup = load_snapshot(INDEX_PATH, self.sweep_spec)
         row_detail = load_row_detail(INDEX_PATH, self.sweep_spec, self.selected_r)
@@ -117,6 +137,7 @@ class PAMTUI(App):
             f"throughput      {qph:8.2f} q/h\n"
             f"{snap.observed_grid_text}\n"
             f"selected r      {self.selected_r:.3f}\n"
+            f"controls        [ prev   ] next\n"
             f"last modified   {snap.last_modified}\n"
             f"refresh every   {REFRESH_SECONDS:.1f}s"
         )
