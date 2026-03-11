@@ -210,3 +210,110 @@ def load_snapshot(index_path: Path, spec: SweepSpec) -> tuple[Snapshot, dict[tup
         observed_grid_text=build_observed_grid_text(df, spec),
     )
     return snap, lookup
+
+def _mean_or_none(series: pd.Series) -> float | None:
+    s = pd.to_numeric(series, errors="coerce").dropna()
+    if s.empty:
+        return None
+    return float(s.mean())
+
+
+def build_row_detail(df: pd.DataFrame, spec: SweepSpec, r_value: float) -> dict:
+    if df.empty or not {"r", "alpha"}.issubset(df.columns):
+        return {
+            "r": r_value,
+            "alpha_values": spec.alpha_values,
+            "coverage": {
+                "completed_cells": 0,
+                "total_cells": len(spec.alpha_values),
+                "min_seed_count": 0,
+                "max_seed_count": 0,
+            },
+            "metrics": {},
+        }
+
+    work = _safe_numeric(
+        df,
+        [
+            "r",
+            "alpha",
+            "seed",
+            "piF_tail",
+            "H_joint_mean",
+            "best_corr",
+            "delta_r2_freeze",
+        ],
+    ).dropna(subset=["r", "alpha"])
+
+    row_df = work[work["r"].round(12) == round(float(r_value), 12)].copy()
+
+    if row_df.empty:
+        return {
+            "r": r_value,
+            "alpha_values": spec.alpha_values,
+            "coverage": {
+                "completed_cells": 0,
+                "total_cells": len(spec.alpha_values),
+                "min_seed_count": 0,
+                "max_seed_count": 0,
+            },
+            "metrics": {},
+        }
+
+    coverage_counts: list[int] = []
+    metric_names = [
+        "piF_tail",
+        "H_joint_mean",
+        "best_corr",
+        "delta_r2_freeze",
+    ]
+
+    metrics = {
+        "piF_tail_mean": [],
+        "H_joint_mean_mean": [],
+        "best_corr_mean": [],
+        "delta_r2_freeze_mean": [],
+    }
+
+    for alpha in spec.alpha_values:
+        cell_df = row_df[row_df["alpha"].round(12) == round(float(alpha), 12)].copy()
+
+        if "seed" in cell_df.columns:
+            seed_count = int(cell_df["seed"].nunique())
+        else:
+            seed_count = len(cell_df)
+
+        coverage_counts.append(seed_count)
+
+        metrics["piF_tail_mean"].append((alpha, _mean_or_none(cell_df["piF_tail"]) if "piF_tail" in cell_df.columns else None))
+        metrics["H_joint_mean_mean"].append((alpha, _mean_or_none(cell_df["H_joint_mean"]) if "H_joint_mean" in cell_df.columns else None))
+        metrics["best_corr_mean"].append((alpha, _mean_or_none(cell_df["best_corr"]) if "best_corr" in cell_df.columns else None))
+        metrics["delta_r2_freeze_mean"].append((alpha, _mean_or_none(cell_df["delta_r2_freeze"]) if "delta_r2_freeze" in cell_df.columns else None))
+
+    completed_cells = sum(1 for c in coverage_counts if c > 0)
+    min_seed_count = min(coverage_counts) if coverage_counts else 0
+    max_seed_count = max(coverage_counts) if coverage_counts else 0
+
+    return {
+        "r": r_value,
+        "alpha_values": spec.alpha_values,
+        "coverage": {
+            "completed_cells": completed_cells,
+            "total_cells": len(spec.alpha_values),
+            "min_seed_count": min_seed_count,
+            "max_seed_count": max_seed_count,
+        },
+        "metrics": metrics,
+    }
+
+
+def load_row_detail(index_path: Path, spec: SweepSpec, r_value: float) -> dict:
+    if not index_path.exists():
+        return build_row_detail(pd.DataFrame(), spec, r_value)
+
+    try:
+        df = pd.read_csv(index_path)
+    except Exception:
+        return build_row_detail(pd.DataFrame(), spec, r_value)
+
+    return build_row_detail(df, spec, r_value)

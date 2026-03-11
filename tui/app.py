@@ -3,13 +3,14 @@ from __future__ import annotations
 from time import time
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical
+from textual.containers import Horizontal, Vertical
 from textual.reactive import reactive
 from textual.widgets import Footer, Header
 
 from tui.config import INDEX_PATH, REFRESH_SECONDS, SWEEP_SPEC_PATH
-from tui.data_loader import load_or_create_sweep_spec, load_snapshot
+from tui.data_loader import load_or_create_sweep_spec, load_row_detail, load_snapshot
 from tui.widgets.coverage_heatmap import CoverageHeatmap
+from tui.widgets.detail_view import DetailView
 from tui.widgets.panel import Panel
 
 
@@ -32,7 +33,7 @@ class PAMTUI(App):
         width: 1fr;
     }
 
-    Panel, CoverageHeatmap {
+    Panel, CoverageHeatmap, DetailView {
         border: round $primary;
         padding: 1 2;
         margin: 0 1 1 1;
@@ -41,6 +42,10 @@ class PAMTUI(App):
     }
 
     #coverage {
+        height: 2fr;
+    }
+
+    #detail {
         height: 1fr;
     }
 
@@ -62,6 +67,7 @@ class PAMTUI(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.sweep_spec = load_or_create_sweep_spec(SWEEP_SPEC_PATH)
+        self.selected_r = self.sweep_spec.r_values[0]
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -75,12 +81,17 @@ class PAMTUI(App):
                 yield self.spec_panel
                 yield self.latest_panel
 
-            with Container(id="right"):
+            with Vertical(id="right"):
                 self.coverage_panel = CoverageHeatmap(
                     spec=self.sweep_spec,
                     id="coverage",
                 )
+                self.detail_panel = DetailView(
+                    spec=self.sweep_spec,
+                    id="detail",
+                )
                 yield self.coverage_panel
+                yield self.detail_panel
 
         yield Footer()
 
@@ -93,6 +104,8 @@ class PAMTUI(App):
 
     def refresh_data(self) -> None:
         snap, lookup = load_snapshot(INDEX_PATH, self.sweep_spec)
+        row_detail = load_row_detail(INDEX_PATH, self.sweep_spec, self.selected_r)
+
         elapsed = time() - self.refresh_started_at
         qph = snap.completed / elapsed * 3600.0 if elapsed > 0 else 0.0
 
@@ -103,6 +116,7 @@ class PAMTUI(App):
             f"progress        {snap.percent:6.2f}%\n"
             f"throughput      {qph:8.2f} q/h\n"
             f"{snap.observed_grid_text}\n"
+            f"selected r      {self.selected_r:.3f}\n"
             f"last modified   {snap.last_modified}\n"
             f"refresh every   {REFRESH_SECONDS:.1f}s"
         )
@@ -111,6 +125,7 @@ class PAMTUI(App):
         self.spec_panel.set_body(snap.sweep_spec_text)
         self.latest_panel.set_body(snap.latest_metrics_text)
         self.coverage_panel.set_lookup(lookup)
+        self.detail_panel.show_row_detail(row_detail)
 
 
 if __name__ == "__main__":
