@@ -14,7 +14,7 @@ from textual.widgets import Footer, Header, Static
 
 INDEX_PATH = Path("outputs/index.csv")
 
-# Adjust these if your sweep changes.
+# Keep these aligned with the actual sweep.
 R_VALUES = [0.10, 0.15, 0.20, 0.25, 0.30]
 ALPHA_VALUES = [0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15]
 EXPECTED_SEEDS_PER_CELL = 10
@@ -29,7 +29,7 @@ class Snapshot:
     percent: float
     last_modified: str
     latest_metrics_text: str
-    coverage_table_text: str
+    coverage_heatmap_text: str
 
 
 def _safe_numeric(df: pd.DataFrame, cols: Iterable[str]) -> pd.DataFrame:
@@ -40,7 +40,23 @@ def _safe_numeric(df: pd.DataFrame, cols: Iterable[str]) -> pd.DataFrame:
     return out
 
 
-def build_coverage_table(df: pd.DataFrame) -> str:
+def coverage_cell(count: int, total: int) -> str:
+    frac = 0.0 if total <= 0 else count / total
+
+    if frac <= 0.0:
+        return "[dim]·[/dim]"
+    if frac < 0.25:
+        return "[cyan]░[/cyan]"
+    if frac < 0.50:
+        return "[green]▒[/green]"
+    if frac < 0.75:
+        return "[yellow]▓[/yellow]"
+    if frac < 1.0:
+        return "[magenta]█[/magenta]"
+    return "[bold red]█[/bold red]"
+
+
+def build_coverage_heatmap(df: pd.DataFrame) -> str:
     if df.empty:
         return "No rows loaded."
 
@@ -67,17 +83,28 @@ def build_coverage_table(df: pd.DataFrame) -> str:
         for row in grouped.itertuples(index=False)
     }
 
-    cell_width = 5
-    header = "r \\ α".ljust(7) + " ".join(f"{a:>{cell_width}.2f}" for a in ALPHA_VALUES)
+    # Header with alpha values.
+    header = "r \\ α    " + " ".join(f"{a:>4.2f}" for a in ALPHA_VALUES)
     sep = "-" * len(header)
 
     lines = [header, sep]
     for r in R_VALUES:
-        row = [f"{r:>5.2f}  "]
+        row = [f"{r:>5.2f}   "]
         for a in ALPHA_VALUES:
             n = lookup.get((round(r, 6), round(a, 6)), 0)
-            row.append(f"{n:>{cell_width}d}")
-        lines.append(" ".join(row))
+            row.append(f"  {coverage_cell(n, EXPECTED_SEEDS_PER_CELL)} ")
+        lines.append("".join(row))
+
+    lines.append("")
+    lines.append(
+        "[dim]Legend:[/dim] "
+        "[dim]·[/dim] empty   "
+        "[cyan]░[/cyan] <25%   "
+        "[green]▒[/green] <50%   "
+        "[yellow]▓[/yellow] <75%   "
+        "[magenta]█[/magenta] <100%   "
+        "[bold red]█[/bold red] complete"
+    )
 
     return "\n".join(lines)
 
@@ -127,7 +154,7 @@ def load_snapshot(index_path: Path) -> Snapshot:
             percent=0.0,
             last_modified="missing",
             latest_metrics_text="index.csv not found.",
-            coverage_table_text="Waiting for outputs/index.csv ...",
+            coverage_heatmap_text="Waiting for outputs/index.csv ...",
         )
 
     try:
@@ -140,7 +167,7 @@ def load_snapshot(index_path: Path) -> Snapshot:
             percent=0.0,
             last_modified="unreadable",
             latest_metrics_text=f"Failed to read CSV:\n{exc}",
-            coverage_table_text="No coverage available.",
+            coverage_heatmap_text="No coverage available.",
         )
 
     completed = len(df)
@@ -154,7 +181,7 @@ def load_snapshot(index_path: Path) -> Snapshot:
         percent=percent,
         last_modified=mtime,
         latest_metrics_text=build_latest_metrics_text(df),
-        coverage_table_text=build_coverage_table(df),
+        coverage_heatmap_text=build_coverage_heatmap(df),
     )
 
 
@@ -248,14 +275,15 @@ class PAMTUI(App):
             f"rows loaded     {snap.row_count}\n"
             f"completed       {snap.completed} / {snap.expected_total}\n"
             f"progress        {snap.percent:6.2f}%\n"
-            f"throughput      {qph:6.2f} quenches/hr\n"
+            f"throughput      {qph:8.2f}\n"
+            f"quenches/hr\n"
             f"last modified   {snap.last_modified}\n"
             f"refresh every   {REFRESH_SECONDS:.1f}s"
         )
 
         self.status_panel.set_body(status_text)
         self.latest_panel.set_body(snap.latest_metrics_text)
-        self.coverage_panel.set_body(f"[code]{snap.coverage_table_text}[/code]")
+        self.coverage_panel.set_body(snap.coverage_heatmap_text)
 
 
 if __name__ == "__main__":
