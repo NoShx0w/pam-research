@@ -13,10 +13,6 @@ from textual.widgets import Footer, Header, Static
 
 
 INDEX_PATH = Path("outputs/index.csv")
-
-# Keep these aligned with the actual sweep.
-R_VALUES = [0.10, 0.15, 0.20, 0.25, 0.30]
-ALPHA_VALUES = [0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15]
 EXPECTED_SEEDS_PER_CELL = 10
 REFRESH_SECONDS = 5.0
 
@@ -40,6 +36,17 @@ def _safe_numeric(df: pd.DataFrame, cols: Iterable[str]) -> pd.DataFrame:
     return out
 
 
+def _sorted_unique_numeric(series: pd.Series) -> list[float]:
+    vals = pd.to_numeric(series, errors="coerce").dropna().unique().tolist()
+    return sorted(float(v) for v in vals)
+
+
+def display_float(x: float, digits: int = 3) -> str:
+    s = f"{x:.{digits}f}"
+    s = s.rstrip("0").rstrip(".")
+    return s
+
+
 def coverage_cell(count: int, total: int) -> str:
     frac = 0.0 if total <= 0 else count / total
 
@@ -56,14 +63,20 @@ def coverage_cell(count: int, total: int) -> str:
     return "[bold red]█[/bold red]"
 
 
-def build_coverage_heatmap(df: pd.DataFrame) -> str:
+def build_coverage_heatmap(df: pd.DataFrame) -> tuple[str, int]:
     if df.empty:
-        return "No rows loaded."
+        return "No rows loaded.", 0
 
     if not {"r", "alpha"}.issubset(df.columns):
-        return "index.csv is missing required columns: r, alpha"
+        return "index.csv is missing required columns: r, alpha", 0
 
     work = _safe_numeric(df, ["r", "alpha", "seed"])
+    work = work.dropna(subset=["r", "alpha"])
+
+    r_values = _sorted_unique_numeric(work["r"])
+    alpha_values = _sorted_unique_numeric(work["alpha"])
+
+    expected_total = len(r_values) * len(alpha_values) * EXPECTED_SEEDS_PER_CELL
 
     if "seed" in work.columns:
         grouped = (
@@ -79,21 +92,27 @@ def build_coverage_heatmap(df: pd.DataFrame) -> str:
         )
 
     lookup = {
-        (round(float(row.r), 6), round(float(row.alpha), 6)): int(row.n)
+        (round(float(row.r), 12), round(float(row.alpha), 12)): int(row.n)
         for row in grouped.itertuples(index=False)
     }
 
-    # Header with alpha values.
-    header = "r \\ α    " + " ".join(f"{a:>4.2f}" for a in ALPHA_VALUES)
+    alpha_labels = [display_float(a, 3) for a in alpha_values]
+    row_label_width = 8
+    cell_width = 4
+
+    header = "r \\ α".ljust(row_label_width) + " " + " ".join(
+        f"{label:>{cell_width}}" for label in alpha_labels
+    )
     sep = "-" * len(header)
 
     lines = [header, sep]
-    for r in R_VALUES:
-        row = [f"{r:>5.2f}   "]
-        for a in ALPHA_VALUES:
-            n = lookup.get((round(r, 6), round(a, 6)), 0)
-            row.append(f"  {coverage_cell(n, EXPECTED_SEEDS_PER_CELL)} ")
-        lines.append("".join(row))
+
+    for r in r_values:
+        row = [f"{display_float(r, 3):>{row_label_width-1}} "]
+        for a in alpha_values:
+            n = lookup.get((round(r, 12), round(a, 12)), 0)
+            row.append(f"{coverage_cell(n, EXPECTED_SEEDS_PER_CELL):^{cell_width}}")
+        lines.append(" ".join(row))
 
     lines.append("")
     lines.append(
@@ -105,8 +124,11 @@ def build_coverage_heatmap(df: pd.DataFrame) -> str:
         "[magenta]█[/magenta] <100%   "
         "[bold red]█[/bold red] complete"
     )
+    lines.append(
+        f"[dim]Grid:[/dim] {len(r_values)} r-values × {len(alpha_values)} α-values × {EXPECTED_SEEDS_PER_CELL} seeds"
+    )
 
-    return "\n".join(lines)
+    return "\n".join(lines), expected_total
 
 
 def build_latest_metrics_text(df: pd.DataFrame) -> str:
@@ -135,7 +157,10 @@ def build_latest_metrics_text(df: pd.DataFrame) -> str:
         value = latest[col]
         if pd.isna(value):
             continue
-        if isinstance(value, float):
+
+        if col in {"r", "alpha"}:
+            lines.append(f"{label:<12} {display_float(float(value), 6)}")
+        elif isinstance(value, float):
             lines.append(f"{label:<12} {value:.6g}")
         else:
             lines.append(f"{label:<12} {value}")
@@ -144,13 +169,11 @@ def build_latest_metrics_text(df: pd.DataFrame) -> str:
 
 
 def load_snapshot(index_path: Path) -> Snapshot:
-    expected_total = len(R_VALUES) * len(ALPHA_VALUES) * EXPECTED_SEEDS_PER_CELL
-
     if not index_path.exists():
         return Snapshot(
             row_count=0,
             completed=0,
-            expected_total=expected_total,
+            expected_total=0,
             percent=0.0,
             last_modified="missing",
             latest_metrics_text="index.csv not found.",
@@ -163,7 +186,7 @@ def load_snapshot(index_path: Path) -> Snapshot:
         return Snapshot(
             row_count=0,
             completed=0,
-            expected_total=expected_total,
+            expected_total=0,
             percent=0.0,
             last_modified="unreadable",
             latest_metrics_text=f"Failed to read CSV:\n{exc}",
@@ -171,6 +194,7 @@ def load_snapshot(index_path: Path) -> Snapshot:
         )
 
     completed = len(df)
+    coverage_heatmap_text, expected_total = build_coverage_heatmap(df)
     percent = 100.0 * completed / expected_total if expected_total else 0.0
     mtime = pd.Timestamp(index_path.stat().st_mtime, unit="s").strftime("%Y-%m-%d %H:%M:%S")
 
@@ -181,7 +205,7 @@ def load_snapshot(index_path: Path) -> Snapshot:
         percent=percent,
         last_modified=mtime,
         latest_metrics_text=build_latest_metrics_text(df),
-        coverage_heatmap_text=build_coverage_heatmap(df),
+        coverage_heatmap_text=coverage_heatmap_text,
     )
 
 
