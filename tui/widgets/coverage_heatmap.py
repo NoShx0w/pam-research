@@ -18,9 +18,14 @@ class CoverageHeatmap(Static):
         super().__init__(**kwargs)
         self.spec = spec
         self.lookup: dict[tuple[float, float], int] = {}
+        self.selected_r: float | None = None
 
     def set_lookup(self, lookup: dict[tuple[float, float], int]) -> None:
         self.lookup = lookup
+        self.update(self.render_heatmap())
+
+    def set_selected_r(self, r_value: float):
+        self.selected_r = r_value
         self.update(self.render_heatmap())
 
     def coverage_style_and_char(self, count: int, total: int) -> tuple[str, str]:
