@@ -40,7 +40,7 @@ class CoverageHeatmap(Static):
 
     def render_heatmap(self) -> Text:
         row_label_width = 7
-        col_width = 5
+        col_width = 6
 
         text = Text()
         text.append("Seed coverage", style="bold")
