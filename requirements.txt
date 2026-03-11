@@ -1,5 +1,10 @@
+# PAM and experiments
 numpy
 pandas
 matplotlib
 sentence-transformers
 scikit-learn
+
+# plotting and TUI
+PyQT6
+textual
