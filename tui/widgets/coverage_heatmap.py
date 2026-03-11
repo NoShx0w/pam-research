@@ -28,6 +28,18 @@ class CoverageHeatmap(Static):
         self.selected_r = r_value
         self.update(self.render_heatmap())
 
+    def preferred_height(self) -> int:
+        r_rows = len(self.spec.r_values)
+
+        base = (
+            2   # title + blank
+            + 2 # header + separator
+            + r_rows
+            + 2 # legend + grid
+        )
+
+        return base + 2  # small padding
+
     def coverage_style_and_char(self, count: int, total: int) -> tuple[str, str]:
         frac = 0.0 if total <= 0 else count / total
 
@@ -103,4 +115,5 @@ class CoverageHeatmap(Static):
         return text
 
     def on_mount(self) -> None:
+        self.styles.height = self.preferred_height()
         self.update(self.render_heatmap())
