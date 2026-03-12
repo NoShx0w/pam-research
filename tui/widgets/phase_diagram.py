@@ -17,18 +17,23 @@ class PhaseDiagram(Static):
         self.spec = spec
         self.metric_name = metric_name
         self.values: dict[tuple[float, float], float | None] = {}
+        self.selected_r: float | None = None
+        self.selected_alpha: float | None = None
 
     def set_values(self, values: dict[tuple[float, float], float | None]) -> None:
         self.values = values
+        self.update(self.render_diagram())
+
+    def set_selected(self, r_value: float, alpha_value: float) -> None:
+        self.selected_r = r_value
+        self.selected_alpha = alpha_value
         self.update(self.render_diagram())
 
     def _cell_style_and_char(self, value: float | None) -> tuple[str, str]:
         if value is None:
             return ("dim", "·")
 
-        # Assuming piF is in [0, 1]
         v = max(0.0, min(1.0, float(value)))
-
         if v < 0.10:
             return ("dim", "·")
         if v < 0.25:
@@ -44,28 +49,51 @@ class PhaseDiagram(Static):
 
     def render_diagram(self) -> Text:
         row_label_width = 7
-        col_width = 6
+        col_width = 8
 
         text = Text()
         text.append(f"Phase diagram: {self.metric_name}", style="bold")
         text.append("\n\n")
 
-        alpha_labels = [display_float(a, 3) for a in self.spec.alpha_values]
-        header = f"{'r \\ α':>{row_label_width}}" + "".join(f"{label:>{col_width}}" for label in alpha_labels)
-        text.append(header)
+        text.append(f"{'r \\ α':>{row_label_width}}")
+        for a in self.spec.alpha_values:
+            label = display_float(a, 3)
+            is_selected = self.selected_alpha is not None and abs(a - self.selected_alpha) < 1e-9
+            header = f"[ {label} ]" if is_selected else label.center(col_width)
+            text.append(f"{header:>{col_width}}", style="bold yellow" if is_selected else "")
         text.append("\n")
-        text.append("-" * len(header), style="dim")
+
+        header_width = row_label_width + len(self.spec.alpha_values) * col_width
+        text.append("-" * header_width, style="dim")
         text.append("\n")
 
         for r in self.spec.r_values:
-            text.append("  ")
+            row_selected = self.selected_r is not None and abs(r - self.selected_r) < 1e-9
+
+            text.append("▶ " if row_selected else "  ", style="bold orange3" if row_selected else "")
             label = f"{display_float(r, 3):>5}"
-            text.append(label)
+            text.append(label, style="bold orange3" if row_selected else "")
 
             for a in self.spec.alpha_values:
                 value = self.values.get((round(r, 12), round(a, 12)))
                 style, char = self._cell_style_and_char(value)
-                text.append(f"{char:>{col_width}}", style=style)
+
+                cell_selected = (
+                    self.selected_r is not None
+                    and self.selected_alpha is not None
+                    and abs(r - self.selected_r) < 1e-9
+                    and abs(a - self.selected_alpha) < 1e-9
+                )
+
+                if cell_selected:
+                    cell = f"→{char}←".center(col_width)
+                    text.append(cell, style="bold white")
+                else:
+                    cell = char.center(col_width)
+                    if row_selected:
+                        text.append(cell, style=f"{style} bold")
+                    else:
+                        text.append(cell, style=style)
 
             text.append("\n")
 

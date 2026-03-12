@@ -48,29 +48,35 @@ class CoverageHeatmap(Static):
 
     def render_heatmap(self) -> Text:
         row_label_width = 7
-        col_width = 6
+        col_width = 8
 
         text = Text()
         text.append("Seed coverage", style="bold")
         text.append("\n\n")
 
-        alpha_labels = [display_float(a, 3) for a in self.spec.alpha_values]
-        header = f"{'r \\ α':>{row_label_width}}" + "".join(f"{label:>{col_width}}" for label in alpha_labels)
-        text.append(header)
+        text.append(f"{'r \\ α':>{row_label_width}}")
+        for a in self.spec.alpha_values:
+            label = display_float(a, 3)
+            is_selected = self.selected_alpha is not None and abs(a - self.selected_alpha) < 1e-9
+            header = f"[ {label} ]" if is_selected else label.center(col_width)
+            text.append(f"{header:>{col_width}}", style="bold yellow" if is_selected else "")
         text.append("\n")
-        text.append("-" * len(header), style="dim")
+
+        header_width = row_label_width + len(self.spec.alpha_values) * col_width
+        text.append("-" * header_width, style="dim")
         text.append("\n")
 
         for r in self.spec.r_values:
             row_selected = self.selected_r is not None and abs(r - self.selected_r) < 1e-9
 
-            text.append("▶ ", style="bold yellow" if row_selected else "")
+            text.append("▶ " if row_selected else "  ", style="bold orange3" if row_selected else "")
             label = f"{display_float(r, 3):>5}"
-            text.append(label, style="bold yellow" if row_selected else "")
+            text.append(label, style="bold orange3" if row_selected else "")
 
             for a in self.spec.alpha_values:
                 n = self.lookup.get((round(r, 12), round(a, 12)), 0)
                 style, char = self.coverage_style_and_char(n, self.spec.seeds_per_cell)
+
                 cell_selected = (
                     self.selected_r is not None
                     and self.selected_alpha is not None
@@ -79,11 +85,14 @@ class CoverageHeatmap(Static):
                 )
 
                 if cell_selected:
-                    text.append(f"{char:>{col_width}}", style="reverse bold")
-                elif row_selected:
-                    text.append(f"{char:>{col_width}}", style=f"{style} bold")
+                    cell = f"→{char}←".center(col_width)
+                    text.append(cell, style="bold white")
                 else:
-                    text.append(f"{char:>{col_width}}", style=style)
+                    cell = char.center(col_width)
+                    if row_selected:
+                        text.append(cell, style=f"{style} bold")
+                    else:
+                        text.append(cell, style=style)
 
             text.append("\n")
 

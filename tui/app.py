@@ -23,6 +23,7 @@ from tui.widgets.detail_view import DetailView
 from tui.widgets.panel import Panel
 from tui.widgets.phase_diagram import PhaseDiagram
 
+
 class PAMTUI(App):
     BINDINGS = [
         Binding("up", "prev_r", "Prev r"),
@@ -38,16 +39,19 @@ class PAMTUI(App):
     #main { height: 1fr; }
     #left { width: 42; min-width: 40; }
     #right { width: 1fr; }
-    Panel, CoverageHeatmap, DetailView {
+
+    Panel, CoverageHeatmap, DetailView, PhaseDiagram {
         border: round $primary;
         padding: 1 2;
         margin: 0 1 1 1;
         overflow-x: hidden;
         overflow-y: auto;
     }
+
     #coverage { height: auto; }
     #phase { height: auto; }
     #detail { height: 1fr; }
+
     #latest, #status, #spec { height: auto; }
     """
 
@@ -57,6 +61,10 @@ class PAMTUI(App):
         super().__init__(**kwargs)
         self.sweep_spec = load_or_create_sweep_spec(SWEEP_SPEC_PATH)
         self.selection = SelectionState()
+
+        self.last_refresh_time = None
+        self.last_completed = None
+        self.qph_estimate = None
 
     @property
     def selected_r(self) -> float:
@@ -119,9 +127,35 @@ class PAMTUI(App):
         self.selection.set_trajectory_mode()
         self.refresh_data()
 
+    def _format_kv(self, key: str, value: str, key_width: int = 14) -> str:
+        return f"{key:<{key_width}} {value}"
+
+    def _update_qph(self, completed: int) -> float:
+        now = time()
+
+        if self.last_refresh_time is None or self.last_completed is None:
+            self.last_refresh_time = now
+            self.last_completed = completed
+            return 0.0
+
+        dt = now - self.last_refresh_time
+        dc = completed - self.last_completed
+
+        if dt > 0 and dc >= 0:
+            inst_qph = dc * 3600.0 / dt
+            if self.qph_estimate is None:
+                self.qph_estimate = inst_qph
+            else:
+                self.qph_estimate = 0.7 * self.qph_estimate + 0.3 * inst_qph
+
+        self.last_refresh_time = now
+        self.last_completed = completed
+        return 0.0 if self.qph_estimate is None else self.qph_estimate
+
     def refresh_data(self) -> None:
         snap, lookup = load_snapshot(INDEX_PATH, self.sweep_spec)
         phase_values = load_phase_metric(INDEX_PATH, self.sweep_spec, "piF_tail")
+
         if self.selection.is_row_mode:
             detail = load_row_detail(INDEX_PATH, self.sweep_spec, self.selected_r)
         elif self.selection.is_cell_mode:
@@ -129,33 +163,36 @@ class PAMTUI(App):
         else:
             detail = load_trajectory_detail(INDEX_PATH, self.selected_r, self.selected_alpha)
 
-        elapsed = time() - self.refresh_started_at
-        qph = snap.completed / elapsed * 3600.0 if elapsed > 0 else 0.0
+        qph = self._update_qph(snap.completed)
         mode_label = self.selection.mode
 
-        status_text = (
-            f"index path      {INDEX_PATH}\n"
-            f"rows loaded     {snap.row_count}\n"
-            f"completed       {snap.completed} / {snap.expected_total}\n"
-            f"progress        {snap.percent:6.2f}%\n"
-            f"throughput      {qph:8.2f} q/h\n"
-            f"{snap.observed_grid_text}\n"
-            f"mode            {mode_label}\n"
-            f"selected r      {self.selected_r:.3f}\n"
-            f"selected α      {self.selected_alpha:.3f}\n"
-            f"controls        ↑↓ r   ←→ α\n"
-            f"enter           row/cell toggle\n"
-            f"t               trajectory mode\n"
-            f"last modified   {snap.last_modified}\n"
-            f"refresh every   {REFRESH_SECONDS:.1f}s"
-        )
+        status_lines = [
+            self._format_kv("index path", str(INDEX_PATH)),
+            self._format_kv("rows loaded", f"{snap.row_count:>6}"),
+            self._format_kv("completed", f"{snap.completed:>4} / {snap.expected_total:<4}"),
+            self._format_kv("progress", f"{snap.percent:>7.2f}%"),
+            self._format_kv("throughput", f"{qph:>9.2f} q/h"),
+            self._format_kv("observed r", f"{snap.observed_grid_text.splitlines()[0].split()[-3]} / {snap.observed_grid_text.splitlines()[0].split()[-1]}"),
+            self._format_kv("observed α", f"{snap.observed_grid_text.splitlines()[1].split()[-3]} / {snap.observed_grid_text.splitlines()[1].split()[-1]}"),
+            self._format_kv("mode", mode_label),
+            self._format_kv("selected r", f"{self.selected_r:>7.3f}"),
+            self._format_kv("selected α", f"{self.selected_alpha:>7.3f}"),
+            self._format_kv("controls", "↑↓ r   ←→ α"),
+            self._format_kv("enter", "row/cell toggle"),
+            self._format_kv("t", "trajectory mode"),
+            self._format_kv("last modified", snap.last_modified),
+            self._format_kv("refresh every", f"{REFRESH_SECONDS:.1f}s"),
+        ]
 
-        self.status_panel.set_body(status_text)
+        self.status_panel.set_body("\n".join(status_lines))
         self.spec_panel.set_body(snap.sweep_spec_text)
         self.latest_panel.set_body(snap.latest_metrics_text)
+
         self.coverage_panel.set_lookup(lookup)
         self.coverage_panel.set_selected(self.selected_r, self.selected_alpha)
+
         self.phase_panel.set_values(phase_values)
+        self.phase_panel.set_selected(self.selected_r, self.selected_alpha)
 
         if self.selection.is_row_mode:
             self.detail_panel.show_row_detail(detail)

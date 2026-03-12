@@ -474,3 +474,56 @@ def load_phase_metric(index_path: Path, spec: SweepSpec, metric_col: str) -> dic
         out[(round(float(row.r), 12), round(float(row.alpha), 12))] = float(row.value)
 
     return out
+
+def build_sweep_spec_text(spec: SweepSpec) -> str:
+    def kv(k: str, v: str) -> str:
+        return f"{k:<14} {v:>10}"
+
+    return "\n".join(
+        [
+            kv("r count", f"{len(spec.r_values)}"),
+            kv("r min/max", f"{display_float(min(spec.r_values), 3)} → {display_float(max(spec.r_values), 3)}"),
+            kv("α range", f"{display_float(min(spec.alpha_values), 3)} → {display_float(max(spec.alpha_values), 3)}"),
+            kv("α count", f"{len(spec.alpha_values)}"),
+            kv("seeds / cell", f"{spec.seeds_per_cell}"),
+            kv("intended total", f"{spec.expected_total}"),
+        ]
+    )
+
+def build_latest_metrics_text(df: pd.DataFrame) -> str:
+    if df.empty:
+        return "No data yet."
+
+    latest = df.iloc[-1]
+
+    preferred = [
+        ("r", "r"),
+        ("alpha", "α"),
+        ("seed", "seed"),
+        ("piF_tail", "πF_tail"),
+        ("H_joint_mean", "H_joint"),
+        ("best_corr", "best_corr"),
+        ("corr0", "corr0"),
+        ("delta_r2_freeze", "ΔR²_freeze"),
+        ("delta_r2_entropy", "ΔR²_entropy"),
+        ("K_max", "K_max"),
+    ]
+
+    lines = []
+    for col, label in preferred:
+        if col not in df.columns:
+            continue
+        value = latest[col]
+        if pd.isna(value):
+            continue
+
+        if col in {"r", "alpha"}:
+            rendered = display_float(float(value), 6)
+        elif isinstance(value, float):
+            rendered = f"{value:.6g}"
+        else:
+            rendered = str(value)
+
+        lines.append(f"{label:<14} {rendered:>10}")
+
+    return "\n".join(lines) if lines else "No known metric columns found."
