@@ -1,4 +1,6 @@
 import numpy as np
+from pathlib import Path
+
 
 from pam.tip import InvariantSpec, InvariantPerceptron
 from pam.corpora import texts_C, texts_Cp, texts_Cp2, texts_Cp3, texts_Cp4
