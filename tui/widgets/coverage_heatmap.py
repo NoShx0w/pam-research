@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from rich.text import Text
 from textual.widgets import Static
 
@@ -19,30 +17,23 @@ class CoverageHeatmap(Static):
         self.spec = spec
         self.lookup: dict[tuple[float, float], int] = {}
         self.selected_r: float | None = None
+        self.selected_alpha: float | None = None
+
+    def preferred_height(self) -> int:
+        r_rows = len(self.spec.r_values)
+        return 2 + 2 + r_rows + 2 + 2
 
     def set_lookup(self, lookup: dict[tuple[float, float], int]) -> None:
         self.lookup = lookup
         self.update(self.render_heatmap())
 
-    def set_selected_r(self, r_value: float):
+    def set_selected(self, r_value: float, alpha_value: float) -> None:
         self.selected_r = r_value
+        self.selected_alpha = alpha_value
         self.update(self.render_heatmap())
-
-    def preferred_height(self) -> int:
-        r_rows = len(self.spec.r_values)
-
-        base = (
-            2   # title + blank
-            + 2 # header + separator
-            + r_rows
-            + 2 # legend + grid
-        )
-
-        return base + 2  # small padding
 
     def coverage_style_and_char(self, count: int, total: int) -> tuple[str, str]:
         frac = 0.0 if total <= 0 else count / total
-
         if frac <= 0.0:
             return ("dim", "·")
         if frac < 0.25:
@@ -64,31 +55,36 @@ class CoverageHeatmap(Static):
         text.append("\n\n")
 
         alpha_labels = [display_float(a, 3) for a in self.spec.alpha_values]
-
-        header = f"{'r \\ α':>{row_label_width}}" + "".join(
-            f"{label:>{col_width}}" for label in alpha_labels
-        )
+        header = f"{'r \\ α':>{row_label_width}}" + "".join(f"{label:>{col_width}}" for label in alpha_labels)
         text.append(header)
         text.append("\n")
         text.append("-" * len(header), style="dim")
         text.append("\n")
 
         for r in self.spec.r_values:
+            row_selected = self.selected_r is not None and abs(r - self.selected_r) < 1e-9
 
-            highlight = (self.selected_r is not None and abs(r - self.selected_r) < 1e-9)
+            text.append("▶ ", style="bold yellow" if row_selected else "")
+            label = f"{display_float(r, 3):>5}"
+            text.append(label, style="bold yellow" if row_selected else "")
 
-            if highlight:
-                text.append("▶ ", style="bold yellow")
-            else:
-                text.append("  ")
-
-            label = f"{display_float(r,3):>5}"
-            text.append(label, style="bold yellow" if highlight else "")
             for a in self.spec.alpha_values:
                 n = self.lookup.get((round(r, 12), round(a, 12)), 0)
                 style, char = self.coverage_style_and_char(n, self.spec.seeds_per_cell)
-                cell = f"{char:>{col_width}}"
-                text.append(cell, style=style)
+                cell_selected = (
+                    self.selected_r is not None
+                    and self.selected_alpha is not None
+                    and abs(r - self.selected_r) < 1e-9
+                    and abs(a - self.selected_alpha) < 1e-9
+                )
+
+                if cell_selected:
+                    text.append(f"{char:>{col_width}}", style="reverse bold")
+                elif row_selected:
+                    text.append(f"{char:>{col_width}}", style=f"{style} bold")
+                else:
+                    text.append(f"{char:>{col_width}}", style=style)
+
             text.append("\n")
 
         text.append("\n")
@@ -106,7 +102,6 @@ class CoverageHeatmap(Static):
         text.append("█", style="bold red")
         text.append(" full", style="dim")
         text.append("\n")
-
         text.append(
             f"Grid: {len(self.spec.r_values)} × {len(self.spec.alpha_values)} × {self.spec.seeds_per_cell}",
             style="dim",

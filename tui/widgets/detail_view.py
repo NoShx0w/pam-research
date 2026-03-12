@@ -11,14 +11,14 @@ def display_float(x: float, digits: int = 3) -> str:
     return s.rstrip("0").rstrip(".")
 
 
-def sparkbar(value: float, vmin: float, vmax: float) -> str:
-    blocks = "▁▂▃▄▅▆▇█"
+def sparkbar(value: float, vmin: float, vmax: float, width: int = 6) -> str:
     if vmax <= vmin:
-        return blocks[0]
+        return "█" + " " * (width - 1)
     t = (value - vmin) / (vmax - vmin)
     t = max(0.0, min(1.0, t))
-    idx = min(len(blocks) - 1, int(round(t * (len(blocks) - 1))))
-    return blocks[idx]
+    filled = max(1, int(round(t * width)))
+    filled = min(width, filled)
+    return "█" * filled + " " * (width - filled)
 
 
 class DetailView(Static):
@@ -38,13 +38,13 @@ class DetailView(Static):
         self.payload = row_summary
         self.update(self.render_detail())
 
-    def _build_metric_lines(
-        self,
-        series: list[tuple[float, float | None]],
-        label: str,
-    ) -> list[str]:
-        lines = [label]
+    def show_cell_detail(self, cell_summary: dict) -> None:
+        self.mode = "cell"
+        self.payload = cell_summary
+        self.update(self.render_detail())
 
+    def _build_metric_lines(self, series: list[tuple[float, float | None]], label: str) -> list[str]:
+        lines = [label]
         values = [v for _, v in series if v is not None]
         if not values:
             lines.append("  no data")
@@ -57,39 +57,20 @@ class DetailView(Static):
             if value is None:
                 lines.append(f"{display_float(alpha, 3):>6}  ·")
             else:
-                glyph = sparkbar(float(value), float(vmin), float(vmax))
-                lines.append(f"{display_float(alpha, 3):>6}  {glyph}  {value:.4f}")
+                bar = sparkbar(float(value), float(vmin), float(vmax), width=6)
+                lines.append(f"{display_float(alpha, 3):>6}  {bar} {value:.4f}")
 
         return lines
 
-    def _merge_columns(
-        self,
-        left_lines: list[str],
-        right_lines: list[str],
-        left_width: int = 34,
-        gap: str = "    ",
-    ) -> list[str]:
-        n = max(len(left_lines), len(right_lines))
-        out = []
-
-        for i in range(n):
-            left = left_lines[i] if i < len(left_lines) else ""
-            right = right_lines[i] if i < len(right_lines) else ""
-            out.append(f"{left:<{left_width}}{gap}{right}")
-
-        return out
-
-    def _merge_four_columns(self, cols, width=22, gap="  "):
+    def _merge_four_columns(self, cols, width=24, gap="  "):
         max_rows = max(len(c) for c in cols)
         out = []
-
         for i in range(max_rows):
             row = []
             for c in cols:
                 val = c[i] if i < len(c) else ""
                 row.append(f"{val:<{width}}")
             out.append(gap.join(row))
-
         return out
 
     def render_empty(self) -> Text:
@@ -97,8 +78,6 @@ class DetailView(Static):
         text.append("Detail view", style="bold")
         text.append("\n\n")
         text.append("No selection yet.", style="dim")
-        text.append("\n")
-        text.append("Use ↑ and ↓ to inspect fixed-r α sweeps.", style="dim")
         return text
 
     def render_row_detail(self) -> Text:
@@ -110,7 +89,7 @@ class DetailView(Static):
         coverage = row_summary.get("coverage", {})
         alpha_values = row_summary.get("alpha_values", self.spec.alpha_values)
 
-        text.append(f"Detail: r = {display_float(r_value, 3)}", style="bold")
+        text.append(f"Detail: row mode   r = {display_float(r_value, 3)}", style="bold")
         text.append("\n\n")
 
         completed_cells = coverage.get("completed_cells", 0)
@@ -119,46 +98,11 @@ class DetailView(Static):
         max_seed_count = coverage.get("max_seed_count", 0)
 
         text.append(
-            f"α cells observed: {completed_cells} / {total_cells}",
-            style="cyan",
-        )
-        text.append("    ")
-        text.append(
+            f"α cells observed: {completed_cells} / {total_cells}    "
             f"seed coverage: min {min_seed_count}   max {max_seed_count}",
             style="cyan",
         )
         text.append("\n\n")
-
-        left_top = self._build_metric_lines(
-            metrics.get("piF_tail_mean", []),
-            "πF_tail vs α",
-        )
-        right_top = self._build_metric_lines(
-            metrics.get("H_joint_mean_mean", []),
-            "H_joint vs α",
-        )
-        left_bottom = self._build_metric_lines(
-            metrics.get("best_corr_mean", []),
-            "best_corr vs α",
-        )
-        right_bottom = self._build_metric_lines(
-            metrics.get("delta_r2_freeze_mean", []),
-            "ΔR²_freeze vs α",
-        )
-        """
-        top_block = self._merge_columns(left_top, right_top)
-        bottom_block = self._merge_columns(left_bottom, right_bottom)
-
-        for line in top_block:
-            text.append(line)
-            text.append("\n")
-
-        text.append("\n")
-
-        for line in bottom_block:
-            text.append(line)
-            text.append("\n")
-        """
 
         columns = [
             self._build_metric_lines(metrics.get("piF_tail_mean", []), "πF_tail"),
@@ -167,18 +111,71 @@ class DetailView(Static):
             self._build_metric_lines(metrics.get("delta_r2_freeze_mean", []), "ΔR²_freeze"),
         ]
 
-        lines = self._merge_four_columns(columns)
-
-        for line in lines:
+        for line in self._merge_four_columns(columns):
             text.append(line)
             text.append("\n")
 
+        return text
+
+    def render_cell_detail(self) -> Text:
+        text = Text()
+        cell = self.payload
+
+        r_value = cell.get("r")
+        alpha_value = cell.get("alpha")
+        seed_count = cell.get("seed_count", 0)
+        seed_target = cell.get("seed_target", self.spec.seeds_per_cell)
+        metrics = cell.get("metrics", {})
+        per_seed = cell.get("per_seed", [])
+
+        text.append(
+            f"Detail: cell mode   r = {display_float(r_value, 3)}   α = {display_float(alpha_value, 3)}",
+            style="bold",
+        )
+        text.append("\n\n")
+        text.append(f"seed coverage: {seed_count} / {seed_target}", style="cyan")
+        text.append("\n\n")
+
+        metric_order = [
+            ("piF_tail", "πF_tail"),
+            ("H_joint_mean", "H_joint"),
+            ("best_corr", "best_corr"),
+            ("corr0", "corr0"),
+            ("delta_r2_freeze", "ΔR²_freeze"),
+            ("delta_r2_entropy", "ΔR²_entropy"),
+            ("K_max", "K_max"),
+        ]
+
+        text.append("cell means\n", style="bold")
+        for key, label in metric_order:
+            value = metrics.get(key)
+            if value is not None:
+                text.append(f"{label:<14} {value:.6g}\n")
+
+        if per_seed:
+            text.append("\nper-seed\n", style="bold")
+            text.append("seed   πF_tail   H_joint   best_corr   ΔR²_freeze\n", style="dim")
+            for row in per_seed[:12]:
+                seed = row.get("seed", "")
+                pif = row.get("piF_tail")
+                hj = row.get("H_joint_mean")
+                bc = row.get("best_corr")
+                dr2 = row.get("delta_r2_freeze")
+                text.append(
+                    f"{str(seed):<6} "
+                    f"{'' if pif is None else f'{pif:.4f}':<9} "
+                    f"{'' if hj is None else f'{hj:.4f}':<9} "
+                    f"{'' if bc is None else f'{bc:.4f}':<11} "
+                    f"{'' if dr2 is None else f'{dr2:.4f}':<9}\n"
+                )
 
         return text
 
     def render_detail(self) -> Text:
         if self.mode == "row":
             return self.render_row_detail()
+        if self.mode == "cell":
+            return self.render_cell_detail()
         return self.render_empty()
 
     def on_mount(self) -> None:

@@ -317,3 +317,84 @@ def load_row_detail(index_path: Path, spec: SweepSpec, r_value: float) -> dict:
         return build_row_detail(pd.DataFrame(), spec, r_value)
 
     return build_row_detail(df, spec, r_value)
+
+def build_cell_detail(df: pd.DataFrame, spec: SweepSpec, r_value: float, alpha_value: float) -> dict:
+    if df.empty or not {"r", "alpha"}.issubset(df.columns):
+        return {
+            "r": r_value,
+            "alpha": alpha_value,
+            "seed_count": 0,
+            "seed_target": spec.seeds_per_cell,
+            "metrics": {},
+            "per_seed": [],
+        }
+
+    work = _safe_numeric(
+        df,
+        [
+            "r",
+            "alpha",
+            "seed",
+            "piF_tail",
+            "H_joint_mean",
+            "best_corr",
+            "corr0",
+            "delta_r2_freeze",
+            "delta_r2_entropy",
+            "K_max",
+        ],
+    ).dropna(subset=["r", "alpha"])
+
+    cell_df = work[
+        (work["r"].round(12) == round(float(r_value), 12))
+        & (work["alpha"].round(12) == round(float(alpha_value), 12))
+    ].copy()
+
+    if "seed" in cell_df.columns:
+        seed_count = int(cell_df["seed"].nunique())
+    else:
+        seed_count = len(cell_df)
+
+    metric_cols = [
+        "piF_tail",
+        "H_joint_mean",
+        "best_corr",
+        "corr0",
+        "delta_r2_freeze",
+        "delta_r2_entropy",
+        "K_max",
+    ]
+
+    metrics = {}
+    for col in metric_cols:
+        if col in cell_df.columns:
+            metrics[col] = _mean_or_none(cell_df[col])
+
+    per_seed = []
+    cols = ["seed"] + [c for c in metric_cols if c in cell_df.columns]
+    if cols:
+        subset = cell_df[cols].copy()
+        if "seed" in subset.columns:
+            subset = subset.sort_values("seed")
+        per_seed = subset.to_dict(orient="records")
+
+    return {
+        "r": r_value,
+        "alpha": alpha_value,
+        "seed_count": seed_count,
+        "seed_target": spec.seeds_per_cell,
+        "metrics": metrics,
+        "per_seed": per_seed,
+    }
+
+
+def load_cell_detail(index_path: Path, spec: SweepSpec, r_value: float, alpha_value: float) -> dict:
+    if not index_path.exists():
+        return build_cell_detail(pd.DataFrame(), spec, r_value, alpha_value)
+
+    try:
+        df = pd.read_csv(index_path)
+    except Exception:
+        return build_cell_detail(pd.DataFrame(), spec, r_value, alpha_value)
+
+    return build_cell_detail(df, spec, r_value, alpha_value)
