@@ -53,7 +53,7 @@ def run_one_seed(*, seed: int, texts0, tip, mix_inj, params: RunParams, alpha: f
     params_seed = type(params)(
         alpha=params.alpha, r=params.r, seed=seed, iters=params.iters,
         anchor_set_size=params.anchor_set_size,
-        store_snapshots=False, store_every=1
+        store_snapshots=True, store_every=1
     )
 
     result = run_quench(
@@ -162,7 +162,7 @@ def run_one_summary(
     params: RunParams,
     alpha: float,
     W: int,
-    save_trajectory: bool = False,
+    save_trajectory: bool = True,
     trajectory_path: str | None = None,
 ):
     result = run_quench(
