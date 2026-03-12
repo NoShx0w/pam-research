@@ -123,7 +123,7 @@ def run_one_job(job):
         seed=seed,
         iters=iters,
         anchor_set_size=10,
-        store_snapshots=False,
+        store_snapshots=True,
         store_every=1,
     )
 
