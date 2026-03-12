@@ -13,6 +13,7 @@ from tui.controllers.selection import SelectionState
 from tui.data_loader import (
     load_cell_detail,
     load_or_create_sweep_spec,
+    load_phase_metric,
     load_row_detail,
     load_snapshot,
     load_trajectory_detail,
@@ -20,7 +21,7 @@ from tui.data_loader import (
 from tui.widgets.coverage_heatmap import CoverageHeatmap
 from tui.widgets.detail_view import DetailView
 from tui.widgets.panel import Panel
-
+from tui.widgets.phase_diagram import PhaseDiagram
 
 class PAMTUI(App):
     BINDINGS = [
@@ -45,6 +46,7 @@ class PAMTUI(App):
         overflow-y: auto;
     }
     #coverage { height: auto; }
+    #phase { height: auto; }
     #detail { height: 1fr; }
     #latest, #status, #spec { height: auto; }
     """
@@ -78,8 +80,10 @@ class PAMTUI(App):
 
             with Vertical(id="right"):
                 self.coverage_panel = CoverageHeatmap(spec=self.sweep_spec, id="coverage")
+                self.phase_panel = PhaseDiagram(spec=self.sweep_spec, metric_name="piF_tail_mean", id="phase")
                 self.detail_panel = DetailView(spec=self.sweep_spec, id="detail")
                 yield self.coverage_panel
+                yield self.phase_panel
                 yield self.detail_panel
 
         yield Footer()
@@ -117,7 +121,7 @@ class PAMTUI(App):
 
     def refresh_data(self) -> None:
         snap, lookup = load_snapshot(INDEX_PATH, self.sweep_spec)
-
+        phase_values = load_phase_metric(INDEX_PATH, self.sweep_spec, "piF_tail")
         if self.selection.is_row_mode:
             detail = load_row_detail(INDEX_PATH, self.sweep_spec, self.selected_r)
         elif self.selection.is_cell_mode:
@@ -151,6 +155,7 @@ class PAMTUI(App):
         self.latest_panel.set_body(snap.latest_metrics_text)
         self.coverage_panel.set_lookup(lookup)
         self.coverage_panel.set_selected(self.selected_r, self.selected_alpha)
+        self.phase_panel.set_values(phase_values)
 
         if self.selection.is_row_mode:
             self.detail_panel.show_row_detail(detail)

@@ -448,3 +448,29 @@ def load_trajectory_detail(index_path: Path, r_value: float, alpha_value: float)
         "seed": seed,
         "series": series,
     }
+
+def load_phase_metric(index_path: Path, spec: SweepSpec, metric_col: str) -> dict[tuple[float, float], float | None]:
+    if not index_path.exists():
+        return {}
+
+    try:
+        df = pd.read_csv(index_path)
+    except Exception:
+        return {}
+
+    if df.empty or not {"r", "alpha", metric_col}.issubset(df.columns):
+        return {}
+
+    work = _safe_numeric(df, ["r", "alpha", metric_col]).dropna(subset=["r", "alpha"])
+
+    grouped = (
+        work.groupby(["r", "alpha"])[metric_col]
+        .mean()
+        .reset_index(name="value")
+    )
+
+    out: dict[tuple[float, float], float | None] = {}
+    for row in grouped.itertuples(index=False):
+        out[(round(float(row.r), 12), round(float(row.alpha), 12))] = float(row.value)
+
+    return out
