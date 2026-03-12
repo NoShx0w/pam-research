@@ -398,3 +398,52 @@ def load_cell_detail(index_path: Path, spec: SweepSpec, r_value: float, alpha_va
         return build_cell_detail(pd.DataFrame(), spec, r_value, alpha_value)
 
     return build_cell_detail(df, spec, r_value, alpha_value)
+
+
+def build_trajectory_filename(corpus: str, r: float, alpha: float, seed: int) -> str:
+    return f"traj_{corpus}_r{r:.3f}_a{alpha:.6f}_seed{seed}.npz"
+
+
+def load_trajectory_detail(index_path: Path, r_value: float, alpha_value: float) -> dict:
+    if not index_path.exists():
+        return {"r": r_value, "alpha": alpha_value, "seed": None, "series": {}}
+
+    try:
+        df = pd.read_csv(index_path)
+    except Exception:
+        return {"r": r_value, "alpha": alpha_value, "seed": None, "series": {}}
+
+    work = _safe_numeric(df, ["r", "alpha", "seed"]).dropna(subset=["r", "alpha"])
+    cell_df = work[
+        (work["r"].round(12) == round(float(r_value), 12))
+        & (work["alpha"].round(12) == round(float(alpha_value), 12))
+    ].copy()
+
+    if cell_df.empty:
+        return {"r": r_value, "alpha": alpha_value, "seed": None, "series": {}}
+
+    cell_df = cell_df.sort_values("seed")
+    row = cell_df.iloc[0]
+    corpus = row["corpus"]
+    seed = int(row["seed"])
+
+    traj_path = index_path.parent / "trajectories" / build_trajectory_filename(
+        corpus, float(r_value), float(alpha_value), seed
+    )
+
+    if not traj_path.exists():
+        return {"r": r_value, "alpha": alpha_value, "seed": seed, "series": {}}
+
+    data = np.load(traj_path)
+
+    series = {}
+    for key in ["F_raw", "H_joint", "K", "pi", "Hj_sm", "corrs", "lags"]:
+        if key in data:
+            series[key] = data[key]
+
+    return {
+        "r": r_value,
+        "alpha": alpha_value,
+        "seed": seed,
+        "series": series,
+    }

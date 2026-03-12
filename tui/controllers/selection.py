@@ -9,7 +9,7 @@ from tui.models import SweepSpec
 class SelectionState:
     r_index: int = 0
     alpha_index: int = 0
-    mode: str = "row"  # "row" or "cell"
+    mode: str = "row"  # row, cell, trajectory
 
     @property
     def is_row_mode(self) -> bool:
@@ -18,6 +18,10 @@ class SelectionState:
     @property
     def is_cell_mode(self) -> bool:
         return self.mode == "cell"
+
+    @property
+    def is_trajectory_mode(self) -> bool:
+        return self.mode == "trajectory"
 
     def selected_r(self, spec: SweepSpec) -> float:
         return spec.r_values[self.r_index]
@@ -43,3 +47,6 @@ class SelectionState:
 
     def toggle_mode(self) -> None:
         self.mode = "cell" if self.mode == "row" else "row"
+
+    def set_trajectory_mode(self) -> None:
+        self.mode = "trajectory"

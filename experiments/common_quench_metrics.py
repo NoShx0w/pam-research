@@ -53,7 +53,7 @@ def run_one_seed(*, seed: int, texts0, tip, mix_inj, params: RunParams, alpha: f
     params_seed = type(params)(
         alpha=params.alpha, r=params.r, seed=seed, iters=params.iters,
         anchor_set_size=params.anchor_set_size,
-        store_snapshots=True, store_every=1
+        store_snapshots=False, store_every=1
     )
 
     result = run_quench(
@@ -153,13 +153,18 @@ def run_one(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W: int):
         "deltas_MI": deltas_MI,
         "lag": {"best_lag": int(best_lag), "best_corr": float(best_corr)},
     }
-
-def run_one_summary(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W: int):
-    """
-    Lightweight batch path:
-    computes only summary observables needed for index.csv / phase diagrams.
-    Returns a compact dict suitable for multiprocessing.
-    """
+   
+def run_one_summary(
+    *,
+    texts0,
+    tip,
+    mix_inj,
+    params: RunParams,
+    alpha: float,
+    W: int,
+    save_trajectory: bool = False,
+    trajectory_path: str | None = None,
+):
     result = run_quench(
         texts0=texts0,
         tip=tip,
@@ -173,7 +178,6 @@ def run_one_summary(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W:
     corp_snaps = result.corp_snapshots
     states = result.states
 
-    # --- entropy reports
     entropy_reports = compute_entropy_series(
         corp_snaps,
         tip,
@@ -183,8 +187,6 @@ def run_one_summary(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W:
 
     H_joint = np.array([r.H_joint for r in entropy_reports], dtype=float)
     K = np.array([r.K for r in entropy_reports], dtype=float)
-
-    # --- raw freeze series
     F_raw = np.array([1.0 if s == "F" else 0.0 for s in states], dtype=float)
 
     n = min(len(F_raw), len(H_joint))
@@ -192,10 +194,8 @@ def run_one_summary(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W:
     H_joint = H_joint[:n]
     K = K[:n]
 
-    # clamp tiny negative numerical noise
     H_joint = np.maximum(H_joint, 0.0)
 
-    # --- summary observables
     piF_mean = float(np.mean(F_raw))
 
     tail_frac = 0.2
@@ -210,10 +210,8 @@ def run_one_summary(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W:
     K_min = float(np.min(K))
     K_max = float(np.max(K))
 
-    # --- minimal dynamical regression
     deltas = granger_delta_r2(F_raw, H_joint)
 
-    # --- lag correlation on smoothed series
     pi = sliding_piF(states, W=W)
     Hj_sm = smooth(H_joint, W=W)
 
@@ -222,9 +220,22 @@ def run_one_summary(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W:
     Hj_sm = Hj_sm[:m]
 
     lags, corrs, best_lag, best_corr = lag_corr(pi, Hj_sm, max_lag=80)
-
     idx0 = int(np.where(np.array(lags) == 0)[0][0])
     corr0 = float(corrs[idx0])
+
+    if save_trajectory and trajectory_path:
+        path = Path(trajectory_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(
+            path,
+            F_raw=F_raw,
+            H_joint=H_joint,
+            K=K,
+            pi=pi,
+            Hj_sm=Hj_sm,
+            lags=np.asarray(lags, dtype=int),
+            corrs=np.asarray(corrs, dtype=float),
+        )
 
     return {
         "piF_mean": piF_mean,
@@ -240,4 +251,4 @@ def run_one_summary(*, texts0, tip, mix_inj, params: RunParams, alpha: float, W:
         "delta_r2_entropy": float(deltas["entropy_delta_r2"]),
         "best_lag": int(best_lag),
         "best_corr": float(best_corr),
-    }
+    }}

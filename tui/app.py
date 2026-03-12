@@ -15,6 +15,7 @@ from tui.data_loader import (
     load_or_create_sweep_spec,
     load_row_detail,
     load_snapshot,
+    load_trajectory_detail,
 )
 from tui.widgets.coverage_heatmap import CoverageHeatmap
 from tui.widgets.detail_view import DetailView
@@ -28,26 +29,14 @@ class PAMTUI(App):
         Binding("left", "prev_alpha", "Prev α"),
         Binding("right", "next_alpha", "Next α"),
         Binding("enter", "toggle_mode", "Toggle mode"),
+        Binding("t", "trajectory_mode", "Trajectory"),
     ]
 
     CSS = """
-    Screen {
-        layout: vertical;
-    }
-
-    #main {
-        height: 1fr;
-    }
-
-    #left {
-        width: 42;
-        min-width: 40;
-    }
-
-    #right {
-        width: 1fr;
-    }
-
+    Screen { layout: vertical; }
+    #main { height: 1fr; }
+    #left { width: 42; min-width: 40; }
+    #right { width: 1fr; }
     Panel, CoverageHeatmap, DetailView {
         border: round $primary;
         padding: 1 2;
@@ -55,26 +44,9 @@ class PAMTUI(App):
         overflow-x: hidden;
         overflow-y: auto;
     }
-
-    #coverage {
-        height: auto;
-    }
-
-    #detail {
-        height: 1fr;
-    }
-
-    #latest {
-        height: auto;
-    }
-
-    #status {
-        height: auto;
-    }
-
-    #spec {
-        height: auto;
-    }
+    #coverage { height: auto; }
+    #detail { height: 1fr; }
+    #latest, #status, #spec { height: auto; }
     """
 
     refresh_started_at = reactive(0.0)
@@ -139,22 +111,23 @@ class PAMTUI(App):
         self.selection.toggle_mode()
         self.refresh_data()
 
+    def action_trajectory_mode(self) -> None:
+        self.selection.set_trajectory_mode()
+        self.refresh_data()
+
     def refresh_data(self) -> None:
         snap, lookup = load_snapshot(INDEX_PATH, self.sweep_spec)
 
         if self.selection.is_row_mode:
-            row_detail = load_row_detail(INDEX_PATH, self.sweep_spec, self.selected_r)
+            detail = load_row_detail(INDEX_PATH, self.sweep_spec, self.selected_r)
+        elif self.selection.is_cell_mode:
+            detail = load_cell_detail(INDEX_PATH, self.sweep_spec, self.selected_r, self.selected_alpha)
         else:
-            cell_detail = load_cell_detail(
-                INDEX_PATH,
-                self.sweep_spec,
-                self.selected_r,
-                self.selected_alpha,
-            )
+            detail = load_trajectory_detail(INDEX_PATH, self.selected_r, self.selected_alpha)
 
         elapsed = time() - self.refresh_started_at
         qph = snap.completed / elapsed * 3600.0 if elapsed > 0 else 0.0
-        mode_label = "row" if self.selection.is_row_mode else "cell"
+        mode_label = self.selection.mode
 
         status_text = (
             f"index path      {INDEX_PATH}\n"
@@ -166,7 +139,9 @@ class PAMTUI(App):
             f"mode            {mode_label}\n"
             f"selected r      {self.selected_r:.3f}\n"
             f"selected α      {self.selected_alpha:.3f}\n"
-            f"controls        ↑↓ r   ←→ α   enter mode\n"
+            f"controls        ↑↓ r   ←→ α\n"
+            f"enter           row/cell toggle\n"
+            f"t               trajectory mode\n"
             f"last modified   {snap.last_modified}\n"
             f"refresh every   {REFRESH_SECONDS:.1f}s"
         )
@@ -178,9 +153,11 @@ class PAMTUI(App):
         self.coverage_panel.set_selected(self.selected_r, self.selected_alpha)
 
         if self.selection.is_row_mode:
-            self.detail_panel.show_row_detail(row_detail)
+            self.detail_panel.show_row_detail(detail)
+        elif self.selection.is_cell_mode:
+            self.detail_panel.show_cell_detail(detail)
         else:
-            self.detail_panel.show_cell_detail(cell_detail)
+            self.detail_panel.show_trajectory_detail(detail)
 
 
 if __name__ == "__main__":
