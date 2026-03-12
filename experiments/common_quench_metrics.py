@@ -251,4 +251,4 @@ def run_one_summary(
         "delta_r2_entropy": float(deltas["entropy_delta_r2"]),
         "best_lag": int(best_lag),
         "best_corr": float(best_corr),
-    }}
+    }
