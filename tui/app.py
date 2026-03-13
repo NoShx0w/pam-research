@@ -204,15 +204,13 @@ class PAMTUI(App):
         else:
             self.detail_panel.show_trajectory_detail(detail)
 
-    async def action_save_screenshot(self) -> None:
+    def action_save_screenshot(self) -> None:
         screenshots_dir = Path("tui/screenshots")
         screenshots_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"obs_r{self.selected_r:.2f}_a{self.selected_alpha:.3f}_{timestamp}.svg"
         path = screenshots_dir / filename
-
-        await self.save_screenshot(str(path))
-
+        self.save_screenshot(str(path))
         self.notify(f"Screenshot saved → {path}")
 
 
