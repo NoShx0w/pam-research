@@ -59,7 +59,7 @@ class PhaseDiagram(Static):
         for a in self.spec.alpha_values:
             label = display_float(a, 3)
             is_selected = self.selected_alpha is not None and abs(a - self.selected_alpha) < 1e-9
-            header = f"[ {label} ]" if is_selected else label.center(col_width)
+            header = f"[{label}]" if is_selected else label.center(col_width)
             text.append(f"{header:>{col_width}}", style="bold yellow" if is_selected else "")
         text.append("\n")
 
@@ -70,7 +70,7 @@ class PhaseDiagram(Static):
         for r in self.spec.r_values:
             row_selected = self.selected_r is not None and abs(r - self.selected_r) < 1e-9
 
-            text.append("▶ " if row_selected else "  ", style="bold orange3" if row_selected else "")
+            text.append("▸ " if row_selected else "  ", style="bold orange3" if row_selected else "")
             label = f"{display_float(r, 3):>5}"
             text.append(label, style="bold orange3" if row_selected else "")
 
@@ -86,7 +86,7 @@ class PhaseDiagram(Static):
                 )
 
                 if cell_selected:
-                    cell = f"→{char}←".center(col_width)
+                    cell = f"→█←".center(col_width)
                     text.append(cell, style="bold white")
                 else:
                     cell = char.center(col_width)

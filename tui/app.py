@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from time import time
+from pathlib import Path
+from datetime import datetime
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -32,6 +34,7 @@ class PAMTUI(App):
         Binding("right", "next_alpha", "Next α"),
         Binding("enter", "toggle_mode", "Toggle mode"),
         Binding("t", "trajectory_mode", "Trajectory"),
+        Binding("s", "save_screenshot", "Save SVG"),
     ]
 
     CSS = """
@@ -200,6 +203,17 @@ class PAMTUI(App):
             self.detail_panel.show_cell_detail(detail)
         else:
             self.detail_panel.show_trajectory_detail(detail)
+
+    async def action_save_screenshot(self) -> None:
+        screenshots_dir = Path("tui/screenshots")
+        screenshots_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"obs_r{self.selected_r:.2f}_a{self.selected_alpha:.3f}_{timestamp}.svg"
+        path = screenshots_dir / filename
+
+        await self.save_screenshot(str(path))
+
+        self.notify(f"Screenshot saved → {path}")
 
 
 if __name__ == "__main__":
