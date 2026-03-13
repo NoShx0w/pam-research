@@ -8,3 +8,5 @@ scikit-learn
 # plotting and TUI
 PyQT6
 textual
+cairosvg
+pillow
