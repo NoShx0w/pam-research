@@ -1,312 +1,312 @@
-# PAM Architecture
+PAM Observatory Architecture
 
-This document explains the conceptual architecture of the PAM research framework.
+This document describes the structure and data flow of the PAM Observatory system.
 
-PAM is designed to study **recursive language dynamics** as a dynamical system. The framework evolves a corpus under controlled mutation and anchoring dynamics and measures macroscopic observables such as entropy and freeze occupancy.
+The repository is organized around three core layers:
+	1.	Experiment Engine
+	2.	Observatory Interface
+	3.	Visualization Tools
 
-The system consists of four major layers:
-
-1. Invariant detection (TIP)
-2. Corpus dynamics (PAM engine)
-3. Macroscopic metrics
-4. Experiment runners
-
----
-
-# Conceptual Pipeline
-
-```mermaid
-flowchart LR
-
-A[Initial Corpus] --> B[PAM Dynamics Engine]
-
-B --> C[Corpus Snapshots]
-
-C --> D1[Entropy Metrics]
-C --> D2[Macrostate Analysis]
-C --> D3[TIM Trajectory Analysis]
-
-D1 --> E[Phase Observables]
-D2 --> E
-D3 --> E
-
-E --> F[Experiments / Phase Diagram]
-```
-
-
-The engine evolves the corpus while the metrics layer observes macroscopic behavior.
-
-Core Components
-
-TIP — Text Invariant Perceptron
-
-TIP detects semantic invariant signatures in texts.
-
-Each text is mapped to a boolean signature vector:
-
-```code
-{
-  reflective: True,
-  coherent: True,
-  playful_serious: False,
-  geometric: True
-}
-```
-
-These signatures allow the system to measure structural properties of the evolving corpus.
-
-Responsibilities:
-	•	detect invariant signatures
-	•	produce signature vectors
-	•	support entropy and mutation filtering
-
-Source:
-```code
-src/pam/tip.py
-```
+These layers communicate through simple, durable data artifacts.
 
 ⸻
 
-TIM — Trajectory Invariance Metric
+System Overview
 
-TIM measures semantic trajectory stability.
+exp_batch.py
+      │
+      │ runs parameter sweeps
+      ▼
+outputs/index.csv
+      │
+      │ live experiment state
+      ▼
+PAM Observatory (TUI)
+      │
+      ├─ screenshots
+      │
+      ▼
+tools/phase_movie.py
 
-A text is perturbed along a time axis:
-	•	truncation
-	•	sentence removal
-	•	resampling
-
-The metric measures how invariant the semantic signature remains under these transformations.
-
-TIM provides a measure of structural robustness.
-
-Source:
-```code
-src/pam/tim.py
-```
-
-⸻
-
-PAM Dynamics Engine
-
-The engine evolves the corpus under mixture dynamics.
-
-At each iteration:
-	1.	A subset of the corpus is replaced.
-	2.	Replacement samples are generated via:
-	•	anchor mutation
-	•	self-resampling
-	3.	Anchor texts are injected with probability α.
-
-Control parameters:
-
-```code
-r  = replacement fraction
-α  = anchor injection probability
-```
-
-This creates a discrete-time dynamical system over corpus states.
-
-Source:
-```code
-src/pam/dynamics/
-src/pam/engine.py
-```
-⸻
-
-Mutation System
-
-Mutation operators introduce controlled variation.
-
-Examples:
-	•	synonym substitution
-	•	clause shuffling
-	•	sentence reordering
-	•	rhetorical lens toggles
-
-Mutations are designed to preserve semantic structure while introducing variability.
-
-Source:
-```code
-src/pam/injectors.py
-src/pam/mutation.py
-```
+The architecture intentionally uses files as interfaces between layers. This keeps the experiment runner, observatory, and analysis tools loosely coupled.
 
 ⸻
 
-Macroscopic Metrics
+1. Experiment Engine
 
-Metrics observe the emergent behavior of the system.
+The experiment engine is responsible for executing parameter sweeps.
 
-Entropy
+Primary entry point:
 
-Measures diversity of invariant signatures.
+exp_batch.py
 
-Two variants:
+Each experiment run (called a quench) evolves a recursive language system for a fixed number of iterations.
 
-• Marginal entropy
-• Joint signature entropy
+Parameter sweeps explore combinations of:
 
-Source:
-```code
-src/pam/metrics/entropy.py
-```
+r      reinforcement strength
+α      mixture rate
+seed   stochastic initialization
 
-⸻
+Typical sweep size:
 
-Macrostate Detection
+r values     = 5
+α values     = 15
+seeds        = 10
+total runs   = 750
 
-Microstructure analysis identifies:
-	•	boundary density
-	•	grain size
-
-These features classify windows into macrostates:
-```code
-F = Freeze
-M = Mixed
-E = Entropy
-```
-
-Freeze occupancy:
-```code
-π_F
-```
-Source:
-```code
-src/pam/metrics/macrostate.py
-```
 
 ⸻
 
-Lag Correlation
+Execution Model
 
-Measures temporal relationship between observables.
+Experiments are executed in parallel using a bounded process pool.
+
+ProcessPoolExecutor
+
+Each worker performs:
+
+run_one_job()
+      │
+      ▼
+run_one_summary()
+      │
+      ▼
+compute summary metrics
+      │
+      ▼
+append row to index.csv
+
+Workers operate independently and return only compact summary data.
+
+⸻
+
+2. Data Interface
+
+The central data artifact is:
+
+outputs/index.csv
+
+Each row represents one completed quench.
+
+Example columns:
+
+corpus
+r
+alpha
+seed
+iters
+W
+
+piF_mean
+piF_tail
+H_joint_mean
+var_H_joint
+corr0
+best_corr
+delta_r2_freeze
+delta_r2_entropy
+K_max
+
+This file serves as the live experiment state.
+
+Important properties:
+	•	append-only
+	•	human readable
+	•	restart-safe
+	•	suitable for streaming analysis
+
+⸻
+
+3. Trajectory Data
+
+In addition to summary metrics, the experiment engine stores lightweight trajectory files.
+
+outputs/trajectories/
+
+Each trajectory file contains time-series data for a single run.
+
+Example contents:
+
+F_raw      freeze state over time
+H_joint    entropy series
+K          cluster count series
+
+These files allow detailed inspection of system dynamics.
+
+⸻
+
+4. PAM Observatory (TUI)
+
+The observatory is a terminal interface for monitoring experiments.
+
+Entry point:
+
+tui/app.py
+
+The interface reads index.csv and updates automatically.
+
+The observatory is composed of modular widgets.
+
+tui/widgets
+
+
+⸻
+
+Observatory Layers
+
+The interface is organized into three conceptual layers.
+
+Coverage
+
+Displays which parameter combinations have been executed.
+
+CoverageHeatmap
+
+Each cell shows seed coverage for a given (r, α) pair.
+
+⸻
+
+Phase Diagram
+
+Displays aggregated observables across parameter space.
+
+PhaseDiagram
+
+Each cell represents the mean value of a chosen metric.
+
+Default metric:
+
+πF_tail
+
+
+⸻
+
+Detail View
+
+Displays local information for the selected parameter configuration.
+
+Three modes:
+
+row view
+cell view
+trajectory view
+
+Trajectory view renders ASCII plots of the time series.
+
+⸻
+
+5. Selection Model
+
+Navigation is handled by a small state controller.
+
+tui/controllers/selection.py
+
+The selection state tracks:
+
+selected r
+selected α
+view mode
+
+Navigation controls:
+
+↑ ↓    change r
+← →    change α
+Enter  toggle row/cell
+T      trajectory view
+
+
+⸻
+
+6. Screenshot System
+
+The observatory can export vector screenshots.
+
+Key binding:
+
+S
+
+Screenshots are saved to:
+
+tui/screenshots/
+
+Example filename:
+
+obs_r0.20_a0.039_2026-03-13_11-01-53.svg
+
+SVG format preserves the exact terminal layout and is ideal for documentation.
+
+⸻
+
+7. Visualization Tools
+
+The repository includes tools for converting observatory artifacts into visualizations.
 
 Example:
-```code
-corr(π_F(t), H(t + lag))
-```
-Used to detect dynamic coupling.
 
-Source:
-```code
-src/pam/metrics/lag.py
-```
+tools/phase_movie.py
+
+This tool converts screenshot sequences into time-lapse movies showing the phase diagram emerging as experiments complete.
 
 ⸻
 
-Minimal Dynamical Models
+8. Design Principles
 
-Two minimal autoregressive models are fitted:
-```code
-F_{t+1} = a + bF_t + cH_t
-H_{t+1} = d + eH_t + fF_t
-```
-These models test cross-variable predictive power.
+The system follows several architectural principles.
 
-Source:
-```code
-src/pam/metrics/regression.py
-```
+File-Based Interfaces
 
-⸻
+Components communicate via files rather than in-memory APIs.
 
-Experiment Layer
-
-Experiments orchestrate runs and parameter sweeps.
-
-Examples:
-```code
-experiments/exp_quench.py
-experiments/exp_alpha_sweep.py
-experiments/exp_batch.py
-```
-
-Experiments typically perform:
-	1.	corpus evolution
-	2.	macrostate extraction
-	3.	entropy analysis
-	4.	regression tests
-	5.	logging results
+Benefits:
+	•	robustness
+	•	easy debugging
+	•	simple tooling
+	•	reproducibility
 
 ⸻
 
-Data Logging
+Incremental Computation
 
-Experiments produce two output types.
+Experiments append results as they finish.
 
-Deep Runs
-
-Detailed run data:
-```code
-outputs/deep_*.json
-```
-
-Contains:
-	•	entropy time series
-	•	macrostate sequence
-	•	regression results
-	•	lag correlations
+Benefits:
+	•	safe interruption
+	•	restart capability
+	•	live observability
 
 ⸻
 
-Sweep Index
+Loose Coupling
 
-Summary of runs:
-```code
-outputs/index.csv
-```
+The experiment engine and observatory are independent.
 
-Used to aggregate results across seeds and parameter sweeps.
+The observatory can analyze past runs without modification.
 
 ⸻
 
-Research Workflow
+9. Future Architecture
 
-Typical research workflow:
+Planned extensions include:
 
-```mermaid
-flowchart TD
+phase boundary detection
+direct movie generation from index.csv
+cluster-scale parameter sweeps
+interactive trajectory animation
+information-geometric visualizations
 
-A[Define experiment parameters] --> B[Run batch experiments]
-
-B --> C[Log outputs]
-
-C --> D[Analyze index.csv]
-
-D --> E[Generate phase diagrams]
-
-E --> F[Interpret regimes]
-```
+These additions will build on the same file-based architecture.
 
 ⸻
 
-Phase Discovery Goal
+Summary
 
-The goal of the PAM framework is to map phase structure in recursive language systems.
+The PAM Observatory architecture is designed to make experimental phase structure visible while experiments are running.
 
-Parameter space:
-```code
-(r, α)
-```
+The combination of:
 
-Primary observables:
-```code
-π_F  = freeze occupancy
-H    = signature entropy
-K    = microstructure complexity
-ΔR²  = causal coupling
-```
+parameter sweeps
+live observatory interface
+visual artifact generation
 
-The system exhibits distinct regimes depending on these parameters.
-
-Mapping these regimes produces a phase diagram of recursive language dynamics.
-
-⸻
-
-Repository
-
-Code and experiments:
-
-https://github.com/NoShx0w/pam-research
-
+creates a flexible environment for exploring recursive language systems and their emergent dynamics.

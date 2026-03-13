@@ -1,398 +1,182 @@
-![License: MIT](https://img.shields.io/badge/license-MIT-blue)
-![Python](https://img.shields.io/badge/python-3.10+-blue)
+PAM Observatory
 
-# PAM – Phase Analysis of Meaning
+Exploring phase structure in recursive language systems
 
-Experimental framework for studying **phase transitions in invariant-driven text dynamics**.
+PAM Observatory is a research instrument for studying the dynamics of recursive language systems under controlled parameter sweeps.
 
-PAM evolves a corpus under controlled mutation and resampling dynamics and measures emergent macrostates such as **freeze**, **entropy**, and **microstructure complexity**.
+The system performs large batches of experiments across a grid of parameters and records dynamical observables such as freeze probability, entropy, and cross-correlation. A live terminal interface allows researchers to monitor the experiment in real time, explore phase diagrams, and inspect trajectory dynamics.
 
-The goal is to explore how stable semantic structure emerges in recursive text systems.
+The observatory is designed to make phase transitions in recursive systems visible while experiments are running.
 
----
+⸻
 
-# Repository Structure
+Observatory Interface
 
-Core framework implementation
-```code
-src/pam/
-```
-Runnable experiment scripts (quench, sweeps, batch)
-```code
-experiments/
-```
-Generated experiment data
-```code
-outputs/
-```
+The observatory provides a terminal interface that monitors experiments as they progress.
 
----
+It exposes three conceptual layers of information:
+	1.	Coverage
+Which parameter combinations have already been computed.
+	2.	Phase Diagram
+Aggregated observables across parameter space.
+	3.	Detail View
+Local dynamics for a specific parameter configuration.
 
-# Core Components
+The interface allows interactive navigation across the parameter grid and inspection of both summary statistics and individual trajectories.
 
-### TIP — Invariant Perceptron
-Detects semantic invariant signatures in text.
+Example interface snapshot:
 
-### TIM — Trajectory Invariance Metric
-Measures structural stability of text trajectories under perturbation.
+docs/observatory_ui.svg
 
-### Dynamics
-Corpus evolution through mutation, resampling, and anchor injection.
 
-### Metrics
+⸻
 
-- entropy
-- macrostate classification
-- lag correlation
-- minimal dynamical regressions
+Parameter Sweep
 
----
+Experiments explore a two-dimensional parameter space:
 
-# Quick Start
+Parameter	Meaning
+r	reinforcement strength
+α	mixture rate between corpus and generated output
+seed	stochastic initialization
 
-Run a batch experiment:
-```code
-PYTHONPATH=src python3 experiments/exp_batch.py
-```
-Outputs are written to:
-```code
+A typical sweep configuration:
+
+r ∈ {0.10, 0.15, 0.20, 0.25, 0.30}
+α ∈ [0.03 … 0.15] (15 steps)
+seeds = 10
+
+Total experiments:
+
+5 × 15 × 10 = 750 quenches
+
+Each quench evolves the system for a fixed number of iterations while recording entropy and freeze dynamics.
+
+Results are written incrementally to:
+
 outputs/index.csv
-outputs/deep_*.json
-```
----
-
-# Visualization
-
-Render phase surfaces:
-```code
-PYTHONPATH=src python3 experiments/plot_phase_surfaces.py
-```
----
-
-# Requirements
-
-Python **3.10+**
-
-Install dependencies:
-```code
-pip install -r requirements.txt
-```
----
-
-## Minimal Example
-
-Run a single quench experiment and print the core observables.
-
-```python
-from pam.tip import InvariantSpec, InvariantPerceptron
-from pam.corpora import texts_C
-from pam.types import RunParams
-from pam.dynamics import run_quench
-from pam.injectors import (
-    top_k_signatures,
-    mutation_injector_multi_sig_factory,
-    mixture_injector_factory,
-    self_resample_generator,
-)
-
-from pam.metrics.entropy import compute_entropy_series
-from pam.metrics.macrostate import sliding_piF
-
-# Build invariant detector
-invariants = [
-    InvariantSpec("reflective", 0.6),
-    InvariantSpec("coherent", 0.6),
-    InvariantSpec("playful_serious", 0.6),
-    InvariantSpec("geometric", 0.6),
-]
 
-tip = InvariantPerceptron(invariants=invariants, mode="heuristic")
-
-# Simulation parameters
-params = RunParams(alpha=0.075, r=0.30, seed=0, iters=300, anchor_set_size=10)
-
-# Injector protocol
-targets = top_k_signatures(tip, texts_C, k=2)
-anchor_inj = mutation_injector_multi_sig_factory(tip, targets)
-mix_inj = mixture_injector_factory(anchor_inj, self_resample_generator)
 
-# Run system
-result = run_quench(
-    texts0=texts_C,
-    tip=tip,
-    mixture_injector=mix_inj,
-    params=params,
-    alpha_schedule=lambda it: 0.075,
-)
+⸻
 
-# Observables
-entropy = compute_entropy_series(result.corp_snapshots, tip, anchor_set_size=10)
-freeze = sliding_piF(result.states, W=30)
+Observables
 
-print("final entropy:", entropy[-1])
-print("freeze occupancy:", freeze[-1])
+Each experiment produces a compact set of observables used to construct the phase diagram.
 
-```
-Example output:
-```code
-final entropy: 0.74
-freeze occupancy: 0.61
-```
+Metric	Description
+πF_tail	freeze probability in the final portion of the run
+H_joint_mean	average joint entropy
+corr0	correlation between freeze and entropy
+ΔR²_freeze	Granger-style predictability of freeze
+ΔR²_entropy	entropy predictability
+best_corr	strongest lag correlation between freeze and entropy
+K_max	maximum cluster count observed
 
-## System Overview
+These observables allow the system’s dynamical regimes to be mapped across the parameter grid.
 
-PAM evolves a text corpus under controlled mutation and anchor injection.  
-Invariant signatures are detected using TIP, and system dynamics are measured using entropy, macrostate occupancy, and minimal dynamical models.
+⸻
 
-```mermaid
-flowchart LR
+Running Experiments
 
-subgraph Corpus Evolution
-A[Initial Corpus]
-B[Mutation Operators]
-C[Anchor Injection α]
-end
+Start the parameter sweep:
 
-subgraph PAM Engine
-D[Mixture Dynamics]
-E[Corpus Snapshots]
-end
+python exp_batch.py
 
-subgraph Metrics
-F[Entropy H]
-G[Freeze Occupancy π_F]
-H2[Trajectory Invariance TIM]
-end
+The batch runner automatically resumes from previous runs by reading outputs/index.csv.
 
-subgraph Analysis
-I[Lag Correlation]
-J[Minimal Dynamical Models]
-K[Phase Diagram]
-end
+⸻
 
-A --> D
-B --> D
-C --> D
+Launching the Observatory
 
-D --> E
+Start the live monitoring interface:
 
-E --> F
-E --> G
-E --> H2
+PYTHONPATH=. python tui/app.py
 
-F --> I
-G --> I
+The observatory reads outputs/index.csv and updates automatically while experiments run.
 
-F --> J
-G --> J
+⸻
 
-I --> K
-J --> K
-```
+Controls
 
-PAM evolves a corpus under controlled mutation and anchoring.  
-Macroscopic observables are measured at each iteration to characterize system regimes.
+The interface supports interactive exploration of the parameter grid.
 
-## Conceptual Phase Structure
+↑ ↓     change r
+← →     change α
+Enter   toggle row / cell inspection
+T       trajectory view
+S       save SVG screenshot
 
-The system explores a phase space defined by the parameters:
+Screenshots are saved to:
 
-- replacement fraction **r**
-- anchor injection probability **α**
+tui/screenshots/
 
-```mermaid
-flowchart TB
+These SVG snapshots capture the exact terminal layout and can be used for documentation or analysis.
 
-A[High Entropy Regime] --- B[Mixed Regime] --- C[Freeze Regime]
+⸻
 
-A -->|increase α| B
-B -->|increase α| C
+Phase Movies
 
-A -->|low π_F| A
-B -->|intermittent π_F| B
-C -->|π_F ≈ 1| C
+The repository includes a tool to create time-lapse movies from observatory screenshots.
 
-```
-The empirical phase diagram of this system is generated through parameter sweeps across (r, α).
+python tools/phase_movie.py
 
----
+This stitches saved screenshots into a movie showing the phase diagram emerging as experiments complete.
 
-## Architecture
+Future versions will render movies directly from the experimental data in index.csv.
 
-PAM is built around three interacting components:
+⸻
 
-- **TIP** — detects invariant semantic signatures in text
-- **TIM** — measures trajectory stability under perturbations
-- **PAM dynamics** — evolves the corpus and measures emergent macrostates
+Repository Structure
 
-```mermaid
-flowchart TB
+pam-research
+│
+├─ exp_batch.py
+│
+├─ outputs
+│   └─ index.csv
+│
+├─ tui
+│   ├─ app.py
+│   ├─ widgets
+│   └─ screenshots
+│
+├─ tools
+│   └─ phase_movie.py
+│
+└─ docs
+    └─ observatory_ui.svg
 
-subgraph Text Level
-A[Text Sample]
-end
 
-subgraph Invariant Detection
-B[TIP<br>Invariant Perceptron]
-end
+⸻
 
-subgraph Trajectory Analysis
-C[TIM<br>Trajectory Invariance]
-end
+Research Context
 
-subgraph System Dynamics
-D[PAM Dynamics<br>Mutation + Injection]
-E[Macrostate Metrics<br>π_F , H , K]
-end
+Recursive language systems exhibit complex dynamical behavior when they consume their own generated output.
 
-A --> B
-A --> C
+This project investigates questions such as:
 
-B --> E
-C --> E
+• Under which conditions does the system freeze into self-reference?
+• How does entropy evolve during collapse?
+• Which parameters control phase transitions between stable and unstable regimes?
 
-E --> D
-D --> A
+The observatory provides a practical environment for exploring these phenomena experimentally.
 
-```
----
+⸻
 
-## Key Hypothesis
+Future Work
 
-Recursive text systems exhibit **phase structure** when invariant-preserving mutations interact with anchor injection.
+Planned extensions include:
 
-We hypothesize three dynamical regimes:
+• automatic phase boundary detection
+• direct movie generation from experimental data
+• higher-resolution parameter sweeps
+• improved trajectory visualization
+• information-geometric analysis of entropy dynamics
 
-| Regime | Characteristics |
-|------|----------------|
-| **Entropy-dominated** | high diversity of invariant signatures |
-| **Mixed phase** | intermittent stability and drift |
-| **Freeze regime** | stable invariant signatures dominate |
+⸻
 
-The transition between these regimes is controlled by the parameters:
+Philosophy
 
-- **r** — replacement fraction
-- **α** — anchor injection probability
+The goal of PAM Observatory is not only to run experiments, but to make their structure visible.
 
-Observable signals of these phase transitions include:
-
-- **π_F** — freeze macrostate occupancy
-- **H** — signature entropy
-- **K** — microstructure complexity
-- **ΔR²** — causal coupling between entropy and freeze dynamics
-
-PAM provides a controlled experimental environment for probing the stability of semantic structure in recursively generated text systems.
-
----
-
-## Research Summary
-
-We study a controlled recursive text system designed to probe stability and collapse dynamics in self-generated language corpora.
-
-PAM investigates the dynamics of recursively updated language-model corpora under controlled mutation and anchoring.
-
-The system is modeled as a discrete-time dynamical process over a semantic state space and analyzed using three orthogonal observables:
-
-- **Freeze Occupancy (π_F)** — structural convergence of the corpus
-- **Signature Entropy (H)** — diversity of invariant signatures
-- **Trajectory Invariance Metric (TIM)** — robustness of semantic trajectories under perturbation
-
-Parameter sweeps across anchor strength **α**, mutation ratio **r**, and smoothing scale **W** reveal regime-dependent behavior including entropy-dominated drift, metastable coexistence, and freeze-dominated structural persistence.
-
-Lag-correlation analysis shows strong anticorrelation between freeze occupancy and entropy, while nested regression tests indicate minimal direct cross-predictive power. This suggests that both observables reflect a shared latent regime variable rather than causal forcing.
-
-The framework provides a general protocol for discovering phase structure in recursive generative systems.
-
----
-
-## Research Notes
-
-The development of PAM emerged from an extended exploratory dialogue
-combining conceptual reasoning and empirical experimentation.
-
-Key milestones and reflections are documented in:
-```code
-docs/notes.md
-```
-Selected excerpts from the research conversation are preserved in:
-```code
-docs/conversations/
-```
-These notes function as an open research notebook capturing the
-conceptual development of the project.
-
----
-
-# Research Goal
-
-Map the **phase geometry** of the system in parameter space:
-```code
-(r, α)
-```
-Where:
-
-- **r** — replacement fraction
-- **α** — anchor injection probability
-
-Primary observables:
-
-- freeze occupancy **π_F**
-- entropy **H**
-- microstructure complexity **K**
-- causal coupling **ΔR²**
-
-The objective is to identify regimes where recursive text systems transition between **entropy-dominated**, **mixed**, and **freeze-dominated** phases.
-
----
-
-## Interpretation Guide
-
-The PAM observables describe the macroscopic behavior of the evolving corpus.
-
-| Observable | Meaning |
-|---|---|
-| **π_F** | freeze macrostate occupancy |
-| **H** | entropy of invariant signatures |
-| **K** | microstructure complexity |
-| **ΔR²** | causal coupling between freeze and entropy dynamics |
-
-Typical regime patterns:
-
-| Regime | π_F | H | Interpretation |
-|---|---|---|---|
-| **Entropy-dominated** | low | high | signatures drift freely |
-| **Mixed phase** | medium | medium | intermittent stabilization |
-| **Freeze regime** | high | low | stable invariant signatures dominate |
-
-Causal coupling ΔR² helps determine directional influence:
-
-- **ΔR²_freeze > ΔR²_entropy**  
-  → entropy fluctuations tend to **drive freeze formation**
-
-- **ΔR²_entropy > ΔR²_freeze**  
-  → freeze states tend to **constrain entropy**
-
-These signals help characterize the **phase geometry** of the system across parameter space.
-
----
-
-## Status
-
-PAM is an experimental research framework under active development.
-
-Current work focuses on:
-
-- mapping the phase geometry across (r, α)
-- testing the stability of invariant signatures under recursive mutation
-- characterizing freeze–entropy causal coupling
-
----
-
-# License
-
-This project is licensed under the MIT License — see the `LICENSE` file for details.
-
-
-
-
-
+Instead of waiting until the end of a parameter sweep to analyze results, the observatory allows researchers to watch phase structure emerge in real time.
