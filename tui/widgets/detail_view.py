@@ -279,7 +279,7 @@ def build_trajectory_mode_text(df: pd.DataFrame, selected_r: float, selected_alp
         return title, "No trajectory file found for selected cell."
 
     plot_width = max(32, panel_width // 2 - 14)
-    plot_height = min(16, max(6, panel_height // 4 if panel_height > 0 else 8))
+    plot_height = min(16, max(10, panel_height // 4 if panel_height > 0 else 10))
 
     f_raw = _first_available(data, ["F_raw", "freeze", "pi_raw"])
     h_joint = _first_available(data, ["H_joint", "H_joint_series", "entropy"])
