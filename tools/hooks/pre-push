@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo ""
+echo "PAM Observatory — pre-push verification"
+echo "---------------------------------------"
+
+PYTHON_BIN="${PYTHON_BIN:-python}"
+if [ -x ".venv/bin/python" ]; then
+  PYTHON_BIN=".venv/bin/python"
+fi
+
+echo "[1/2] Structural coherence"
+"${PYTHON_BIN}" tools/repo_check.py
+echo ""
+
+echo "[2/2] Scaffolding coherence"
+"${PYTHON_BIN}" tools/repo_check_with_scaffolding.py
+echo ""
+
+echo "Geometry intact. Push approved."
