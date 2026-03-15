@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from rich.text import Text
 from textual.widgets import Static
 
 
@@ -10,11 +11,15 @@ class Panel(Static):
         super().__init__("", **kwargs)
         self.title = title
         self.body = body
-        self.update(self._render())
-
-    def _render(self) -> str:
-        return f"[bold]{self.title}[/bold]\n\n{self.body}" if self.body else f"[bold]{self.title}[/bold]"
 
     def set_body(self, text: str) -> None:
         self.body = text
-        self.update(self._render())
+        self.refresh()
+
+    def render(self) -> Text:
+        out = Text()
+        out.append(self.title, style="bold")
+        if self.body:
+            out.append("\n\n")
+            out.append(self.body)
+        return out
