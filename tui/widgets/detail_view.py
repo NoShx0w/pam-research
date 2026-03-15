@@ -143,41 +143,48 @@ def _load_trajectory_npz(selected_r: float, selected_alpha: float, selected_seed
     return None
 
 
-def _ascii_plot(values: Sequence[float], title: str, width: int = 40, height: int = 8) -> str:
+def _ascii_plot(values, title: str, width: int = 40, height: int = 8) -> str:
     arr = np.asarray(values, dtype=float)
     arr = arr[np.isfinite(arr)]
 
     if arr.size == 0:
         return f"{title}\n(no data)"
 
-    width = max(24, width)
-    height = max(6, height)
+    width = max(24, int(width))
+    height = max(6, int(height))
 
+    # resample to target width
     idx = np.linspace(0, len(arr) - 1, width).astype(int)
     sample = arr[idx]
 
-    lo, hi = float(np.min(sample)), float(np.max(sample))
+    lo = float(np.min(sample))
+    hi = float(np.max(sample))
     span = hi - lo if hi > lo else 1.0
 
+    # 8-level ramp for nicer vertical fill
     glyphs = " ▁▂▃▄▅▆▇█"
 
-    # Render one glyph per x-column; repeat across rows to preserve block feel.
-    # This is still lightweight, but much smoother than binary fill.
-    norm = np.clip((sample - lo) / span, 0.0, 1.0)
-    levels = (norm * (len(glyphs) - 1)).astype(int)
-    spark = "".join(glyphs[level] for level in levels)
-
-    # Add a compact y-axis scaffold for observability.
     lines = [title]
-    for i in range(height):
-        if i == 0:
-            lines.append(f"{hi:>7.3f} │ {spark}")
-        elif i == height - 1:
-            lines.append(f"{lo:>7.3f} │ {spark}")
-        else:
-            lines.append(f"{'':>7} │ {spark}")
-    lines.append(f"{'':>7} └" + "─" * (len(spark) + 1))
-    lines.append(f"{'':>9}0{' ' * max(0, len(spark)-8)}{len(arr)-1}")
+
+    for row in range(height):
+        # top row = hi, bottom row = lo
+        y_top = hi - span * (row / height)
+        y_bot = hi - span * ((row + 1) / height)
+
+        chars = []
+        for v in sample:
+            # map value into this row's vertical band
+            frac = (v - y_bot) / (y_top - y_bot) if y_top > y_bot else 0.0
+            frac = max(0.0, min(1.0, frac))
+            level = int(round(frac * (len(glyphs) - 1)))
+            chars.append(glyphs[level])
+
+        label = f"{(hi - span * row / max(1, height - 1)):>7.3f}" if row in (0, height - 1) else f"{'':>7}"
+        lines.append(f"{label} │ " + "".join(chars))
+
+    lines.append(f"{'':>7} └" + "─" * (len(sample) + 1))
+    lines.append(f"{'':>9}0{' ' * max(0, len(sample)-8)}{len(arr)-1}")
+
     return "\n".join(lines)
 
 
