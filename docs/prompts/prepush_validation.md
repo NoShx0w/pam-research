@@ -61,4 +61,4 @@ Verification output:
 Assessment:
 
 Brief explanation of what changed and whether the repository architecture remains coherent.
-'''
+```
