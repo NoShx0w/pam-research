@@ -1,5 +1,24 @@
 # PAM Observatory
 
+```mermaid
+flowchart TD
+
+A[Quench Experiments<br>exp_batch.py]
+B[Observables<br>index.csv]
+C[Live Observatory<br>TUI]
+D[Geometry Layer<br>fim.py]
+E[Fisher Distance<br>fim_distance.py]
+F[Manifold Embedding<br>fim_mds.py]
+G[Phase Geometry Interpretation]
+
+A --> B
+B --> C
+B --> D
+D --> E
+E --> F
+F --> G
+```
+
 **Exploring phase structure in recursive language systems**
 
 PAM Observatory is a research instrument for studying the dynamics of recursive language systems under controlled parameter sweeps.
