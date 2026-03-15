@@ -243,17 +243,17 @@ def _coverage_cell(count: int, total: int, selected: bool = False) -> str:
     frac = 0.0 if total <= 0 else count / total
 
     if frac <= 0.0:
-        inner = "[dim]·[/dim]"
+        inner = "·"
     elif frac < 0.25:
-        inner = "[cyan]░[/cyan]"
+        inner = "░"
     elif frac < 0.50:
-        inner = "[green]▒[/green]"
+        inner = "▒"
     elif frac < 0.75:
-        inner = "[yellow]▓[/yellow]"
+        inner = "▓"
     elif frac < 1.0:
-        inner = "[magenta]█[/magenta]"
+        inner = "█"
     else:
-        inner = "[bold red]█[/bold red]"
+        inner = "█"
 
     return _col(f"[bold white]→[/bold white]{inner}[bold white]←[/bold white]") if selected else _col(f" {inner} ")
 
@@ -311,13 +311,13 @@ def build_coverage_text(df: pd.DataFrame, spec: SweepSpec, selection: DetailSele
 
     lines.append("")
     lines.append(
-        "[dim]Legend:[/dim] "
-        "[dim]·[/dim] empty   "
-        "[cyan]░[/cyan] <25%   "
-        "[green]▒[/green] <50%   "
-        "[yellow]▓[/yellow] <75%   "
-        "[magenta]█[/magenta] <100%   "
-        "[bold red]█[/bold red] full"
+        "Legend: "
+        "· empty   "
+        "░ <25%   "
+        "▒ <50%   "
+        "▓ <75%   "
+        "█ <100%   "
+        "█ full"
     )
     lines.append(f"[dim]Grid:[/dim] {len(spec.r_values)} × {len(spec.alpha_values)} × {spec.seeds_per_cell}")
     return "\n".join(lines)
