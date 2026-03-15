@@ -6,7 +6,6 @@ from typing import Iterable, Sequence
 
 import numpy as np
 import pandas as pd
-from textual.widgets import Static
 
 from .panel import Panel
 
@@ -17,14 +16,13 @@ TRAJECTORY_DIR = Path("outputs/trajectories")
 @dataclass
 class DetailSelection:
     mode: str  # "row" | "cell" | "trajectory"
-    selected_r: float | None = None
-    selected_alpha: float | None = None
+    selected_r: float | None
+    selected_alpha: float | None
     selected_seed: int | None = 0
 
 
-def display_float(x: float | int | np.floating | np.integer, digits: int = 3) -> str:
-    x = float(x)
-    s = f"{x:.{digits}f}"
+def display_float(x: float | int, digits: int = 3) -> str:
+    s = f"{float(x):.{digits}f}"
     s = s.rstrip("0").rstrip(".")
     return s if s else "0"
 
@@ -35,11 +33,6 @@ def _safe_numeric(df: pd.DataFrame, cols: Iterable[str]) -> pd.DataFrame:
         if col in out.columns:
             out[col] = pd.to_numeric(out[col], errors="coerce")
     return out
-
-
-def _sorted_unique_numeric(series: pd.Series) -> list[float]:
-    vals = pd.to_numeric(series, errors="coerce").dropna().unique().tolist()
-    return sorted(float(v) for v in vals)
 
 
 def _format_value(value: object) -> str:
@@ -55,35 +48,27 @@ def _bar(value: float, lo: float, hi: float, width: int = 10) -> str:
         return "·"
     if hi <= lo:
         return "█"
-    frac = (value - lo) / (hi - lo)
-    frac = max(0.0, min(1.0, frac))
+    frac = max(0.0, min(1.0, (value - lo) / (hi - lo)))
     n = max(1, int(round(frac * width)))
     return "█" * n
 
 
-def _metric_block(
-    frame: pd.DataFrame,
-    metric: str,
-    alpha_col: str = "alpha",
-    bar_width: int = 10,
-) -> list[str]:
+def _metric_block(frame: pd.DataFrame, metric: str, alpha_col: str = "alpha", bar_width: int = 10) -> list[str]:
     if metric not in frame.columns:
-        return [f"{metric}", "missing"]
+        return [metric, "missing"]
 
     sub = frame[[alpha_col, metric]].dropna().copy()
     if sub.empty:
         return [metric, "no data"]
 
     values = sub[metric].astype(float).to_numpy()
-    lo = float(np.min(values))
-    hi = float(np.max(values))
+    lo, hi = float(np.min(values)), float(np.max(values))
 
     lines = [metric]
     for _, row in sub.iterrows():
         a = display_float(float(row[alpha_col]), 3)
         v = float(row[metric])
-        bar = _bar(v, lo, hi, width=bar_width)
-        lines.append(f"{a:>6}  {bar:<{bar_width}}  {v:>8.4f}")
+        lines.append(f"{a:>6}  {_bar(v, lo, hi, width=bar_width):<{bar_width}}  {v:>8.4f}")
     return lines
 
 
@@ -100,86 +85,42 @@ def _hstack_blocks(blocks: Sequence[list[str]], gap: int = 6) -> str:
     return "\n".join(out)
 
 
-def _compose_grid_2x2(
-    top_left: str,
-    top_right: str,
-    bottom_left: str,
-    bottom_right: str,
-    gap: int = 4,
-) -> str:
+def _compose_grid_2x2(top_left: str, top_right: str, bottom_left: str, bottom_right: str, gap: int = 4) -> str:
     def lines(s: str) -> list[str]:
         return s.splitlines() or [""]
 
-    tl = lines(top_left)
-    tr = lines(top_right)
-    bl = lines(bottom_left)
-    br = lines(bottom_right)
-
-    top_width = max((len(line) for line in tl), default=0)
-    bot_width = max((len(line) for line in bl), default=0)
-    left_width = max(top_width, bot_width)
-
-    top_h = max(len(tl), len(tr))
-    bot_h = max(len(bl), len(br))
+    tl, tr, bl, br = lines(top_left), lines(top_right), lines(bottom_left), lines(bottom_right)
+    left_width = max(
+        max((len(line) for line in tl), default=0),
+        max((len(line) for line in bl), default=0),
+    )
 
     out: list[str] = []
-
+    top_h = max(len(tl), len(tr))
     for i in range(top_h):
         l = tl[i] if i < len(tl) else ""
         r = tr[i] if i < len(tr) else ""
-        out.append(l.ljust(left_width) + (" " * gap) + r)
+        out.append(l.ljust(left_width) + (" " * gap) + r.rstrip())
 
     out.append("")
 
+    bot_h = max(len(bl), len(br))
     for i in range(bot_h):
         l = bl[i] if i < len(bl) else ""
         r = br[i] if i < len(br) else ""
-        out.append(l.ljust(left_width) + (" " * gap) + r)
+        out.append(l.ljust(left_width) + (" " * gap) + r.rstrip())
 
-    return "\n".join(line.rstrip() for line in out)
-
-
-def _series_plot(
-    values: Sequence[float],
-    title: str,
-    width: int = 34,
-    height: int = 8,
-) -> str:
-    arr = np.asarray(values, dtype=float)
-    arr = arr[np.isfinite(arr)]
-
-    if arr.size == 0:
-        return f"{title}\n(no data)"
-
-    # Downsample / resample to plot width.
-    xs = np.linspace(0, len(arr) - 1, min(width, len(arr))).astype(int)
-    sample = arr[xs]
-
-    lo = float(np.min(sample))
-    hi = float(np.max(sample))
-    span = hi - lo if hi > lo else 1.0
-
-    canvas = [[" " for _ in range(len(sample))] for _ in range(height)]
-    for x, y in enumerate(sample):
-        frac = (y - lo) / span
-        row = height - 1 - int(round(frac * (height - 1)))
-        row = max(0, min(height - 1, row))
-        canvas[row][x] = "█"
-
-    lines = [title]
-    for i, row in enumerate(canvas):
-        label_val = hi - (span * i / max(1, height - 1))
-        lines.append(f"{label_val:>7.3f} │ " + "".join(row))
-    lines.append(f"{'':>7} └" + "─" * (len(sample) + 1))
-    lines.append(f"{'':>9}0{' ' * max(0, len(sample)-8)}{len(arr)-1}")
-    return "\n".join(lines)
+    return "\n".join(out).rstrip()
 
 
-def _load_trajectory_npz(
-    selected_r: float,
-    selected_alpha: float,
-    selected_seed: int | None,
-) -> dict[str, np.ndarray] | None:
+def _first_available(data: dict[str, np.ndarray], keys: Sequence[str]) -> np.ndarray | None:
+    for key in keys:
+        if key in data:
+            return np.asarray(data[key], dtype=float)
+    return None
+
+
+def _load_trajectory_npz(selected_r: float, selected_alpha: float, selected_seed: int | None) -> dict[str, np.ndarray] | None:
     if not TRAJECTORY_DIR.exists():
         return None
 
@@ -188,39 +129,59 @@ def _load_trajectory_npz(
     patterns = [
         f"*r{selected_r:.2f}*a{selected_alpha:.3f}*seed{seed}*.npz",
         f"*r{selected_r:.2f}*alpha{selected_alpha:.3f}*seed{seed}*.npz",
-        f"*r{selected_r:.3f}*a{selected_alpha:.3f}*seed{seed}*.npz",
         f"*seed{seed}*.npz",
     ]
 
-    matches: list[Path] = []
     for pattern in patterns:
         matches = sorted(TRAJECTORY_DIR.glob(pattern))
         if matches:
-            break
-
-    if not matches:
-        return None
-
-    try:
-        with np.load(matches[0], allow_pickle=False) as data:
-            return {k: data[k] for k in data.files}
-    except Exception:
-        return None
-
-
-def _first_available(data: dict[str, np.ndarray], keys: Sequence[str]) -> np.ndarray | None:
-    for key in keys:
-        if key in data:
-            arr = np.asarray(data[key], dtype=float)
-            return arr
+            try:
+                with np.load(matches[0], allow_pickle=False) as data:
+                    return {k: data[k] for k in data.files}
+            except Exception:
+                return None
     return None
 
 
-def build_row_mode_text(
-    df: pd.DataFrame,
-    selected_r: float,
-    alpha_values: Sequence[float] | None = None,
-) -> tuple[str, str]:
+def _ascii_plot(values: Sequence[float], title: str, width: int = 40, height: int = 8) -> str:
+    arr = np.asarray(values, dtype=float)
+    arr = arr[np.isfinite(arr)]
+
+    if arr.size == 0:
+        return f"{title}\n(no data)"
+
+    width = max(24, width)
+    height = max(6, height)
+
+    idx = np.linspace(0, len(arr) - 1, width).astype(int)
+    sample = arr[idx]
+
+    lo, hi = float(np.min(sample)), float(np.max(sample))
+    span = hi - lo if hi > lo else 1.0
+
+    glyphs = " ▁▂▃▄▅▆▇█"
+
+    # Render one glyph per x-column; repeat across rows to preserve block feel.
+    # This is still lightweight, but much smoother than binary fill.
+    norm = np.clip((sample - lo) / span, 0.0, 1.0)
+    levels = (norm * (len(glyphs) - 1)).astype(int)
+    spark = "".join(glyphs[level] for level in levels)
+
+    # Add a compact y-axis scaffold for observability.
+    lines = [title]
+    for i in range(height):
+        if i == 0:
+            lines.append(f"{hi:>7.3f} │ {spark}")
+        elif i == height - 1:
+            lines.append(f"{lo:>7.3f} │ {spark}")
+        else:
+            lines.append(f"{'':>7} │ {spark}")
+    lines.append(f"{'':>7} └" + "─" * (len(spark) + 1))
+    lines.append(f"{'':>9}0{' ' * max(0, len(spark)-8)}{len(arr)-1}")
+    return "\n".join(lines)
+
+
+def build_row_mode_text(df: pd.DataFrame, selected_r: float, alpha_values: Sequence[float] | None = None) -> tuple[str, str]:
     work = _safe_numeric(
         df,
         ["r", "alpha", "seed", "piF_tail", "H_joint_mean", "best_corr", "delta_r2_freeze"],
@@ -249,10 +210,7 @@ def build_row_mode_text(
     max_seed = int(grouped["seeds"].max()) if not grouped.empty else 0
 
     title = f"Detail: row mode   r = {display_float(selected_r, 3)}"
-    header = (
-        f"α cells observed: {observed} / {total}    "
-        f"seed coverage: min {min_seed}    max {max_seed}"
-    )
+    header = f"α cells observed: {observed} / {total}    seed coverage: min {min_seed}    max {max_seed}"
 
     blocks = [
         _metric_block(grouped, "piF_tail"),
@@ -260,9 +218,7 @@ def build_row_mode_text(
         _metric_block(grouped, "best_corr"),
         _metric_block(grouped, "dR2_freeze"),
     ]
-
-    body = header + "\n\n" + _hstack_blocks(blocks, gap=6)
-    return title, body
+    return title, header + "\n\n" + _hstack_blocks(blocks, gap=6)
 
 
 def build_cell_mode_text(df: pd.DataFrame, selected_r: float, selected_alpha: float) -> tuple[str, str]:
@@ -275,11 +231,7 @@ def build_cell_mode_text(df: pd.DataFrame, selected_r: float, selected_alpha: fl
         & np.isclose(work["alpha"], selected_alpha, atol=1e-12)
     ].copy()
 
-    title = (
-        "Detail: cell mode   "
-        f"r = {display_float(selected_r, 3)}   α = {display_float(selected_alpha, 3)}"
-    )
-
+    title = f"Detail: cell mode   r = {display_float(selected_r, 3)}   α = {display_float(selected_alpha, 3)}"
     if cell.empty:
         return title, "No data for selected cell."
 
@@ -301,20 +253,14 @@ def build_cell_mode_text(df: pd.DataFrame, selected_r: float, selected_alpha: fl
     wanted = ["seed", "piF_tail", "H_joint_mean", "best_corr", "delta_r2_freeze"]
     present = [c for c in wanted if c in cell.columns]
     table = cell[present].sort_values("seed")
-    header = "  ".join(f"{c:>12}" for c in present)
-    lines.append(header)
+    lines.append("  ".join(f"{c:>12}" for c in present))
     for _, row in table.iterrows():
         lines.append("  ".join(f"{_format_value(row[c]):>12}" for c in present))
 
     return title, "\n".join(lines)
 
 
-def build_trajectory_mode_text(
-    df: pd.DataFrame,
-    selected_r: float,
-    selected_alpha: float,
-    selected_seed: int | None = 0,
-) -> tuple[str, str]:
+def build_trajectory_mode_text(df: pd.DataFrame, selected_r: float, selected_alpha: float, selected_seed: int | None, panel_width: int, panel_height: int) -> tuple[str, str]:
     title = (
         "Detail: trajectory mode   "
         f"r = {display_float(selected_r, 3)}   α = {display_float(selected_alpha, 3)}   "
@@ -325,39 +271,29 @@ def build_trajectory_mode_text(
     if data is None:
         return title, "No trajectory file found for selected cell."
 
+    plot_width = max(32, panel_width // 2 - 12)
+    plot_height = min(10, max(6, panel_height // 8 if panel_height > 0 else 8))
+
     f_raw = _first_available(data, ["F_raw", "freeze", "pi_raw"])
     h_joint = _first_available(data, ["H_joint", "H_joint_series", "entropy"])
     k_series = _first_available(data, ["K", "K_series", "complexity"])
     pi_sm = _first_available(data, ["pi", "pi_smooth", "piF_smooth", "F_smooth"])
 
-    tl = _series_plot(f_raw if f_raw is not None else [], "F_raw(t)")
-    tr = _series_plot(h_joint if h_joint is not None else [], "H_joint(t)")
-    bl = _series_plot(k_series if k_series is not None else [], "K(t)")
-    br = _series_plot(pi_sm if pi_sm is not None else [], "πF_smooth(t)")
+    tl = _ascii_plot(f_raw if f_raw is not None else [], "F_raw(t)", width=plot_width, height=plot_height)
+    tr = _ascii_plot(h_joint if h_joint is not None else [], "H_joint(t)", width=plot_width, height=plot_height)
+    bl = _ascii_plot(k_series if k_series is not None else [], "K(t)", width=plot_width, height=plot_height)
+    br = _ascii_plot(pi_sm if pi_sm is not None else [], "πF_smooth(t)", width=plot_width, height=plot_height)
 
-    body = _compose_grid_2x2(tl, tr, bl, br, gap=4)
-    return title, body
+    return title, _compose_grid_2x2(tl, tr, bl, br, gap=4)
 
 
 class DetailView(Panel):
-    """Detail panel for row / cell / trajectory inspection.
-
-    Assumptions:
-    - `df` is the current index.csv dataframe
-    - `selection.mode` is one of: row, cell, trajectory
-    - trajectory files live under outputs/trajectories/
-    - `panel.py` exposes Panel(title: str, body: str = "")
-    """
+    """Detail panel for row / cell / trajectory inspection."""
 
     def __init__(self, **kwargs):
         super().__init__("Detail", id="detail", **kwargs)
 
-    def update_detail(
-        self,
-        df: pd.DataFrame,
-        selection: DetailSelection,
-        alpha_values: Sequence[float] | None = None,
-    ) -> None:
+    def update_detail(self, df: pd.DataFrame, selection: DetailSelection, alpha_values: Sequence[float] | None = None) -> None:
         if selection.selected_r is None:
             self.title = "Detail"
             self.set_body("No selection.")
@@ -381,6 +317,8 @@ class DetailView(Panel):
                     selection.selected_r,
                     selection.selected_alpha,
                     selection.selected_seed,
+                    panel_width=max(60, self.size.width if self.size else 80),
+                    panel_height=max(16, self.size.height if self.size else 32),
                 )
         else:
             title, body = "Detail", f"Unknown mode: {selection.mode}"

@@ -20,6 +20,7 @@ INDEX_PATH = Path("outputs/index.csv")
 SWEEP_SPEC_PATH = Path("tui/sweep_spec.json")
 REFRESH_SECONDS = 5.0
 DEFAULT_SEEDS_PER_CELL = 10
+COLUMN_WIDTH = 7
 
 
 @dataclass
@@ -72,7 +73,6 @@ def _fmt_field(label: str, value: object, width: int = 12) -> str:
 def _load_sweep_spec_file(path: Path) -> SweepSpec | None:
     if not path.exists():
         return None
-
     try:
         spec = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
@@ -86,20 +86,13 @@ def _load_sweep_spec_file(path: Path) -> SweepSpec | None:
         return None
 
     try:
-        r_values = [float(x) for x in r_values]
-        alpha_values = [float(x) for x in alpha_values]
-        seeds_per_cell = int(seeds_per_cell)
+        return SweepSpec(
+            r_values=sorted(float(x) for x in r_values),
+            alpha_values=sorted(float(x) for x in alpha_values),
+            seeds_per_cell=int(seeds_per_cell),
+        )
     except Exception:
         return None
-
-    if not r_values or not alpha_values:
-        return None
-
-    return SweepSpec(
-        r_values=sorted(r_values),
-        alpha_values=sorted(alpha_values),
-        seeds_per_cell=seeds_per_cell,
-    )
 
 
 def _fallback_sweep_spec(df: pd.DataFrame) -> SweepSpec:
@@ -108,11 +101,7 @@ def _fallback_sweep_spec(df: pd.DataFrame) -> SweepSpec:
         r_values = _sorted_unique_numeric(work["r"])
         alpha_values = _sorted_unique_numeric(work["alpha"])
         if r_values and alpha_values:
-            return SweepSpec(
-                r_values=r_values,
-                alpha_values=alpha_values,
-                seeds_per_cell=DEFAULT_SEEDS_PER_CELL,
-            )
+            return SweepSpec(r_values=r_values, alpha_values=alpha_values, seeds_per_cell=DEFAULT_SEEDS_PER_CELL)
 
     return SweepSpec(
         r_values=[0.10, 0.15, 0.20, 0.25, 0.30],
@@ -123,9 +112,7 @@ def _fallback_sweep_spec(df: pd.DataFrame) -> SweepSpec:
 
 def load_sweep_spec(df: pd.DataFrame) -> SweepSpec:
     explicit = _load_sweep_spec_file(SWEEP_SPEC_PATH)
-    if explicit is not None:
-        return explicit
-    return _fallback_sweep_spec(df)
+    return explicit if explicit is not None else _fallback_sweep_spec(df)
 
 
 def load_snapshot(index_path: Path) -> Snapshot:
@@ -201,16 +188,14 @@ def build_status_text(snap: Snapshot, selection: DetailSelection, qph: float) ->
 
 
 def build_sweep_spec_text(spec: SweepSpec) -> str:
-    return "\n".join(
-        [
-            _fmt_field("r count", len(spec.r_values)),
-            _fmt_field("r min/max", f"{display_float(spec.r_values[0], 3)} → {display_float(spec.r_values[-1], 3)}"),
-            _fmt_field("α range", f"{display_float(spec.alpha_values[0], 3)} → {display_float(spec.alpha_values[-1], 3)}"),
-            _fmt_field("α count", len(spec.alpha_values)),
-            _fmt_field("seeds / cell", spec.seeds_per_cell),
-            _fmt_field("intended total", spec.expected_total),
-        ]
-    )
+    return "\n".join([
+        _fmt_field("r count", len(spec.r_values)),
+        _fmt_field("r min/max", f"{display_float(spec.r_values[0], 3)} → {display_float(spec.r_values[-1], 3)}"),
+        _fmt_field("α range", f"{display_float(spec.alpha_values[0], 3)} → {display_float(spec.alpha_values[-1], 3)}"),
+        _fmt_field("α count", len(spec.alpha_values)),
+        _fmt_field("seeds / cell", spec.seeds_per_cell),
+        _fmt_field("intended total", spec.expected_total),
+    ])
 
 
 def build_latest_row_text(df: pd.DataFrame) -> str:
@@ -250,8 +235,13 @@ def build_latest_row_text(df: pd.DataFrame) -> str:
     return "\n".join(lines)
 
 
+def _col(text: str) -> str:
+    return f"{text:^{COLUMN_WIDTH}}"
+
+
 def _coverage_cell(count: int, total: int, selected: bool = False) -> str:
     frac = 0.0 if total <= 0 else count / total
+
     if frac <= 0.0:
         inner = "[dim]·[/dim]"
     elif frac < 0.25:
@@ -265,7 +255,7 @@ def _coverage_cell(count: int, total: int, selected: bool = False) -> str:
     else:
         inner = "[bold red]█[/bold red]"
 
-    return f"[bold white]→[/bold white]{inner}[bold white]←[/bold white]" if selected else f" {inner} "
+    return _col(f"[bold white]→[/bold white]{inner}[bold white]←[/bold white]") if selected else _col(f" {inner} ")
 
 
 def build_coverage_text(df: pd.DataFrame, spec: SweepSpec, selection: DetailSelection) -> str:
@@ -278,17 +268,9 @@ def build_coverage_text(df: pd.DataFrame, spec: SweepSpec, selection: DetailSele
     work = _safe_numeric(df, ["r", "alpha", "seed"]).dropna(subset=["r", "alpha"])
 
     if "seed" in work.columns:
-        grouped = (
-            work.groupby(["r", "alpha"])["seed"]
-            .nunique()
-            .reset_index(name="n")
-        )
+        grouped = work.groupby(["r", "alpha"])["seed"].nunique().reset_index(name="n")
     else:
-        grouped = (
-            work.groupby(["r", "alpha"])
-            .size()
-            .reset_index(name="n")
-        )
+        grouped = work.groupby(["r", "alpha"]).size().reset_index(name="n")
 
     lookup = {
         (round(float(row.r), 12), round(float(row.alpha), 12)): int(row.n)
@@ -296,28 +278,24 @@ def build_coverage_text(df: pd.DataFrame, spec: SweepSpec, selection: DetailSele
     }
 
     row_label_width = 8
-    cell_width = 7  # wide enough for selected cells and bracketed headers
 
-    header_cells: list[str] = []
+    header_cells = []
     for a in spec.alpha_values:
         label = display_float(a, 3)
         if selection.selected_alpha is not None and abs(a - selection.selected_alpha) < 1e-12:
             label = f"[ {label} ]"
-        header_cells.append(f"{label:^{cell_width}}")
+        header_cells.append(_col(label))
 
     header = "r \\ α".ljust(row_label_width) + " " + " ".join(header_cells)
     sep = "-" * len(header)
+
     lines = [header, sep]
 
     for r in spec.r_values:
-        marker = (
-            "[bold orange1]▶[/bold orange1]"
-            if selection.selected_r is not None and abs(r - selection.selected_r) < 1e-12
-            else "[dim]▶[/dim]"
-        )
+        marker = "[bold orange1]▶[/bold orange1]" if selection.selected_r is not None and abs(r - selection.selected_r) < 1e-12 else "[dim]▶[/dim]"
         row_prefix = f"{marker} {display_float(r, 3):>4}".ljust(row_label_width)
 
-        cells: list[str] = []
+        cells = []
         for a in spec.alpha_values:
             n = lookup.get((round(r, 12), round(a, 12)), 0)
             selected = (
@@ -327,7 +305,7 @@ def build_coverage_text(df: pd.DataFrame, spec: SweepSpec, selection: DetailSele
                 and abs(r - selection.selected_r) < 1e-12
                 and abs(a - selection.selected_alpha) < 1e-12
             )
-            cells.append(f"{_coverage_cell(n, spec.seeds_per_cell, selected=selected):^{cell_width}}")
+            cells.append(_coverage_cell(n, spec.seeds_per_cell, selected=selected))
 
         lines.append(row_prefix + " " + " ".join(cells))
 
@@ -341,9 +319,7 @@ def build_coverage_text(df: pd.DataFrame, spec: SweepSpec, selection: DetailSele
         "[magenta]█[/magenta] <100%   "
         "[bold red]█[/bold red] full"
     )
-    lines.append(
-        f"[dim]Grid:[/dim] {len(spec.r_values)} × {len(spec.alpha_values)} × {spec.seeds_per_cell}"
-    )
+    lines.append(f"[dim]Grid:[/dim] {len(spec.r_values)} × {len(spec.alpha_values)} × {spec.seeds_per_cell}")
     return "\n".join(lines)
 
 
@@ -502,12 +478,7 @@ class PAMTUI(App):
         self.spec_panel.set_body(build_sweep_spec_text(self.snap.sweep_spec))
         self.latest_panel.set_body(build_latest_row_text(self.snap.df))
         self.coverage_panel.set_body(build_coverage_text(self.snap.df, self.snap.sweep_spec, self.selection))
-
-        self.detail_view.update_detail(
-            self.snap.df,
-            self.selection,
-            alpha_values=self.snap.sweep_spec.alpha_values,
-        )
+        self.detail_view.update_detail(self.snap.df, self.selection, alpha_values=self.snap.sweep_spec.alpha_values)
 
 
 if __name__ == "__main__":
