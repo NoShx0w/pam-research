@@ -1,81 +1,378 @@
 from __future__ import annotations
 
-from time import time
+from dataclasses import dataclass
 from pathlib import Path
-from datetime import datetime
+from time import time
+from typing import Iterable
 
+import pandas as pd
 from textual.app import App, ComposeResult
-from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.reactive import reactive
 from textual.widgets import Footer, Header
 
-from tui.config import INDEX_PATH, REFRESH_SECONDS, SWEEP_SPEC_PATH
-from tui.controllers.selection import SelectionState
-from tui.data_loader import (
-    load_cell_detail,
-    load_or_create_sweep_spec,
-    load_phase_metric,
-    load_row_detail,
-    load_snapshot,
-    load_trajectory_detail,
-)
-from tui.widgets.coverage_heatmap import CoverageHeatmap
-from tui.widgets.detail_view import DetailView
 from tui.widgets.panel import Panel
-from tui.widgets.phase_diagram import PhaseDiagram
+from tui.widgets.detail_view import DetailView, DetailSelection
+
+
+INDEX_PATH = Path("outputs/index.csv")
+SWEEP_SPEC_PATH = Path("tui/sweep_spec.json")
+REFRESH_SECONDS = 5.0
+EXPECTED_SEEDS_PER_CELL = 10
+
+
+def _safe_numeric(df: pd.DataFrame, cols: Iterable[str]) -> pd.DataFrame:
+    out = df.copy()
+    for col in cols:
+        if col in out.columns:
+            out[col] = pd.to_numeric(out[col], errors="coerce")
+    return out
+
+
+def _sorted_unique_numeric(series: pd.Series) -> list[float]:
+    vals = pd.to_numeric(series, errors="coerce").dropna().unique().tolist()
+    return sorted(float(v) for v in vals)
+
+
+def display_float(x: float, digits: int = 3) -> str:
+    s = f"{float(x):.{digits}f}"
+    s = s.rstrip("0").rstrip(".")
+    return s if s else "0"
+
+
+def _fmt_field(label: str, value: object, width: int = 12) -> str:
+    return f"{label:<{width}} {value}"
+
+
+def _coverage_cell(count: int, total: int, selected: bool = False) -> str:
+    frac = 0.0 if total <= 0 else count / total
+    if frac <= 0.0:
+        inner = "[dim]·[/dim]"
+    elif frac < 0.25:
+        inner = "[cyan]░[/cyan]"
+    elif frac < 0.50:
+        inner = "[green]▒[/green]"
+    elif frac < 0.75:
+        inner = "[yellow]▓[/yellow]"
+    elif frac < 1.0:
+        inner = "[magenta]█[/magenta]"
+    else:
+        inner = "[bold red]█[/bold red]"
+
+    if selected:
+        return f"[bold white]→[/bold white]{inner}[bold white]←[/bold white]"
+    return f" {inner} "
+
+
+@dataclass
+class SweepSpec:
+    r_values: list[float]
+    alpha_values: list[float]
+    seeds_per_cell: int = EXPECTED_SEEDS_PER_CELL
+
+    @property
+    def expected_total(self) -> int:
+        return len(self.r_values) * len(self.alpha_values) * self.seeds_per_cell
+
+
+@dataclass
+class Snapshot:
+    df: pd.DataFrame
+    row_count: int
+    completed: int
+    expected_total: int
+    percent: float
+    observed_r: int
+    observed_alpha: int
+    last_modified: str
+    sweep_spec: SweepSpec
+
+
+def load_sweep_spec(df: pd.DataFrame) -> SweepSpec:
+    # Observation-driven fallback: derive from disk if no explicit spec exists.
+    work = _safe_numeric(df, ["r", "alpha", "seed"]) if not df.empty else pd.DataFrame()
+
+    if not work.empty and {"r", "alpha"}.issubset(work.columns):
+        r_values = _sorted_unique_numeric(work["r"])
+        alpha_values = _sorted_unique_numeric(work["alpha"])
+    else:
+        r_values = [0.10, 0.15, 0.20, 0.25, 0.30]
+        alpha_values = [0.03, 0.039, 0.047, 0.056, 0.064, 0.073, 0.081, 0.09, 0.099, 0.107, 0.116, 0.124, 0.133, 0.141, 0.15]
+
+    return SweepSpec(r_values=r_values, alpha_values=alpha_values, seeds_per_cell=EXPECTED_SEEDS_PER_CELL)
+
+
+def load_snapshot(index_path: Path) -> Snapshot:
+    if not index_path.exists():
+        empty = pd.DataFrame()
+        spec = load_sweep_spec(empty)
+        return Snapshot(
+            df=empty,
+            row_count=0,
+            completed=0,
+            expected_total=spec.expected_total,
+            percent=0.0,
+            observed_r=0,
+            observed_alpha=0,
+            last_modified="missing",
+            sweep_spec=spec,
+        )
+
+    try:
+        df = pd.read_csv(index_path)
+    except Exception:
+        df = pd.DataFrame()
+
+    spec = load_sweep_spec(df)
+    completed = len(df)
+    percent = 100.0 * completed / spec.expected_total if spec.expected_total else 0.0
+
+    if not df.empty and {"r", "alpha"}.issubset(df.columns):
+        work = _safe_numeric(df, ["r", "alpha"])
+        observed_r = work["r"].dropna().nunique()
+        observed_alpha = work["alpha"].dropna().nunique()
+    else:
+        observed_r = 0
+        observed_alpha = 0
+
+    last_modified = pd.Timestamp(index_path.stat().st_mtime, unit="s").strftime("%Y-%m-%d %H:%M:%S")
+
+    return Snapshot(
+        df=df,
+        row_count=len(df),
+        completed=completed,
+        expected_total=spec.expected_total,
+        percent=percent,
+        observed_r=observed_r,
+        observed_alpha=observed_alpha,
+        last_modified=last_modified,
+        sweep_spec=spec,
+    )
+
+
+def build_status_text(
+    snap: Snapshot,
+    selection: DetailSelection,
+    qph: float,
+) -> str:
+    controls = "↑↓ r   ←→ α"
+    enter = "Enter row/cell toggle"
+    if selection.mode == "trajectory":
+        enter = "Enter row/cell toggle"
+    lines = [
+        _fmt_field("index path", INDEX_PATH),
+        _fmt_field("rows loaded", snap.row_count),
+        _fmt_field("completed", f"{snap.completed} / {snap.expected_total}"),
+        _fmt_field("progress", f"{snap.percent:6.2f}%"),
+        _fmt_field("throughput", f"{qph:8.2f} q/h"),
+        _fmt_field("observed r", f"{snap.observed_r} / {len(snap.sweep_spec.r_values)}"),
+        _fmt_field("observed α", f"{snap.observed_alpha} / {len(snap.sweep_spec.alpha_values)}"),
+        _fmt_field("mode", selection.mode),
+        _fmt_field("selected r", display_float(selection.selected_r, 3) if selection.selected_r is not None else "—"),
+        _fmt_field("selected α", display_float(selection.selected_alpha, 3) if selection.selected_alpha is not None else "—"),
+        _fmt_field("controls", controls),
+        _fmt_field("enter", enter),
+        _fmt_field("t", "trajectory mode"),
+        _fmt_field("last modified", snap.last_modified),
+        _fmt_field("refresh every", f"{REFRESH_SECONDS:.1f}s"),
+    ]
+    return "\n".join(lines)
+
+
+def build_sweep_spec_text(spec: SweepSpec) -> str:
+    return "\n".join(
+        [
+            _fmt_field("r count", len(spec.r_values)),
+            _fmt_field("r min/max", f"{display_float(spec.r_values[0], 3)} → {display_float(spec.r_values[-1], 3)}"),
+            _fmt_field("α range", f"{display_float(spec.alpha_values[0], 3)} → {display_float(spec.alpha_values[-1], 3)}"),
+            _fmt_field("α count", len(spec.alpha_values)),
+            _fmt_field("seeds / cell", spec.seeds_per_cell),
+            _fmt_field("intended total", spec.expected_total),
+        ]
+    )
+
+
+def build_latest_row_text(df: pd.DataFrame) -> str:
+    if df.empty:
+        return "No data yet."
+
+    latest = df.iloc[-1]
+    preferred = [
+        ("r", "r"),
+        ("alpha", "α"),
+        ("seed", "seed"),
+        ("piF_tail", "πF_tail"),
+        ("H_joint_mean", "H_joint"),
+        ("best_corr", "best_corr"),
+        ("corr0", "corr0"),
+        ("delta_r2_freeze", "ΔR²_freeze"),
+        ("delta_r2_entropy", "ΔR²_entropy"),
+        ("K_max", "K_max"),
+    ]
+
+    lines: list[str] = []
+    for col, label in preferred:
+        if col not in df.columns:
+            continue
+        value = latest[col]
+        if pd.isna(value):
+            continue
+
+        if col in {"r", "alpha"}:
+            shown = display_float(float(value), 6)
+        elif isinstance(value, float):
+            shown = f"{float(value):.6g}"
+        else:
+            shown = str(value)
+
+        lines.append(_fmt_field(label, shown))
+    return "\n".join(lines)
+
+
+def build_coverage_text(
+    df: pd.DataFrame,
+    spec: SweepSpec,
+    selection: DetailSelection,
+) -> str:
+    if df.empty:
+        return "No rows loaded."
+
+    if not {"r", "alpha"}.issubset(df.columns):
+        return "index.csv missing required columns: r, alpha"
+
+    work = _safe_numeric(df, ["r", "alpha", "seed"])
+    work = work.dropna(subset=["r", "alpha"])
+
+    if "seed" in work.columns:
+        grouped = (
+            work.groupby(["r", "alpha"])["seed"]
+            .nunique()
+            .reset_index(name="n")
+        )
+    else:
+        grouped = (
+            work.groupby(["r", "alpha"])
+            .size()
+            .reset_index(name="n")
+        )
+
+    lookup = {
+        (round(float(row.r), 12), round(float(row.alpha), 12)): int(row.n)
+        for row in grouped.itertuples(index=False)
+    }
+
+    row_label_width = 8
+    cell_width = 6
+
+    header_parts = []
+    for a in spec.alpha_values:
+        label = display_float(a, 3)
+        if selection.selected_alpha is not None and abs(a - selection.selected_alpha) < 1e-12:
+            label = f"[ {label} ]"
+        header_parts.append(f"{label:^{cell_width}}")
+
+    header = "r \\ α".ljust(row_label_width) + " " + " ".join(header_parts)
+    sep = "-" * len(header)
+
+    lines = [header, sep]
+
+    for r in spec.r_values:
+        marker = "[bold orange1]▶[/bold orange1]" if selection.selected_r is not None and abs(r - selection.selected_r) < 1e-12 else "[dim]▶[/dim]"
+        r_label = f"{display_float(r, 3):>4}"
+        row_prefix = f"{marker} {r_label}".ljust(row_label_width)
+
+        cells: list[str] = []
+        for a in spec.alpha_values:
+            n = lookup.get((round(r, 12), round(a, 12)), 0)
+            selected = (
+                selection.mode in {"cell", "trajectory"}
+                and selection.selected_r is not None
+                and selection.selected_alpha is not None
+                and abs(r - selection.selected_r) < 1e-12
+                and abs(a - selection.selected_alpha) < 1e-12
+            )
+            cells.append(f"{_coverage_cell(n, spec.seeds_per_cell, selected=selected):^{cell_width}}")
+
+        lines.append(row_prefix + " " + " ".join(cells))
+
+    lines.append("")
+    lines.append(
+        "[dim]Legend:[/dim] "
+        "[dim]·[/dim] empty   "
+        "[cyan]░[/cyan] <25%   "
+        "[green]▒[/green] <50%   "
+        "[yellow]▓[/yellow] <75%   "
+        "[magenta]█[/magenta] <100%   "
+        "[bold red]█[/bold red] full"
+    )
+    lines.append(
+        f"[dim]Grid:[/dim] {len(spec.r_values)} × {len(spec.alpha_values)} × {spec.seeds_per_cell}"
+    )
+
+    return "\n".join(lines)
 
 
 class PAMTUI(App):
-    BINDINGS = [
-        Binding("up", "prev_r", "Prev r"),
-        Binding("down", "next_r", "Next r"),
-        Binding("left", "prev_alpha", "Prev α"),
-        Binding("right", "next_alpha", "Next α"),
-        Binding("enter", "toggle_mode", "Toggle mode"),
-        Binding("t", "trajectory_mode", "Trajectory"),
-        Binding("s", "save_screenshot", "Save SVG"),
-    ]
-
     CSS = """
-    Screen { layout: vertical; }
-    #main { height: 1fr; }
-    #left { width: 42; min-width: 40; }
-    #right { width: 1fr; }
-
-    Panel, CoverageHeatmap, DetailView, PhaseDiagram {
-        border: round $primary;
-        padding: 1 2;
-        margin: 0 1 1 1;
-        overflow-x: hidden;
-        overflow-y: auto;
+    Screen {
+        layout: vertical;
     }
 
-    #coverage { height: auto; }
-    #phase { height: auto; }
-    #detail { height: 1fr; }
+    #main {
+        height: 1fr;
+    }
 
-    #latest, #status, #spec { height: auto; }
+    #left {
+        width: 42;
+        min-width: 36;
+    }
+
+    #right {
+        width: 1fr;
+    }
+
+    Panel {
+        border: round $accent;
+        padding: 1 2;
+        margin: 0 1 1 1;
+    }
+
+    #coverage {
+        height: 17;
+    }
+
+    #detail {
+        height: 1fr;
+    }
+
+    #status, #spec, #latest {
+        height: auto;
+    }
     """
+
+    BINDINGS = [
+        ("up", "prev_r", "Prev r"),
+        ("down", "next_r", "Next r"),
+        ("left", "prev_alpha", "Prev α"),
+        ("right", "next_alpha", "Next α"),
+        ("enter", "toggle_mode", "Toggle mode"),
+        ("t", "trajectory_mode", "Trajectory"),
+    ]
 
     refresh_started_at = reactive(0.0)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.sweep_spec = load_or_create_sweep_spec(SWEEP_SPEC_PATH)
-        self.selection = SelectionState()
-
-        self.last_refresh_time = None
-        self.last_completed = None
-        self.qph_estimate = None
-
-    @property
-    def selected_r(self) -> float:
-        return self.selection.selected_r(self.sweep_spec)
-
-    @property
-    def selected_alpha(self) -> float:
-        return self.selection.selected_alpha(self.sweep_spec)
+    def __init__(self):
+        super().__init__()
+        self.snap = load_snapshot(INDEX_PATH)
+        spec = self.snap.sweep_spec
+        initial_r = spec.r_values[0] if spec.r_values else None
+        initial_alpha = spec.alpha_values[0] if spec.alpha_values else None
+        self.selection = DetailSelection(
+            mode="row",
+            selected_r=initial_r,
+            selected_alpha=initial_alpha,
+            selected_seed=0,
+        )
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -90,12 +387,10 @@ class PAMTUI(App):
                 yield self.latest_panel
 
             with Vertical(id="right"):
-                self.coverage_panel = CoverageHeatmap(spec=self.sweep_spec, id="coverage")
-                self.phase_panel = PhaseDiagram(spec=self.sweep_spec, metric_name="piF_tail_mean", id="phase")
-                self.detail_panel = DetailView(spec=self.sweep_spec, id="detail")
+                self.coverage_panel = Panel("Seed coverage", id="coverage")
+                self.detail_view = DetailView()
                 yield self.coverage_panel
-                yield self.phase_panel
-                yield self.detail_panel
+                yield self.detail_view
 
         yield Footer()
 
@@ -106,112 +401,83 @@ class PAMTUI(App):
         self.refresh_data()
         self.set_interval(REFRESH_SECONDS, self.refresh_data)
 
+    # ----- selection helpers -----
+
+    def _ensure_selection_valid(self) -> None:
+        spec = self.snap.sweep_spec
+        if spec.r_values and self.selection.selected_r not in spec.r_values:
+            self.selection.selected_r = spec.r_values[0]
+        if spec.alpha_values and self.selection.selected_alpha not in spec.alpha_values:
+            self.selection.selected_alpha = spec.alpha_values[0]
+
     def action_prev_r(self) -> None:
-        self.selection.move_up()
+        values = self.snap.sweep_spec.r_values
+        if not values:
+            return
+        cur = self.selection.selected_r if self.selection.selected_r is not None else values[0]
+        idx = values.index(cur)
+        self.selection.selected_r = values[max(0, idx - 1)]
         self.refresh_data()
 
     def action_next_r(self) -> None:
-        self.selection.move_down(self.sweep_spec)
+        values = self.snap.sweep_spec.r_values
+        if not values:
+            return
+        cur = self.selection.selected_r if self.selection.selected_r is not None else values[0]
+        idx = values.index(cur)
+        self.selection.selected_r = values[min(len(values) - 1, idx + 1)]
         self.refresh_data()
 
     def action_prev_alpha(self) -> None:
-        self.selection.move_left()
+        values = self.snap.sweep_spec.alpha_values
+        if not values:
+            return
+        cur = self.selection.selected_alpha if self.selection.selected_alpha is not None else values[0]
+        idx = values.index(cur)
+        self.selection.selected_alpha = values[max(0, idx - 1)]
         self.refresh_data()
 
     def action_next_alpha(self) -> None:
-        self.selection.move_right(self.sweep_spec)
+        values = self.snap.sweep_spec.alpha_values
+        if not values:
+            return
+        cur = self.selection.selected_alpha if self.selection.selected_alpha is not None else values[0]
+        idx = values.index(cur)
+        self.selection.selected_alpha = values[min(len(values) - 1, idx + 1)]
         self.refresh_data()
 
     def action_toggle_mode(self) -> None:
-        self.selection.toggle_mode()
+        if self.selection.mode == "row":
+            self.selection.mode = "cell"
+        elif self.selection.mode == "cell":
+            self.selection.mode = "row"
+        elif self.selection.mode == "trajectory":
+            self.selection.mode = "cell"
         self.refresh_data()
 
     def action_trajectory_mode(self) -> None:
-        self.selection.set_trajectory_mode()
+        self.selection.mode = "trajectory"
         self.refresh_data()
 
-    def _format_kv(self, key: str, value: str, key_width: int = 14) -> str:
-        return f"{key:<{key_width}} {value}"
-
-    def _update_qph(self, completed: int) -> float:
-        now = time()
-
-        if self.last_refresh_time is None or self.last_completed is None:
-            self.last_refresh_time = now
-            self.last_completed = completed
-            return 0.0
-
-        dt = now - self.last_refresh_time
-        dc = completed - self.last_completed
-
-        if dt > 0 and dc >= 0:
-            inst_qph = dc * 3600.0 / dt
-            if self.qph_estimate is None:
-                self.qph_estimate = inst_qph
-            else:
-                self.qph_estimate = 0.7 * self.qph_estimate + 0.3 * inst_qph
-
-        self.last_refresh_time = now
-        self.last_completed = completed
-        return 0.0 if self.qph_estimate is None else self.qph_estimate
+    # ----- refresh -----
 
     def refresh_data(self) -> None:
-        snap, lookup = load_snapshot(INDEX_PATH, self.sweep_spec)
-        phase_values = load_phase_metric(INDEX_PATH, self.sweep_spec, "piF_tail")
+        self.snap = load_snapshot(INDEX_PATH)
+        self._ensure_selection_valid()
 
-        if self.selection.is_row_mode:
-            detail = load_row_detail(INDEX_PATH, self.sweep_spec, self.selected_r)
-        elif self.selection.is_cell_mode:
-            detail = load_cell_detail(INDEX_PATH, self.sweep_spec, self.selected_r, self.selected_alpha)
-        else:
-            detail = load_trajectory_detail(INDEX_PATH, self.selected_r, self.selected_alpha)
+        elapsed = time() - self.refresh_started_at
+        qph = self.snap.completed / elapsed * 3600.0 if elapsed > 0 else 0.0
 
-        qph = self._update_qph(snap.completed)
-        mode_label = self.selection.mode
+        self.status_panel.set_body(build_status_text(self.snap, self.selection, qph))
+        self.spec_panel.set_body(build_sweep_spec_text(self.snap.sweep_spec))
+        self.latest_panel.set_body(build_latest_row_text(self.snap.df))
+        self.coverage_panel.set_body(build_coverage_text(self.snap.df, self.snap.sweep_spec, self.selection))
 
-        status_lines = [
-            self._format_kv("index path", str(INDEX_PATH)),
-            self._format_kv("rows loaded", f"{snap.row_count:>6}"),
-            self._format_kv("completed", f"{snap.completed:>4} / {snap.expected_total:<4}"),
-            self._format_kv("progress", f"{snap.percent:>7.2f}%"),
-            self._format_kv("throughput", f"{qph:>9.2f} q/h"),
-            self._format_kv("observed r", f"{snap.observed_grid_text.splitlines()[0].split()[-3]} / {snap.observed_grid_text.splitlines()[0].split()[-1]}"),
-            self._format_kv("observed α", f"{snap.observed_grid_text.splitlines()[1].split()[-3]} / {snap.observed_grid_text.splitlines()[1].split()[-1]}"),
-            self._format_kv("mode", mode_label),
-            self._format_kv("selected r", f"{self.selected_r:>7.3f}"),
-            self._format_kv("selected α", f"{self.selected_alpha:>7.3f}"),
-            self._format_kv("controls", "↑↓ r   ←→ α"),
-            self._format_kv("enter", "row/cell toggle"),
-            self._format_kv("t", "trajectory mode"),
-            self._format_kv("last modified", snap.last_modified),
-            self._format_kv("refresh every", f"{REFRESH_SECONDS:.1f}s"),
-        ]
-
-        self.status_panel.set_body("\n".join(status_lines))
-        self.spec_panel.set_body(snap.sweep_spec_text)
-        self.latest_panel.set_body(snap.latest_metrics_text)
-
-        self.coverage_panel.set_lookup(lookup)
-        self.coverage_panel.set_selected(self.selected_r, self.selected_alpha)
-
-        self.phase_panel.set_values(phase_values)
-        self.phase_panel.set_selected(self.selected_r, self.selected_alpha)
-
-        if self.selection.is_row_mode:
-            self.detail_panel.show_row_detail(detail)
-        elif self.selection.is_cell_mode:
-            self.detail_panel.show_cell_detail(detail)
-        else:
-            self.detail_panel.show_trajectory_detail(detail)
-
-    def action_save_screenshot(self) -> None:
-        screenshots_dir = Path("tui/screenshots")
-        screenshots_dir.mkdir(parents=True, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"obs_r{self.selected_r:.2f}_a{self.selected_alpha:.3f}_{timestamp}.svg"
-        path = screenshots_dir / filename
-        self.save_screenshot(str(path))
-        self.notify(f"Screenshot saved → {path}")
+        self.detail_view.update_detail(
+            self.snap.df,
+            self.selection,
+            alpha_values=self.snap.sweep_spec.alpha_values,
+        )
 
 
 if __name__ == "__main__":
