@@ -255,7 +255,7 @@ def _coverage_cell(count: int, total: int, selected: bool = False) -> str:
     else:
         inner = "█"
 
-    return _col(f"[bold white]→[/bold white]{inner}[bold white]←[/bold white]") if selected else _col(f" {inner} ")
+    return _col(f"{inner}") if selected else _col(f" {inner} ")
 
 
 def build_coverage_text(df: pd.DataFrame, spec: SweepSpec, selection: DetailSelection) -> str:
@@ -319,7 +319,7 @@ def build_coverage_text(df: pd.DataFrame, spec: SweepSpec, selection: DetailSele
         "█ <100%   "
         "█ full"
     )
-    lines.append(f"[dim]Grid:[/dim] {len(spec.r_values)} × {len(spec.alpha_values)} × {spec.seeds_per_cell}")
+    lines.append(f"Grid: {len(spec.r_values)} × {len(spec.alpha_values)} × {spec.seeds_per_cell}")
     return "\n".join(lines)
 
 
