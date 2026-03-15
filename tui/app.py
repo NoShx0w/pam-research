@@ -292,7 +292,7 @@ def build_coverage_text(df: pd.DataFrame, spec: SweepSpec, selection: DetailSele
     lines = [header, sep]
 
     for r in spec.r_values:
-        marker = "[bold orange1]▶[/bold orange1]" if selection.selected_r is not None and abs(r - selection.selected_r) < 1e-12 else "[dim]▶[/dim]"
+        marker = "▶" if selection.selected_r is not None and abs(r - selection.selected_r) < 1e-12 else "[dim]▶[/dim]"
         row_prefix = f"{marker} {display_float(r, 3):>4}".ljust(row_label_width)
 
         cells = []
