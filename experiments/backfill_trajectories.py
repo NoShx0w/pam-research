@@ -1,10 +1,7 @@
-
 import argparse
 from pathlib import Path
-from typing import Callable, Dict, Any
 
 import pandas as pd
-import numpy as np
 
 
 def trajectory_filename(corpus: str, r: float, alpha: float, seed: int) -> str:
@@ -40,49 +37,9 @@ def filter_manifest(
     return out.reset_index(drop=True)
 
 
-def save_trajectory_npz(path: Path, payload: Dict[str, Any]) -> None:
-    """
-    Save trajectory payload in a repo-compatible .npz container.
-
-    Expected keys usually include:
-      F_raw, H_joint, K, pi, Hj_sm, lags, corrs
-
-    This function is deliberately generic so it can be reused after the
-    repo-specific run function is wired in.
-    """
-    path.parent.mkdir(parents=True, exist_ok=True)
-    np.savez(path, **payload)
-
-
-def default_stub_runner(*, corpus: str, r: float, alpha: float, seed: int) -> Dict[str, Any]:
-    """
-    Placeholder runner.
-
-    Replace this wiring with the actual single-run trajectory producer from the repo,
-    for example by importing a helper extracted from experiments/exp_batch.py.
-
-    It must return a dict of arrays suitable for np.savez().
-    """
-    raise NotImplementedError(
-        "Wire backfill_trajectories.py to the real single-run trajectory generator "
-        "used by the Observatory batch pipeline."
-    )
-
-
-def resolve_runner() -> Callable[..., Dict[str, Any]]:
-    """
-    Try to resolve a repo-native single-run function if available.
-    Fallback is an explicit stub with a clear error message.
-
-    Adjust this function once the repository exposes a stable reusable API.
-    """
-    # Future-friendly hook point:
-    # try:
-    #     from experiments.exp_batch import run_quench_trajectory_only
-    #     return run_quench_trajectory_only
-    # except Exception:
-    #     pass
-    return default_stub_runner
+def resolve_runner():
+    from experiments.exp_batch import run_one_trajectory_only
+    return run_one_trajectory_only
 
 
 def main():
@@ -164,10 +121,15 @@ def main():
             if outpath.exists():
                 status = "exists"
             else:
-                payload = runner(corpus=corpus, r=r, alpha=alpha, seed=seed)
-                if not isinstance(payload, dict):
-                    raise TypeError("Runner must return a dict of arrays for np.savez")
-                save_trajectory_npz(outpath, payload)
+                result = runner(
+                    corpus_key=corpus,
+                    r=r,
+                    alpha=alpha,
+                    seed=seed,
+                )
+                written_path = Path(result["trajectory_path"])
+                if not written_path.exists():
+                    raise FileNotFoundError(f"Backfill runner did not create {written_path}")
                 status = "written"
         except Exception as exc:
             status = "error"
