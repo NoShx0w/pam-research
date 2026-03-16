@@ -1,35 +1,74 @@
 # PAM Observatory
 
-```mermaid
-flowchart TD
+> Experimental framework for exploring phase structure in recursive language systems.
 
-A[Quench Experiments<br>exp_batch.py]
-B[Observables<br>index.csv]
-C[Live Observatory<br>TUI]
-D[Geometry Layer<br>fim.py]
-E[Fisher Distance<br>fim_distance.py]
-F[Manifold Embedding<br>fim_mds.py]
-G[Phase Geometry Interpretation]
-
-A --> B
-B --> C
-B --> D
-D --> E
-E --> F
-F --> G
-```
-
-**Exploring phase structure in recursive language systems**
-
-PAM Observatory is a research instrument for studying the dynamics of recursive language systems under controlled parameter sweeps.
-
-The system performs batches of experiments across a grid of parameters and records dynamical observables such as freeze probability, entropy, and cross-correlation. A live terminal interface allows researchers to monitor experiments in real time, explore phase diagrams, inspect trajectories, and generate visual artifacts from the evolving sweep.
-
-The observatory is designed to make **phase structure visible while experiments are running**.
+PAM Observatory is a research instrument for studying recursive text dynamics under controlled parameter sweeps.
+It runs batches of quenches over a parameter grid, extracts dynamical observables, exposes a live terminal observatory for monitoring and inspection, and builds a downstream geometry layer for Fisher-type metrics, manifold embedding, curvature, and geodesic analysis.
 
 ---
 
-## What this repository is doing
+## Research Pipeline
+
+```mermaid
+flowchart TD
+    classDef stage fill:#111827,stroke:#f59e0b,color:#f9fafb,stroke-width:1px;
+    classDef data fill:#0f172a,stroke:#38bdf8,color:#e2e8f0,stroke-width:1px;
+    classDef insight fill:#1f2937,stroke:#a78bfa,color:#f9fafb,stroke-width:1px;
+
+    subgraph S1[Parameter Sweep]
+        A[r × α × seed grid<br/>typical sweep: 5 × 15 × 10 = 750 quenches]
+    end
+
+    subgraph S2[Execution]
+        B[experiments/exp_batch.py<br/>resume-aware batch runner]
+        C[trajectory files<br/>outputs/trajectories/]
+    end
+
+    subgraph S3[Observables]
+        D[summary statistics<br/>πF_tail · H_joint_mean · corr0<br/>best_corr · ΔR² metrics · K_max]
+        E[outputs/index.csv]
+    end
+
+    subgraph S4[Observatory]
+        F[tui/app.py<br/>live monitoring · coverage map<br/>phase surfaces · trajectory inspection]
+    end
+
+    subgraph S5[Geometry Layer]
+        G[experiments/fim.py<br/>Fisher-type metric estimation]
+        H[fim_distance.py<br/>distance graph]
+        I[fim_mds.py<br/>manifold embedding]
+        J[curvature + geodesic tracing<br/>phase-geometry interpretation]
+    end
+
+    subgraph S6[Research Outcome]
+        K[parameter manifold<br/>phase regions · seams · curvature bands]
+    end
+
+    A --> B
+    B --> C
+    B --> D
+    D --> E
+    E --> F
+    E --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+
+    class A,B,F,G,H,I,J stage
+    class C,D,E data
+    class K insight
+```
+
+In one line:
+
+```text
+quench experiments → observables → observatory → geometry → phase interpretation
+```
+
+---
+
+## What this repository does
 
 The repository currently supports a layered workflow:
 
@@ -51,16 +90,17 @@ phase geometry interpretation
 
 This gives the project four practical pillars:
 
-- **experiments**
-- **observatory**
-- **geometry**
-- **documentation**
+- experiments
+- observatory
+- geometry
+- documentation
 
 ---
 
 ## Observatory Interface
 
-The PAM Observatory TUI exposes three conceptual layers:
+The PAM Observatory TUI is designed as a live research instrument rather than a post hoc plotting layer.
+It exposes three conceptual levels:
 
 1. **Coverage**  
    Which parameter combinations have already been computed.
@@ -79,9 +119,9 @@ The interface supports row, cell, and trajectory inspection modes, plus screensh
 
 Experiments explore the parameter manifold
 
-\[
+```math
 \theta = (r, \alpha)
-\]
+```
 
 with a typical grid:
 
@@ -125,6 +165,13 @@ Typical summary observables include:
 
 These fields form the bridge between raw dynamics and phase-level geometry.
 
+A useful next documentation layer for this repository is a short observable glossary explaining, for each field:
+
+- what it measures
+- why it matters
+- how to read high / low values
+- where it appears in the observatory
+
 ---
 
 ## Running the Experiment Sweep
@@ -143,7 +190,7 @@ The batch runner is resume-aware and continues from existing rows in `outputs/in
 PYTHONPATH=. python tui/app.py
 ```
 
-The TUI reads the live experiment outputs and updates automatically while the sweep progresses.
+The TUI reads live experiment outputs and updates automatically while the sweep progresses.
 
 ---
 
@@ -167,7 +214,7 @@ tui/screenshots/
 
 ## Observatory Artifacts
 
-The repository includes a movie tool for turning saved Observatory screenshots into GIF or MP4 artifacts.
+The repository includes a movie tool for turning saved observatory screenshots into GIF or MP4 artifacts.
 
 ```bash
 python tools/phase_movie.py \
@@ -205,9 +252,9 @@ experiments/fim.py
 
 It operates on the observable summaries in `outputs/index.csv` and estimates a metric of the form:
 
-\[
+```math
 g_{ij} = \partial_i m^\top \Sigma^{-1} \partial_j m
-\]
+```
 
 where `m(r, α)` is the observable vector and `Σ` is an empirical noise covariance estimated from seed variability.
 
@@ -217,7 +264,9 @@ Current downstream geometry work includes:
 - determinant and anisotropy diagnostics
 - Fisher-distance graphs
 - MDS embeddings of the parameter manifold
-- curvature and candidate phase-boundary detection
+- scalar curvature estimation
+- candidate phase-boundary detection
+- Fisher geodesic tracing
 
 ---
 
@@ -226,6 +275,7 @@ Current downstream geometry work includes:
 ```text
 pam-research/
 │
+├─ docs/
 ├─ experiments/
 │  ├─ exp_batch.py
 │  ├─ common_quench_metrics.py
@@ -238,81 +288,41 @@ pam-research/
 │  ├─ fim/
 │  └─ ...
 │
+├─ scripts/
+├─ src/
+│  └─ pam/
 ├─ tools/
-│  └─ phase_movie.py
-│
 ├─ tui/
 │  ├─ app.py
-│  ├─ widgets/
-│  ├─ controllers/
 │  ├─ screenshots/
-│  └─ sweep_spec.json
+│  └─ ...
 │
-├─ docs/
-│  ├─ README.md
-│  ├─ architecture.md
-│  ├─ observatory_philosophy.md
-│  ├─ allspark.md
-│  ├─ fim_branch.md
-│  └─ figures/
-│
-└─ README.md
+├─ README.md
+├─ requirements.txt
+└─ run_batch.sh
 ```
 
 ---
 
-## Documentation Policy
+## Suggested reading path
 
-Repository markdown files are the **canonical source of truth** for the project’s documentation.
+If you are new to the project, a good order is:
 
-Chat is used for drafting and refinement, but final structure and formatting should be stabilized in the repository itself.
-
-In short:
-
-```text
-chat is trajectory
-markdown is state
-git is time
-```
+1. Read this README for the pipeline overview.
+2. Run a small sweep and inspect `outputs/index.csv`.
+3. Launch the observatory and watch the live instrument.
+4. Read the geometry scripts after the observables make intuitive sense.
 
 ---
 
-## Research Context
+## Status
 
-The broader project asks how recursive language systems organize into **phase structure** under parameter variation.
+The observatory now spans:
 
-Key questions include:
+- batch experiment execution
+- live terminal monitoring
+- summary observable collection
+- Fisher-type geometry estimation
+- manifold embedding and phase interpretation
 
-- When does the system freeze into self-reference?
-- How does entropy evolve during collapse?
-- Which parameters control transitions between regimes?
-- What geometry is induced on the parameter manifold by observable statistics?
-
-The observatory exists to make those structures legible while the experiments are still unfolding.
-
----
-
-## Future Work
-
-Planned and active directions include:
-
-- automated phase ridge extraction
-- direct movie generation from `index.csv`
-- Fisher-distance geodesics on the parameter grid
-- manifold embeddings via MDS
-- curvature-based phase boundary detection
-- protocol and capability geometry research branches
-
----
-
-## The Allspark
-
-The repository explores a simple but powerful idea:
-
-> Meaning, structure, and interaction can be studied as **phase phenomena** in dynamical systems.
-
-Experiments generate trajectories.  
-The observatory reveals structure.  
-Geometry describes the manifold on which those structures live.
-
-The purpose of this repository is not merely to produce results, but to build the **instruments** that make such structures visible.
+The long-term aim is to make phase structure in recursive language systems directly observable while experiments are still running.
