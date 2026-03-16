@@ -1,3 +1,11 @@
+## Documentation
+
+Full documentation for the PAM Observatory is available in:
+
+→ [`docs/`](docs/README.md)
+
+---
+
 # PAM Observatory
 
 > Experimental framework for exploring phase structure in recursive language systems.
