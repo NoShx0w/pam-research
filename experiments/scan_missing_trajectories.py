@@ -59,6 +59,11 @@ def main():
     print(expected_path)
     print(missing_path)
 
+    missing = manifest[manifest["needs_backfill"]].copy()
+
+    print("\nMissing by r:")
+    print(missing.groupby("r").size().sort_index())
+
 
 if __name__ == "__main__":
     main()
