@@ -66,7 +66,6 @@ def main():
                     status = "missing_keys"
                     missing_keys = ",".join(missing)
                 else:
-                    # simple shape summary for sanity
                     parts = []
                     for k in sorted(REQUIRED_KEYS):
                         try:
