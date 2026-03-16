@@ -2,14 +2,6 @@
 ![Status](https://img.shields.io/badge/status-observatory_active-green)
 ![Runs](https://img.shields.io/badge/quenches-750-orange)
 
-## Documentation
-
-Full documentation for the PAM Observatory is available in:
-
-→ [`docs/`](docs/README.md)
-
----
-
 # PAM Observatory
 Phase Analysis of Meaning — Information Geometry of Recursive Language Systems
 
@@ -45,9 +37,9 @@ Total runs: **750 quenches**
 
 ## Documentation
 
-Full documentation:
+Full documentation for the PAM Observatory is available in:
 
-→ docs/README.md
+→ [`docs/`](docs/README.md)
 
 ---
 
