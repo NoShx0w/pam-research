@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+<style>
+.box { fill:#f5f5f5; stroke:#333; stroke-width:2; }
+.title { font-family:Arial, Helvetica, sans-serif; font-size:24px; font-weight:bold; }
+.label { font-family:Arial, Helvetica, sans-serif; font-size:14px; }
+.arrow { stroke:#333; stroke-width:2; marker-end:url(#arrowhead); }
+</style>
+
+<defs>
+<marker id="arrowhead" markerWidth="10" markerHeight="7"
+ refX="10" refY="3.5" orient="auto">
+  <polygon points="0 0, 10 3.5, 0 7"/>
+</marker>
+</defs>
+
+<text x="600" y="40" text-anchor="middle" class="title">
+Emergence of Phase Structure from Fisher Geometry
+</text>
+
+<!-- parameter grid -->
+<rect x="60" y="170" width="240" height="140" class="box"/>
+<text x="180" y="210" text-anchor="middle" class="label">Parameter Grid</text>
+<text x="180" y="240" text-anchor="middle" class="label">(r, α)</text>
+<text x="180" y="270" text-anchor="middle" class="label">Experiment Sweep</text>
+
+<!-- fisher manifold -->
+<rect x="380" y="170" width="240" height="140" class="box"/>
+<text x="500" y="210" text-anchor="middle" class="label">Fisher Information</text>
+<text x="500" y="240" text-anchor="middle" class="label">Statistical Manifold</text>
+<text x="500" y="270" text-anchor="middle" class="label">Embedding + Distances</text>
+
+<!-- curvature ridge -->
+<rect x="700" y="170" width="240" height="140" class="box"/>
+<text x="820" y="210" text-anchor="middle" class="label">Curvature Ridges</text>
+<text x="820" y="240" text-anchor="middle" class="label">Instability Zones</text>
+<text x="820" y="270" text-anchor="middle" class="label">Phase Transition Band</text>
+
+<!-- phase basins -->
+<rect x="1020" y="170" width="240" height="140" class="box"/>
+<text x="1140" y="210" text-anchor="middle" class="label">Phase Basins</text>
+<text x="1140" y="240" text-anchor="middle" class="label">Separated Regions</text>
+<text x="1140" y="270" text-anchor="middle" class="label">Critical Points</text>
+
+<!-- arrows -->
+<line x1="300" y1="240" x2="380" y2="240" class="arrow"/>
+<line x1="620" y1="240" x2="700" y2="240" class="arrow"/>
+<line x1="940" y1="240" x2="1020" y2="240" class="arrow"/>
+
+<!-- bottom description -->
+<text x="600" y="430" text-anchor="middle" class="label">
+Parameter experiments → Fisher geometry → curvature ridges → phase basins
+</text>
+
+</svg>
