@@ -164,6 +164,57 @@ def build_trajectory_filename(corpus_key, r, alpha, seed):
     return f"traj_{corpus_key}_r{r:.3f}_a{alpha:.6f}_seed{seed}.npz"
 
 
+def run_one_trajectory_only(
+    *,
+    corpus_key: str,
+    r: float,
+    alpha: float,
+    seed: int,
+    iters: int = 300,
+    W: int = 30,
+    out_dir: str = "outputs",
+):
+    """
+    Run one Observatory quench and write only the trajectory .npz.
+
+    This is used by trajectory backfill tooling so it stays perfectly aligned
+    with the batch pipeline.
+    """
+    texts0 = CORPORA[corpus_key]
+    tip = build_tip()
+    mix_inj = build_injector(tip, texts0)
+
+    params = RunParams(
+        alpha=alpha,
+        r=r,
+        seed=seed,
+        iters=iters,
+        anchor_set_size=10,
+        store_snapshots=True,
+        store_every=1,
+    )
+
+    traj_name = build_trajectory_filename(corpus_key, r, alpha, seed)
+    traj_path = Path(out_dir) / "trajectories" / traj_name
+
+    summary = run_one_summary(
+        texts0=texts0,
+        tip=tip,
+        mix_inj=mix_inj,
+        params=params,
+        alpha=alpha,
+        W=W,
+        save_trajectory=True,
+        trajectory_path=str(traj_path),
+    )
+
+    return {
+        "filename": traj_name,
+        "trajectory_path": str(traj_path),
+        "summary": summary,
+    }
+
+
 def main():
     corpus_key = "C"
 
