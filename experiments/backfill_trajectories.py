@@ -1,8 +1,12 @@
+import time
 import argparse
-from pathlib import Path
-
 import pandas as pd
 
+from pathlib import Path
+from experiments.exp_batch import (
+    build_run_context,
+    run_one_trajectory_only_with_context,
+)
 
 def trajectory_filename(corpus: str, r: float, alpha: float, seed: int) -> str:
     return f"traj_{corpus}_r{r:.3f}_a{alpha:.6f}_seed{seed}.npz"
@@ -103,7 +107,10 @@ def main():
     runner = resolve_runner()
 
     logs = []
+    contexts = {}
+
     for _, row in todo.iterrows():
+        t0 = time.perf_counter()
         corpus = str(row["corpus"])
         r = float(row["r"])
         alpha = float(row["alpha"])
@@ -121,32 +128,29 @@ def main():
             if outpath.exists():
                 status = "exists"
             else:
-                result = runner(
-                    corpus_key=corpus,
+                if corpus not in contexts:
+                    t_ctx0 = time.perf_counter()
+                    contexts[corpus] = build_run_context(corpus_key=corpus)
+                    t_ctx = time.perf_counter() - t_ctx0
+                    print(f"[init] corpus={corpus} context ready in {t_ctx:.2f}s")
+                result = run_one_trajectory_only_with_context(
+                    ctx=contexts[corpus],
                     r=r,
                     alpha=alpha,
                     seed=seed,
                 )
+
                 written_path = Path(result["trajectory_path"])
                 if not written_path.exists():
                     raise FileNotFoundError(f"Backfill runner did not create {written_path}")
+
                 status = "written"
+                dt = time.perf_counter() - t0
+                print(f"{"elapsed_sec": dt}")
         except Exception as exc:
             status = "error"
             error = f"{type(exc).__name__}: {exc}"
 
-        logs.append(
-            {
-                "corpus": corpus,
-                "r": r,
-                "alpha": alpha,
-                "seed": seed,
-                "filename": str(filename),
-                "status": status,
-                "error": error,
-            }
-        )
-        print(f"[{status}] {filename}" + (f" :: {error}" if error else ""))
 
     log_df = pd.DataFrame(logs)
     log_path = Path(args.log_csv)
