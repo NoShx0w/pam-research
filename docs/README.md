@@ -14,68 +14,36 @@ using observable surfaces and Fisher Information geometry.
 
 ## 1. Observatory
 
-Understanding the experimental instrument and its outputs.
-
-- [How to Read the PAM Observatory](01_observatory/how_to_read_the_observatory.md)
-- [Observable Glossary](01_observatory/observables_glossary.md)
-
----
+- [How to Read the PAM Observatory](01_observatory/how_to_read.md)
+- [Observable Glossary](01_observatory/observable_glossary.md)
 
 ## 2. Geometry
 
-Conceptual explanation of the parameter sweep and the information geometry.
-
 - [Parameter Sweep Geometry](02_geometry/parameter_sweep_geometry.md)
-- [Fisher Information Geometry](02_geometry/fisher_information_geometry.md)
-
----
+- [Geometry Pipeline](02_geometry/geometry_pipeline.md)
 
 ## 3. Analysis Pipeline
 
-How experimental data is transformed into geometric structure.
-
-- [Geometry Analysis Pipeline](03_pipeline/geometry_pipeline.md)
-- [Phase Boundary Detection](03_pipeline/phase_boundary_detection.md)
-
----
+- [Phase Geometry](03_pipeline/phase_geometry.md)
 
 ## 4. Observatory Interface
 
-Visualization and exploration tools.
-
-- [Observatory TUI](04_interface/observatory_tui.md)
-
----
+- `04_interface/` reserved for TUI and observatory interface documentation
 
 ## 5. Project
 
-Project overview and reproducibility.
-
-- [Project Roadmap](05_project/roadmap.md)
-- [Reproducibility Guide](05_project/reproducibility.md)
+- `05_project/` reserved for roadmap and reproducibility guides
 
 ---
-
-# Geometry Pipeline Overview
-
-![Geometry Pipeline](figures/geometry_pipeline.svg)
 
 The pipeline converts experimental observables into an intrinsic manifold geometry:
-```text
+
 experiments → index.csv → Fisher metric → geodesic distances → MDS embedding → curvature → phase seam
-```
----
 
-# Current Experiment
+Current experiment:
 
-Parameter sweep:
-```text
-750 quenches
-```
----
+r ∈ {0.10, 0.15, 0.20, 0.25, 0.30}
+α ∈ linspace(0.03, 0.15, 15)
+seeds = 10
 
-# Repository
-
-Main repository:
-
-https://github.com/NoShx0w/pam-research
+Total runs: 750 quenches
