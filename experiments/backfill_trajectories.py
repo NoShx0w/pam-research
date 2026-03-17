@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+import time
 
 import pandas as pd
 
@@ -37,14 +38,9 @@ def filter_manifest(
     return out.reset_index(drop=True)
 
 
-def resolve_runner():
-    from experiments.exp_batch import run_one_trajectory_only
-    return run_one_trajectory_only
-
-
 def main():
     parser = argparse.ArgumentParser(
-        description="Backfill missing PAM trajectory .npz files from a manifest."
+        description="Backfill missing PAM trajectory .npz files from a manifest using a warm per-corpus run context."
     )
     parser.add_argument(
         "--manifest",
@@ -86,6 +82,11 @@ def main():
     )
     args = parser.parse_args()
 
+    from experiments.exp_batch import (
+        build_run_context,
+        run_one_trajectory_only_with_context,
+    )
+
     traj_dir = Path(args.traj_dir)
     traj_dir.mkdir(parents=True, exist_ok=True)
 
@@ -100,9 +101,9 @@ def main():
         print(todo[["corpus", "r", "alpha", "seed", "filename"]].to_string(index=False))
         return
 
-    runner = resolve_runner()
-
+    contexts = {}
     logs = []
+
     for _, row in todo.iterrows():
         corpus = str(row["corpus"])
         r = float(row["r"])
@@ -117,23 +118,36 @@ def main():
 
         status = "ok"
         error = ""
+
+        t0 = time.perf_counter()
         try:
             if outpath.exists():
                 status = "exists"
             else:
-                result = runner(
-                    corpus_key=corpus,
+                if corpus not in contexts:
+                    t_ctx0 = time.perf_counter()
+                    print(f"[init] building warm context for corpus={corpus}")
+                    contexts[corpus] = build_run_context(corpus_key=corpus)
+                    t_ctx = time.perf_counter() - t_ctx0
+                    print(f"[init] corpus={corpus} context ready in {t_ctx:.2f}s")
+
+                result = run_one_trajectory_only_with_context(
+                    ctx=contexts[corpus],
                     r=r,
                     alpha=alpha,
                     seed=seed,
                 )
+
                 written_path = Path(result["trajectory_path"])
                 if not written_path.exists():
                     raise FileNotFoundError(f"Backfill runner did not create {written_path}")
+
                 status = "written"
         except Exception as exc:
             status = "error"
             error = f"{type(exc).__name__}: {exc}"
+
+        elapsed_sec = time.perf_counter() - t0
 
         logs.append(
             {
@@ -143,10 +157,11 @@ def main():
                 "seed": seed,
                 "filename": str(filename),
                 "status": status,
+                "elapsed_sec": elapsed_sec,
                 "error": error,
             }
         )
-        print(f"[{status}] {filename}" + (f" :: {error}" if error else ""))
+        print(f"[{status}] {filename} ({elapsed_sec:.2f}s)" + (f" :: {error}" if error else ""))
 
     log_df = pd.DataFrame(logs)
     log_path = Path(args.log_csv)
@@ -155,6 +170,8 @@ def main():
 
     print(f"Wrote log: {log_path}")
     print(log_df["status"].value_counts(dropna=False).to_string())
+    if len(log_df) > 0:
+        print(f"Mean elapsed_sec: {log_df['elapsed_sec'].mean():.2f}s")
 
 
 if __name__ == "__main__":

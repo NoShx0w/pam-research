@@ -174,15 +174,51 @@ def run_one_trajectory_only(
     W: int = 30,
     out_dir: str = "outputs",
 ):
-    """
-    Run one Observatory quench and write only the trajectory .npz.
+    ctx = build_run_context(corpus_key=corpus_key)
+    return run_one_trajectory_only_with_context(
+        ctx=ctx,
+        r=r,
+        alpha=alpha,
+        seed=seed,
+        iters=iters,
+        W=W,
+        out_dir=out_dir,
+    )
 
-    This is used by trajectory backfill tooling so it stays perfectly aligned
-    with the batch pipeline.
+
+def build_run_context(*, corpus_key: str):
+    """
+    Build reusable heavy objects for repeated runs on the same corpus.
     """
     texts0 = CORPORA[corpus_key]
     tip = build_tip()
     mix_inj = build_injector(tip, texts0)
+
+    return {
+        "corpus_key": corpus_key,
+        "texts0": texts0,
+        "tip": tip,
+        "mix_inj": mix_inj,
+    }
+
+
+def run_one_trajectory_only_with_context(
+    *,
+    ctx,
+    r: float,
+    alpha: float,
+    seed: int,
+    iters: int = 300,
+    W: int = 30,
+    out_dir: str = "outputs",
+):
+    """
+    Run one Observatory quench using a prebuilt reusable context.
+    """
+    corpus_key = ctx["corpus_key"]
+    texts0 = ctx["texts0"]
+    tip = ctx["tip"]
+    mix_inj = ctx["mix_inj"]
 
     params = RunParams(
         alpha=alpha,

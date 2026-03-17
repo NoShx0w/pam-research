@@ -1,0 +1,5 @@
+#observatory-grid {
+    grid-size: 2 2;
+    grid-columns: 1fr 1fr;
+    grid-rows: 1fr 1fr;
+}
