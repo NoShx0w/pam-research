@@ -89,7 +89,8 @@ def main():
         seam_small["mds1"],
         seam_small["mds2"],
         color="black",
-        linewidth=2.4,
+        linewidth=2.0,
+        alpha=0.9,
         zorder=4,
     )
 
@@ -100,10 +101,10 @@ def main():
             crit_small["mds2"],
             c=crit_small["criticality"],
             cmap="plasma",
-            s=170,
+            s=200,
             marker="*",
             edgecolors="black",
-            linewidths=0.4,
+            linewidths=0.8,
             zorder=5,
         )
     else:
@@ -133,7 +134,7 @@ def main():
             row["mds2"] + 0.03,
             f"({row['r']:.2f},{row['alpha']:.3f})",
             fontsize=8,
-            alpha=0.8,
+            alpha=0.6,
             zorder=6,
         )
 
