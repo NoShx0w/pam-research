@@ -10,11 +10,34 @@ import pandas as pd
 def load_graph(edges_csv: str | Path) -> nx.Graph:
     edges = pd.read_csv(edges_csv)
     G = nx.Graph()
-    src_col = "src" if "src" in edges.columns else "u"
-    dst_col = "dst" if "dst" in edges.columns else "v"
-    w_col = "distance" if "distance" in edges.columns else "weight"
+
+    src_candidates = ["src", "u", "src_id"]
+    dst_candidates = ["dst", "v", "dst_id"]
+    weight_candidates = ["distance", "weight", "edge_cost", "fisher_distance", "dist", "length"]
+
+    src_col = next((c for c in src_candidates if c in edges.columns), None)
+    dst_col = next((c for c in dst_candidates if c in edges.columns), None)
+    w_col = next((c for c in weight_candidates if c in edges.columns), None)
+
+    if src_col is None or dst_col is None:
+        raise ValueError(
+            f"fisher_edges.csv must contain a source and destination column. "
+            f"Found columns: {list(edges.columns)}"
+        )
+
+    if w_col is None:
+        raise ValueError(
+            f"fisher_edges.csv must contain a distance/weight column. "
+            f"Found columns: {list(edges.columns)}"
+        )
+
     for _, row in edges.iterrows():
-        G.add_edge(int(row[src_col]), int(row[dst_col]), weight=float(row[w_col]))
+        G.add_edge(
+            int(row[src_col]),
+            int(row[dst_col]),
+            weight=float(row[w_col]),
+        )
+
     return G
 
 
