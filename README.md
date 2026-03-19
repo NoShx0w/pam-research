@@ -1,6 +1,17 @@
+
+# PAM Observatory
+
+**Phase Analysis of Meaning (PAM)**
+
+The PAM Observatory is an experimental instrument for studying how meaning behaves across a parameter manifold.
+
+It combines large-scale parameter sweeps with information geometry, field dynamics, and topology extraction to reveal how systems organize, transition, and stabilize.
+
 ![Python](https://img.shields.io/badge/python-3.14-blue)
 ![Status](https://img.shields.io/badge/status-observatory_active-green)
 ![Runs](https://img.shields.io/badge/quenches-750-orange)
+
+---
 
 ## Phase Flow on the PAM Manifold
 
@@ -11,16 +22,6 @@ Color encodes a **signed phase coordinate**, revealing two distinct regimes sepa
 Critical points (stars) concentrate along this boundary, indicating regions of maximal structural change.
 
 This provides a **purely data-driven phase diagram**, derived from the intrinsic geometry of the system.
-
----
-
-# PAM Observatory
-
-**Phase Analysis of Meaning (PAM)**
-
-The PAM Observatory is an experimental instrument for studying how meaning behaves across a parameter manifold.
-
-It combines large-scale parameter sweeps with information geometry, field dynamics, and topology extraction to reveal how systems organize, transition, and stabilize.
 
 ---
 
@@ -115,9 +116,7 @@ The observatory now supports **active probing** of the manifold.
 
 Operators act on trajectories:
 ```math
-\[
 \theta(t) \xrightarrow{S} \tilde{\theta}(t)
-\]
 ```
 This enables:
 
