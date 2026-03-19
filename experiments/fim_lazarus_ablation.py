@@ -100,14 +100,20 @@ def summarize_joint_model(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def render_plot(summary: pd.DataFrame, outpath: Path) -> None:
+    plot_df = summary.copy()
+    plot_df["rate_ratio"] = pd.to_numeric(plot_df["rate_ratio"], errors="coerce")
+    plot_df["rate_diff"] = pd.to_numeric(plot_df["rate_diff"], errors="coerce")
+
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.8))
 
-    axes[0].bar(summary["predictor"], summary["rate_ratio"])
+    rr = plot_df.dropna(subset=["rate_ratio"])
+    axes[0].bar(rr["predictor"], rr["rate_ratio"])
     axes[0].set_ylabel("rate ratio (high / low)")
     axes[0].set_title("Predictive separation by observable")
     axes[0].tick_params(axis="x", rotation=20)
 
-    axes[1].bar(summary["predictor"], summary["rate_diff"])
+    rd = plot_df.dropna(subset=["rate_diff"])
+    axes[1].bar(rd["predictor"], rd["rate_diff"])
     axes[1].set_ylabel("rate difference (high - low)")
     axes[1].set_title("Transition-rate difference by observable")
     axes[1].tick_params(axis="x", rotation=20)
