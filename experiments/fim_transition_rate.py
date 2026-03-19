@@ -92,7 +92,13 @@ def render_plots(df: pd.DataFrame, summary: pd.DataFrame, outdir: Path, within_k
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(7.0, 5.0))
-    ax.scatter(df["lazarus_score"], df["lag_to_next_transition"], alpha=0.3)
+
+    plot_df = df[["lazarus_score", "lag_to_next_transition"]].copy()
+    plot_df["lazarus_score"] = pd.to_numeric(plot_df["lazarus_score"], errors="coerce")
+    plot_df["lag_to_next_transition"] = pd.to_numeric(plot_df["lag_to_next_transition"], errors="coerce")
+    plot_df = plot_df.dropna()
+
+    ax.scatter(plot_df["lazarus_score"], plot_df["lag_to_next_transition"], alpha=0.3)
     ax.set_xlabel("lazarus_score")
     ax.set_ylabel("lag_to_next_transition")
     ax.set_title("Transition lag vs Lazarus score")
