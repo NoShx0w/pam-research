@@ -1,15 +1,13 @@
 import argparse
 from pathlib import Path
+from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import networkx as nx
-import numpy as np
 import pandas as pd
 
 
-def build_graph(edges):
-    import networkx as nx
-
+def build_graph(edges: pd.DataFrame) -> nx.Graph:
     src_candidates = ["src", "u", "src_id"]
     dst_candidates = ["dst", "v", "dst_id"]
     weight_candidates = ["distance", "weight", "edge_cost", "fisher_distance", "dist", "length"]
@@ -20,14 +18,11 @@ def build_graph(edges):
 
     if src_col is None or dst_col is None:
         raise ValueError(
-            f"fisher_edges.csv must contain a source and destination column. "
-            f"Found columns: {list(edges.columns)}"
+            f"fisher_edges.csv must contain a source and destination column. Found columns: {list(edges.columns)}"
         )
-
     if w_col is None:
         raise ValueError(
-            f"fisher_edges.csv must contain a distance/weight column. "
-            f"Found columns: {list(edges.columns)}"
+            f"fisher_edges.csv must contain a distance/weight column. Found columns: {list(edges.columns)}"
         )
 
     G = nx.Graph()
@@ -37,229 +32,280 @@ def build_graph(edges):
             int(row[dst_col]),
             weight=float(row[w_col]),
         )
-
     return G
 
 
-def infer_node_column(df: pd.DataFrame) -> str:
-    for c in ["node_id", "node", "id"]:
-        if c in df.columns:
-            return c
-    raise ValueError("Could not infer node id column")
+def load_node_table(
+    mds_csv: str | Path,
+    signed_phase_csv: str | Path,
+    curvature_csv: str | Path,
+) -> pd.DataFrame:
+    mds = pd.read_csv(mds_csv)
+    phase = pd.read_csv(signed_phase_csv)
+    curv = pd.read_csv(curvature_csv)
+
+    join_cols = [c for c in ["node_id", "r", "alpha"] if c in mds.columns and c in phase.columns]
+    if not join_cols:
+        join_cols = ["r", "alpha"]
+
+    keep_phase = [c for c in ["node_id", "r", "alpha", "signed_phase", "distance_to_seam"] if c in phase.columns]
+    df = mds.merge(phase[keep_phase], on=join_cols, how="left")
+
+    if "scalar_curvature" in curv.columns:
+        df = df.merge(
+            curv[[c for c in ["r", "alpha", "scalar_curvature"] if c in curv.columns]],
+            on=["r", "alpha"],
+            how="left",
+        )
+
+    if "node_id" not in df.columns:
+        df = df.reset_index(drop=True)
+        df["node_id"] = df.index.astype(int)
+
+    return df
 
 
-def select_representative_pairs(nodes_df: pd.DataFrame, n_pairs: int = 5):
-    df = nodes_df.dropna(subset=["signed_phase"]).copy()
-    if df.empty:
-        return []
+def load_seam(seam_csv: str | Path, node_df: pd.DataFrame) -> pd.DataFrame:
+    seam_path = Path(seam_csv)
+    if not seam_path.exists():
+        return pd.DataFrame()
 
-    pos = df.sort_values("signed_phase", ascending=False).reset_index(drop=True)
-    neg = df.sort_values("signed_phase", ascending=True).reset_index(drop=True)
-    neutral = df.iloc[(df["signed_phase"].abs()).argsort()].reset_index(drop=True)
+    seam = pd.read_csv(seam_path)
+    if not {"mds1", "mds2"}.issubset(seam.columns):
+        seam = seam.merge(
+            node_df[["r", "alpha", "mds1", "mds2"]],
+            on=["r", "alpha"],
+            how="left",
+        )
+    return seam.dropna(subset=["mds1", "mds2"]).copy()
 
-    node_col = infer_node_column(df)
-    pairs = []
 
-    pairs.append((int(neg.iloc[0][node_col]), int(pos.iloc[0][node_col]), "basin_to_basin_extreme"))
-    if len(pos) > 5 and len(neg) > 5:
-        pairs.append((int(neg.iloc[5][node_col]), int(pos.iloc[5][node_col]), "basin_to_basin_mid"))
-    if len(neg) > 8:
-        pairs.append((int(neg.iloc[1][node_col]), int(neg.iloc[8][node_col]), "same_phase_negative"))
-    if len(pos) > 8:
-        pairs.append((int(pos.iloc[1][node_col]), int(pos.iloc[8][node_col]), "same_phase_positive"))
-    if len(neutral) > 0 and len(pos) > 2:
-        pairs.append((int(neutral.iloc[0][node_col]), int(pos.iloc[2][node_col]), "seam_to_positive"))
+def choose_default_probes(df: pd.DataFrame) -> List[Dict]:
+    work = df.dropna(subset=["signed_phase", "mds1", "mds2"]).copy()
+    pos = work[work["signed_phase"] > 0].copy()
+    neg = work[work["signed_phase"] < 0].copy()
+    seamish = work[work["distance_to_seam"].notna()].sort_values("distance_to_seam").copy()
 
-    dedup = []
-    seen = set()
-    for a, b, label in pairs:
-        key = tuple(sorted((a, b)))
-        if a == b or key in seen:
+    probes: List[Dict] = []
+
+    if not pos.empty and not neg.empty:
+        pos_far = pos.sort_values("signed_phase", ascending=False).iloc[0]
+        neg_far = neg.sort_values("signed_phase", ascending=True).iloc[0]
+        probes.append({
+            "path_id": "S01",
+            "start_node": int(neg_far["node_id"]),
+            "end_node": int(pos_far["node_id"]),
+            "label": "basin_to_basin_extreme",
+        })
+
+    if len(pos) >= 2:
+        pos2 = pos.sort_values("signed_phase", ascending=False).head(2)
+        probes.append({
+            "path_id": "S02",
+            "start_node": int(pos2.iloc[1]["node_id"]),
+            "end_node": int(pos2.iloc[0]["node_id"]),
+            "label": "same_phase_positive_control",
+        })
+
+    if len(neg) >= 2:
+        neg2 = neg.sort_values("signed_phase", ascending=True).head(2)
+        probes.append({
+            "path_id": "S03",
+            "start_node": int(neg2.iloc[1]["node_id"]),
+            "end_node": int(neg2.iloc[0]["node_id"]),
+            "label": "same_phase_negative_control",
+        })
+
+    if not seamish.empty and not pos.empty:
+        seam0 = seamish.iloc[0]
+        pos_mid = pos.iloc[len(pos) // 2]
+        probes.append({
+            "path_id": "S04",
+            "start_node": int(seam0["node_id"]),
+            "end_node": int(pos_mid["node_id"]),
+            "label": "seam_to_positive",
+        })
+
+    if not seamish.empty and not neg.empty:
+        seam1 = seamish.iloc[min(1, len(seamish) - 1)]
+        neg_mid = neg.iloc[len(neg) // 2]
+        probes.append({
+            "path_id": "S05",
+            "start_node": int(seam1["node_id"]),
+            "end_node": int(neg_mid["node_id"]),
+            "label": "seam_to_negative",
+        })
+
+    return probes
+
+
+def path_phase_flip_count(path_df: pd.DataFrame) -> int:
+    signed = path_df["signed_phase"].dropna().tolist()
+    if len(signed) < 2:
+        return 0
+    flips = 0
+    prev_sign = 0
+    for val in signed:
+        sign = -1 if val < 0 else (1 if val > 0 else 0)
+        if sign == 0:
             continue
-        seen.add(key)
-        dedup.append((a, b, label))
-        if len(dedup) >= n_pairs:
-            break
-    return dedup
+        if prev_sign != 0 and sign != prev_sign:
+            flips += 1
+        prev_sign = sign
+    return flips
 
 
-def compute_path_metrics(path_nodes, path_df: pd.DataFrame):
-    signed_phase = path_df["signed_phase"].to_numpy(dtype=float)
-    seam_dist = path_df["distance_to_seam"].to_numpy(dtype=float) if "distance_to_seam" in path_df.columns else np.full(len(path_df), np.nan)
-    curvature = path_df["scalar_curvature"].to_numpy(dtype=float) if "scalar_curvature" in path_df.columns else np.full(len(path_df), np.nan)
+def annotate_path(path_df: pd.DataFrame, path_length: float) -> Dict:
+    signed = path_df["signed_phase"].dropna()
+    d2s = path_df["distance_to_seam"].dropna()
+    curv = path_df["scalar_curvature"].abs().dropna() if "scalar_curvature" in path_df.columns else pd.Series(dtype=float)
 
-    finite_phase = signed_phase[np.isfinite(signed_phase)]
-    phase_start = float(signed_phase[0]) if len(signed_phase) else np.nan
-    phase_end = float(signed_phase[-1]) if len(signed_phase) else np.nan
-    phase_span = float(phase_end - phase_start) if np.isfinite(phase_start) and np.isfinite(phase_end) else np.nan
+    crosses_seam = int((len(signed) > 0) and (signed.min() < 0) and (signed.max() > 0))
+    phase_flip_count = path_phase_flip_count(path_df)
+    min_distance_to_seam = float(d2s.min()) if len(d2s) else float("nan")
+    max_curvature_along_path = float(curv.max()) if len(curv) else float("nan")
+    mean_curvature_along_path = float(curv.mean()) if len(curv) else float("nan")
+    phase_start = float(signed.iloc[0]) if len(signed) else float("nan")
+    phase_end = float(signed.iloc[-1]) if len(signed) else float("nan")
+    phase_span = float(phase_end - phase_start) if len(signed) else float("nan")
 
-    has_pos = np.any(finite_phase > 0)
-    has_neg = np.any(finite_phase < 0)
-    crosses_seam = int(has_pos and has_neg)
-
-    min_distance_to_seam = float(np.nanmin(seam_dist)) if np.isfinite(seam_dist).any() else np.nan
-    max_abs_curvature = float(np.nanmax(np.abs(curvature))) if np.isfinite(curvature).any() else np.nan
     lazarus_hit = 0
-    if np.isfinite(min_distance_to_seam) and np.isfinite(max_abs_curvature):
-        lazarus_hit = int((min_distance_to_seam <= 0.25) and (max_abs_curvature >= 50.0))
+    if len(curv) and len(d2s):
+        k_thresh = curv.quantile(0.80)
+        d_thresh = d2s.quantile(0.20)
+        lazarus_hit = int(((path_df["scalar_curvature"].abs() >= k_thresh) &
+                           (path_df["distance_to_seam"] <= d_thresh)).any())
 
     return {
-        "num_steps": len(path_nodes),
+        "crosses_seam": crosses_seam,
+        "phase_flip_count": phase_flip_count,
+        "min_distance_to_seam": min_distance_to_seam,
+        "max_curvature_along_path": max_curvature_along_path,
+        "mean_curvature_along_path": mean_curvature_along_path,
+        "path_length_fisher": float(path_length),
         "phase_start": phase_start,
         "phase_end": phase_end,
         "phase_span": phase_span,
-        "crosses_seam": crosses_seam,
-        "min_distance_to_seam": min_distance_to_seam,
-        "max_abs_curvature": max_abs_curvature,
         "lazarus_hit": lazarus_hit,
     }
 
 
-def render_paths(all_nodes: pd.DataFrame, seam_df: pd.DataFrame, paths_df: pd.DataFrame, outpath: Path):
+def render_plot(node_df: pd.DataFrame, seam_df: pd.DataFrame, all_paths: pd.DataFrame, outpath: Path):
     fig, ax = plt.subplots(figsize=(8.2, 6.4))
+
     sc = ax.scatter(
-        all_nodes["mds1"],
-        all_nodes["mds2"],
-        c=all_nodes["signed_phase"],
+        node_df["mds1"],
+        node_df["mds2"],
+        c=node_df["signed_phase"],
         cmap="coolwarm",
         vmin=-1,
         vmax=1,
-        s=55,
-        alpha=0.45,
+        s=70,
+        alpha=0.70,
     )
     fig.colorbar(sc, ax=ax, label="signed phase")
 
     if not seam_df.empty:
         seam_ord = seam_df.sort_values("mds1")
-        ax.plot(seam_ord["mds1"], seam_ord["mds2"], linewidth=2.0, color="black", alpha=0.9)
+        ax.plot(seam_ord["mds1"], seam_ord["mds2"], color="black", linewidth=2.4, alpha=0.9)
 
-    for path_id, g in paths_df.groupby("path_id"):
-        g = g.sort_values("step_idx")
-        ax.plot(g["mds1"], g["mds2"], linewidth=2.2, alpha=0.95, label=str(path_id))
-        ax.scatter(g.iloc[0]["mds1"], g.iloc[0]["mds2"], s=90, marker="o")
-        ax.scatter(g.iloc[-1]["mds1"], g.iloc[-1]["mds2"], s=110, marker="X")
+    for path_id, grp in all_paths.groupby("path_id"):
+        grp = grp.sort_values("step")
+        ax.plot(grp["mds1"], grp["mds2"], linewidth=2.4, alpha=0.95, label=path_id)
+        ax.scatter(grp.iloc[[0]]["mds1"], grp.iloc[[0]]["mds2"], s=115, marker="o")
+        ax.scatter(grp.iloc[[-1]]["mds1"], grp.iloc[[-1]]["mds2"], s=135, marker="X")
 
+    ax.set_title("Operator S on the PAM manifold")
     ax.set_xlabel("MDS 1")
     ax.set_ylabel("MDS 2")
-    ax.set_title("Operator S on the PAM manifold")
-    if paths_df["path_id"].nunique() <= 8:
-        ax.legend(loc="best", fontsize=8)
+    ax.legend(loc="best", fontsize=9)
     fig.tight_layout()
     fig.savefig(outpath, dpi=220)
     plt.close(fig)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Canonical GE₀ / Operator S on the PAM manifold.")
+    parser = argparse.ArgumentParser(
+        description="Upgraded canonical Operator S with path annotations on the PAM manifold."
+    )
     parser.add_argument("--edges-csv", default="outputs/fim_distance/fisher_edges.csv")
     parser.add_argument("--mds-csv", default="outputs/fim_mds/mds_coords.csv")
     parser.add_argument("--signed-phase-csv", default="outputs/fim_phase/signed_phase_coords.csv")
     parser.add_argument("--curvature-csv", default="outputs/fim_curvature/curvature_surface.csv")
     parser.add_argument("--seam-csv", default="outputs/fim_phase/phase_boundary_mds_backprojected.csv")
     parser.add_argument("--outdir", default="outputs/fim_ops")
-    parser.add_argument("--n-pairs", type=int, default=5)
     args = parser.parse_args()
 
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
     edges = pd.read_csv(args.edges_csv)
-    mds = pd.read_csv(args.mds_csv)
-    phase = pd.read_csv(args.signed_phase_csv)
-    curv = pd.read_csv(args.curvature_csv)
-    seam = pd.read_csv(args.seam_csv)
-
     G = build_graph(edges)
+    node_df = load_node_table(args.mds_csv, args.signed_phase_csv, args.curvature_csv)
+    seam_df = load_seam(args.seam_csv, node_df)
+    probes = choose_default_probes(node_df)
 
-    node_col = infer_node_column(mds)
-    nodes = mds.copy()
-    if node_col != "node_id":
-        nodes = nodes.rename(columns={node_col: "node_id"})
+    probes_df = pd.DataFrame(probes)
+    probes_df.to_csv(outdir / "operator_S_probes.csv", index=False)
 
-    nodes = nodes.merge(
-        phase[[c for c in ["r", "alpha", "signed_phase", "distance_to_seam"] if c in phase.columns]],
-        on=["r", "alpha"],
-        how="left",
-    )
-
-    if "scalar_curvature" in curv.columns:
-        nodes = nodes.merge(curv[["r", "alpha", "scalar_curvature"]], on=["r", "alpha"], how="left")
-
-    seam_small = seam.copy()
-    if "mds1" not in seam_small.columns or "mds2" not in seam_small.columns:
-        seam_small = seam_small[["r", "alpha"]].merge(
-            nodes[["r", "alpha", "mds1", "mds2"]],
-            on=["r", "alpha"],
-            how="left",
-        )
-    seam_small = seam_small.dropna(subset=["mds1", "mds2"]).drop_duplicates(subset=["r", "alpha"])
-
-    pairs = select_representative_pairs(nodes, n_pairs=args.n_pairs)
-
+    node_lookup = node_df.set_index("node_id")
+    path_tables = []
     summary_rows = []
-    path_rows = []
 
-    for idx, (start_node, end_node, label) in enumerate(pairs, start=1):
-        path_id = f"S{idx:02d}"
-        path_nodes = nx.shortest_path(G, start_node, end_node, weight="weight")
-        path_length = float(nx.shortest_path_length(G, start_node, end_node, weight="weight"))
+    for probe in probes:
+        path_id = probe["path_id"]
+        start_node = int(probe["start_node"])
+        end_node = int(probe["end_node"])
 
-        path_df = nodes[nodes["node_id"].isin(path_nodes)].copy()
-        order = {n: i for i, n in enumerate(path_nodes)}
-        path_df["step_idx"] = path_df["node_id"].map(order)
-        path_df = path_df.sort_values("step_idx")
+        path = nx.shortest_path(G, start_node, end_node, weight="weight")
+        path_length = nx.shortest_path_length(G, start_node, end_node, weight="weight")
 
-        metrics = compute_path_metrics(path_nodes, path_df)
-
-        start_row = nodes[nodes["node_id"] == start_node].iloc[0]
-        end_row = nodes[nodes["node_id"] == end_node].iloc[0]
-
-        summary_rows.append(
-            {
+        rows = []
+        for step, node in enumerate(path):
+            row = node_lookup.loc[node]
+            rows.append({
                 "path_id": path_id,
-                "label": label,
-                "start_node": start_node,
-                "end_node": end_node,
-                "start_r": float(start_row["r"]),
-                "start_alpha": float(start_row["alpha"]),
-                "end_r": float(end_row["r"]),
-                "end_alpha": float(end_row["alpha"]),
-                "path_length": path_length,
-                **metrics,
-            }
-        )
+                "label": probe["label"],
+                "step": step,
+                "node_id": int(node),
+                "r": float(row["r"]),
+                "alpha": float(row["alpha"]),
+                "mds1": float(row["mds1"]),
+                "mds2": float(row["mds2"]),
+                "signed_phase": float(row["signed_phase"]) if pd.notna(row["signed_phase"]) else float("nan"),
+                "distance_to_seam": float(row["distance_to_seam"]) if "distance_to_seam" in row.index and pd.notna(row["distance_to_seam"]) else float("nan"),
+                "scalar_curvature": float(row["scalar_curvature"]) if "scalar_curvature" in row.index and pd.notna(row["scalar_curvature"]) else float("nan"),
+            })
 
-        for _, row in path_df.iterrows():
-            path_rows.append(
-                {
-                    "path_id": path_id,
-                    "label": label,
-                    "step_idx": int(row["step_idx"]),
-                    "node_id": int(row["node_id"]),
-                    "r": float(row["r"]),
-                    "alpha": float(row["alpha"]),
-                    "mds1": float(row["mds1"]),
-                    "mds2": float(row["mds2"]),
-                    "signed_phase": float(row["signed_phase"]) if pd.notna(row.get("signed_phase")) else np.nan,
-                    "distance_to_seam": float(row["distance_to_seam"]) if "distance_to_seam" in row and pd.notna(row["distance_to_seam"]) else np.nan,
-                    "scalar_curvature": float(row["scalar_curvature"]) if "scalar_curvature" in row and pd.notna(row["scalar_curvature"]) else np.nan,
-                }
-            )
+        path_df = pd.DataFrame(rows)
+        path_tables.append(path_df)
 
+        metrics = annotate_path(path_df, float(path_length))
+        summary_rows.append({
+            "path_id": path_id,
+            "label": probe["label"],
+            "start_node": start_node,
+            "end_node": end_node,
+            "start_r": float(path_df.iloc[0]["r"]),
+            "start_alpha": float(path_df.iloc[0]["alpha"]),
+            "end_r": float(path_df.iloc[-1]["r"]),
+            "end_alpha": float(path_df.iloc[-1]["alpha"]),
+            "num_steps": int(len(path_df)),
+            **metrics,
+        })
+
+    all_paths = pd.concat(path_tables, ignore_index=True) if path_tables else pd.DataFrame()
     summary_df = pd.DataFrame(summary_rows)
-    paths_df = pd.DataFrame(path_rows)
 
-    summary_csv = outdir / "operator_S_summary.csv"
-    paths_csv = outdir / "operator_S_paths.csv"
-    plot_png = outdir / "operator_S_on_mds.png"
+    all_paths.to_csv(outdir / "operator_S_paths.csv", index=False)
+    summary_df.to_csv(outdir / "operator_S_metrics.csv", index=False)
 
-    summary_df.to_csv(summary_csv, index=False)
-    paths_df.to_csv(paths_csv, index=False)
-    render_paths(nodes, seam_small, paths_df, plot_png)
+    render_plot(node_df, seam_df, all_paths, outdir / "operator_S_on_mds.png")
 
-    print(summary_csv)
-    print(paths_csv)
-    print(plot_png)
+    print(outdir / "operator_S_probes.csv")
+    print(outdir / "operator_S_paths.csv")
+    print(outdir / "operator_S_metrics.csv")
+    print(outdir / "operator_S_on_mds.png")
 
 
 if __name__ == "__main__":
