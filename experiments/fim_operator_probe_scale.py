@@ -18,13 +18,21 @@ def build_graph(edges: pd.DataFrame) -> nx.Graph:
     w_col = next((c for c in weight_candidates if c in edges.columns), None)
 
     if src_col is None or dst_col is None:
-        raise ValueError(f"Missing source/destination columns in fisher_edges.csv: {list(edges.columns)}")
+        raise ValueError(
+            f"fisher_edges.csv must contain a source and destination column. Found columns: {list(edges.columns)}"
+        )
     if w_col is None:
-        raise ValueError(f"Missing edge weight column in fisher_edges.csv: {list(edges.columns)}")
+        raise ValueError(
+            f"fisher_edges.csv must contain a distance/weight column. Found columns: {list(edges.columns)}"
+        )
 
     G = nx.Graph()
     for _, row in edges.iterrows():
-        G.add_edge(int(row[src_col]), int(row[dst_col]), weight=float(row[w_col]))
+        G.add_edge(
+            int(row[src_col]),
+            int(row[dst_col]),
+            weight=float(row[w_col]),
+        )
     return G
 
 
@@ -63,6 +71,62 @@ def load_node_table(
     return df
 
 
+def sample_probe_pairs(df: pd.DataFrame, n_pairs: int, seed: int) -> pd.DataFrame:
+    rng = np.random.default_rng(seed)
+    work = df.dropna(subset=["signed_phase", "mds1", "mds2"]).copy()
+
+    pos = work[work["signed_phase"] > 0].copy()
+    neg = work[work["signed_phase"] < 0].copy()
+    seamish = work[work["distance_to_seam"].notna()].sort_values("distance_to_seam").copy()
+
+    rows: List[Dict] = []
+
+    if len(pos) == 0 or len(neg) == 0 or len(seamish) == 0:
+        raise ValueError("Need positive, negative, and seam-near nodes to sample scaled probes.")
+
+    families = [
+        "basin_to_basin",
+        "same_phase_positive",
+        "same_phase_negative",
+        "seam_to_positive",
+        "seam_to_negative",
+    ]
+
+    for i in range(n_pairs):
+        fam = families[i % len(families)]
+
+        if fam == "basin_to_basin":
+            a = neg.sample(n=1, random_state=int(rng.integers(0, 2**31 - 1))).iloc[0]
+            b = pos.sample(n=1, random_state=int(rng.integers(0, 2**31 - 1))).iloc[0]
+        elif fam == "same_phase_positive":
+            pair = pos.sample(n=2, replace=False, random_state=int(rng.integers(0, 2**31 - 1)))
+            a, b = pair.iloc[0], pair.iloc[1]
+        elif fam == "same_phase_negative":
+            pair = neg.sample(n=2, replace=False, random_state=int(rng.integers(0, 2**31 - 1)))
+            a, b = pair.iloc[0], pair.iloc[1]
+        elif fam == "seam_to_positive":
+            a = seamish.sample(n=1, random_state=int(rng.integers(0, 2**31 - 1))).iloc[0]
+            b = pos.sample(n=1, random_state=int(rng.integers(0, 2**31 - 1))).iloc[0]
+        else:  # seam_to_negative
+            a = seamish.sample(n=1, random_state=int(rng.integers(0, 2**31 - 1))).iloc[0]
+            b = neg.sample(n=1, random_state=int(rng.integers(0, 2**31 - 1))).iloc[0]
+
+        rows.append(
+            {
+                "probe_id": f"P{i+1:03d}",
+                "family": fam,
+                "start_node": int(a["node_id"]),
+                "end_node": int(b["node_id"]),
+                "start_r": float(a["r"]),
+                "start_alpha": float(a["alpha"]),
+                "end_r": float(b["r"]),
+                "end_alpha": float(b["alpha"]),
+            }
+        )
+
+    return pd.DataFrame(rows)
+
+
 def path_phase_flip_count(path_df: pd.DataFrame) -> int:
     signed = path_df["signed_phase"].dropna().tolist()
     if len(signed) < 2:
@@ -94,9 +158,10 @@ def annotate_path(path_df: pd.DataFrame, path_length: float) -> Dict:
     phase_start = float(signed.iloc[0]) if len(signed) else float("nan")
     phase_end = float(signed.iloc[-1]) if len(signed) else float("nan")
     phase_span = float(phase_end - phase_start) if len(signed) else float("nan")
-    path_lazarus_max = float(laz.max()) if len(laz) else float("nan")
-    path_lazarus_mean = float(laz.mean()) if len(laz) else float("nan")
-    path_lazarus_hit_any = int((laz_hit > 0).any()) if len(laz_hit) else 0
+    lazarus_max = float(laz.max()) if len(laz) else float("nan")
+    lazarus_mean = float(laz.mean()) if len(laz) else float("nan")
+    lazarus_hit_any = int((laz_hit >= 1).any()) if len(laz_hit) else 0
+    constraint_strength = float(max_curvature_along_path / max(min_distance_to_seam, 1e-9)) if pd.notna(min_distance_to_seam) and pd.notna(max_curvature_along_path) else float("nan")
 
     return {
         "crosses_seam": crosses_seam,
@@ -108,79 +173,36 @@ def annotate_path(path_df: pd.DataFrame, path_length: float) -> Dict:
         "phase_start": phase_start,
         "phase_end": phase_end,
         "phase_span": phase_span,
-        "path_lazarus_max": path_lazarus_max,
-        "path_lazarus_mean": path_lazarus_mean,
-        "path_lazarus_hit_any": path_lazarus_hit_any,
+        "lazarus_max": lazarus_max,
+        "lazarus_mean": lazarus_mean,
+        "lazarus_hit_any": lazarus_hit_any,
+        "constraint_strength": constraint_strength,
     }
 
 
-def stratified_endpoint_pools(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
-    work = df.dropna(subset=["signed_phase", "mds1", "mds2"]).copy()
+def summarize_groups(metrics_df: pd.DataFrame) -> pd.DataFrame:
+    med = metrics_df["lazarus_max"].median()
+    out = metrics_df.copy()
+    out["lazarus_group"] = out["lazarus_max"].apply(lambda x: "high" if x >= med else "low")
 
-    pos = work[work["signed_phase"] > 0].copy()
-    neg = work[work["signed_phase"] < 0].copy()
-    seam = work[work["distance_to_seam"].notna()].sort_values("distance_to_seam").head(max(10, len(work) // 5)).copy()
-
-    return {"pos": pos, "neg": neg, "seam": seam}
-
-
-def sample_probe_pairs(df: pd.DataFrame, n_pairs: int, seed: int) -> List[Dict]:
-    rng = np.random.default_rng(seed)
-    pools = stratified_endpoint_pools(df)
-    pos, neg, seam = pools["pos"], pools["neg"], pools["seam"]
-
-    pairs: List[Dict] = []
-    classes = [
-        "basin_to_basin",
-        "same_phase_positive",
-        "same_phase_negative",
-        "seam_to_positive",
-        "seam_to_negative",
-    ]
-
-    for i in range(n_pairs):
-        cls = classes[i % len(classes)]
-
-        if cls == "basin_to_basin" and len(pos) and len(neg):
-            a = neg.sample(n=1, random_state=int(rng.integers(0, 1_000_000))).iloc[0]
-            b = pos.sample(n=1, random_state=int(rng.integers(0, 1_000_000))).iloc[0]
-
-        elif cls == "same_phase_positive" and len(pos) >= 2:
-            s = pos.sample(n=2, random_state=int(rng.integers(0, 1_000_000)))
-            a, b = s.iloc[0], s.iloc[1]
-
-        elif cls == "same_phase_negative" and len(neg) >= 2:
-            s = neg.sample(n=2, random_state=int(rng.integers(0, 1_000_000)))
-            a, b = s.iloc[0], s.iloc[1]
-
-        elif cls == "seam_to_positive" and len(seam) and len(pos):
-            a = seam.sample(n=1, random_state=int(rng.integers(0, 1_000_000))).iloc[0]
-            b = pos.sample(n=1, random_state=int(rng.integers(0, 1_000_000))).iloc[0]
-
-        elif cls == "seam_to_negative" and len(seam) and len(neg):
-            a = seam.sample(n=1, random_state=int(rng.integers(0, 1_000_000))).iloc[0]
-            b = neg.sample(n=1, random_state=int(rng.integers(0, 1_000_000))).iloc[0]
-
-        else:
-            # fallback random pair
-            s = df.sample(n=2, random_state=int(rng.integers(0, 1_000_000)))
-            a, b = s.iloc[0], s.iloc[1]
-            cls = "random_fallback"
-
-        pairs.append(
-            {
-                "path_id": f"P{i+1:03d}",
-                "probe_class": cls,
-                "start_node": int(a["node_id"]),
-                "end_node": int(b["node_id"]),
-            }
+    summary = (
+        out.groupby("lazarus_group", as_index=False)
+        .agg(
+            n_paths=("probe_id", "count"),
+            seam_cross_rate=("crosses_seam", "mean"),
+            mean_phase_flip_count=("phase_flip_count", "mean"),
+            mean_min_distance_to_seam=("min_distance_to_seam", "mean"),
+            mean_max_curvature=("max_curvature_along_path", "mean"),
+            mean_path_length=("path_length_fisher", "mean"),
+            mean_constraint_strength=("constraint_strength", "mean"),
         )
+    )
+    return out, summary
 
-    return pairs
 
+def render_probe_cloud(node_df: pd.DataFrame, seam_df: pd.DataFrame, all_paths: pd.DataFrame, outpath: Path, max_draw: int = 25):
+    fig, ax = plt.subplots(figsize=(8.2, 6.4))
 
-def render_sample_plot(node_df: pd.DataFrame, path_rows: pd.DataFrame, outpath: Path, max_paths: int = 12):
-    fig, ax = plt.subplots(figsize=(8.4, 6.4))
     sc = ax.scatter(
         node_df["mds1"],
         node_df["mds2"],
@@ -188,21 +210,24 @@ def render_sample_plot(node_df: pd.DataFrame, path_rows: pd.DataFrame, outpath: 
         cmap="coolwarm",
         vmin=-1,
         vmax=1,
-        s=56,
-        alpha=0.55,
+        s=46,
+        alpha=0.60,
     )
     fig.colorbar(sc, ax=ax, label="signed phase")
 
-    shown_ids = path_rows["path_id"].drop_duplicates().head(max_paths).tolist()
-    sample = path_rows[path_rows["path_id"].isin(shown_ids)].copy()
+    if not seam_df.empty and {"mds1", "mds2"}.issubset(seam_df.columns):
+        seam_ord = seam_df.sort_values("mds1")
+        ax.plot(seam_ord["mds1"], seam_ord["mds2"], color="black", linewidth=2.2, alpha=0.85)
 
-    for pid, grp in sample.groupby("path_id"):
+    # draw only a subset for readability
+    keep_ids = list(all_paths["probe_id"].drop_duplicates().head(max_draw))
+    draw_df = all_paths[all_paths["probe_id"].isin(keep_ids)].copy()
+
+    for probe_id, grp in draw_df.groupby("probe_id"):
         grp = grp.sort_values("step")
-        ax.plot(grp["mds1"], grp["mds2"], linewidth=1.8, alpha=0.9)
-        ax.scatter(grp.iloc[[0]]["mds1"], grp.iloc[[0]]["mds2"], s=70, marker="o")
-        ax.scatter(grp.iloc[[-1]]["mds1"], grp.iloc[[-1]]["mds2"], s=85, marker="X")
+        ax.plot(grp["mds1"], grp["mds2"], linewidth=1.4, alpha=0.8)
 
-    ax.set_title("Scaled GE probe sample on PAM manifold")
+    ax.set_title("Scaled GE probes on PAM manifold")
     ax.set_xlabel("MDS 1")
     ax.set_ylabel("MDS 2")
     fig.tight_layout()
@@ -210,16 +235,31 @@ def render_sample_plot(node_df: pd.DataFrame, path_rows: pd.DataFrame, outpath: 
     plt.close(fig)
 
 
+def render_predictive_bar(summary_df: pd.DataFrame, outpath: Path):
+    fig, ax = plt.subplots(figsize=(6.0, 4.5))
+    ax.bar(summary_df["lazarus_group"], summary_df["seam_cross_rate"])
+    ax.set_ylim(0, 1)
+    ax.set_ylabel("P(crosses_seam)")
+    ax.set_title("Seam crossing rate by Lazarus exposure")
+    fig.tight_layout()
+    fig.savefig(outpath, dpi=220)
+    plt.close(fig)
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Scaled GE probe experiment over the PAM manifold.")
+    parser = argparse.ArgumentParser(
+        description="Scale GE probe experiment to many endpoint pairs and test Lazarus predictive structure."
+    )
     parser.add_argument("--edges-csv", default="outputs/fim_distance/fisher_edges.csv")
     parser.add_argument("--mds-csv", default="outputs/fim_mds/mds_coords.csv")
     parser.add_argument("--signed-phase-csv", default="outputs/fim_phase/signed_phase_coords.csv")
     parser.add_argument("--curvature-csv", default="outputs/fim_curvature/curvature_surface.csv")
     parser.add_argument("--lazarus-csv", default="outputs/fim_lazarus/lazarus_scores.csv")
-    parser.add_argument("--outdir", default="outputs/fim_ops")
-    parser.add_argument("--n-paths", type=int, default=100)
+    parser.add_argument("--seam-csv", default="outputs/fim_phase/phase_boundary_mds_backprojected.csv")
+    parser.add_argument("--outdir", default="outputs/fim_ops_scaled")
+    parser.add_argument("--n-pairs", type=int, default=100)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--max-draw", type=int, default=25)
     args = parser.parse_args()
 
     outdir = Path(args.outdir)
@@ -228,42 +268,33 @@ def main():
     edges = pd.read_csv(args.edges_csv)
     G = build_graph(edges)
     node_df = load_node_table(args.mds_csv, args.signed_phase_csv, args.curvature_csv, args.lazarus_csv)
-    probes = sample_probe_pairs(node_df, n_pairs=args.n_paths, seed=args.seed)
 
-    probes_df = pd.DataFrame(probes)
+    seam = pd.read_csv(args.seam_csv) if Path(args.seam_csv).exists() else pd.DataFrame()
+    if not seam.empty and not {"mds1", "mds2"}.issubset(seam.columns):
+        seam = seam.merge(node_df[["r", "alpha", "mds1", "mds2"]], on=["r", "alpha"], how="left")
+
+    probes_df = sample_probe_pairs(node_df, args.n_pairs, args.seed)
     probes_df.to_csv(outdir / "scaled_probe_pairs.csv", index=False)
 
     node_lookup = node_df.set_index("node_id")
     path_tables = []
-    summary_rows = []
+    metric_rows = []
 
-    for probe in probes:
-        path_id = probe["path_id"]
+    for _, probe in probes_df.iterrows():
+        probe_id = str(probe["probe_id"])
         start_node = int(probe["start_node"])
         end_node = int(probe["end_node"])
 
-        try:
-            path = nx.shortest_path(G, start_node, end_node, weight="weight")
-            path_length = nx.shortest_path_length(G, start_node, end_node, weight="weight")
-        except nx.NetworkXNoPath:
-            summary_rows.append(
-                {
-                    "path_id": path_id,
-                    "probe_class": probe["probe_class"],
-                    "start_node": start_node,
-                    "end_node": end_node,
-                    "no_path": 1,
-                }
-            )
-            continue
+        path = nx.shortest_path(G, start_node, end_node, weight="weight")
+        path_length = float(nx.shortest_path_length(G, start_node, end_node, weight="weight"))
 
         rows = []
         for step, node in enumerate(path):
             row = node_lookup.loc[node]
             rows.append(
                 {
-                    "path_id": path_id,
-                    "probe_class": probe["probe_class"],
+                    "probe_id": probe_id,
+                    "family": str(probe["family"]),
                     "step": step,
                     "node_id": int(node),
                     "r": float(row["r"]),
@@ -281,58 +312,43 @@ def main():
         path_df = pd.DataFrame(rows)
         path_tables.append(path_df)
 
-        metrics = annotate_path(path_df, float(path_length))
-        summary_rows.append(
+        metrics = annotate_path(path_df, path_length)
+        metric_rows.append(
             {
-                "path_id": path_id,
-                "probe_class": probe["probe_class"],
+                "probe_id": probe_id,
+                "family": str(probe["family"]),
                 "start_node": start_node,
                 "end_node": end_node,
-                "start_r": float(path_df.iloc[0]["r"]),
-                "start_alpha": float(path_df.iloc[0]["alpha"]),
-                "end_r": float(path_df.iloc[-1]["r"]),
-                "end_alpha": float(path_df.iloc[-1]["alpha"]),
+                "start_r": float(probe["start_r"]),
+                "start_alpha": float(probe["start_alpha"]),
+                "end_r": float(probe["end_r"]),
+                "end_alpha": float(probe["end_alpha"]),
                 "num_steps": int(len(path_df)),
-                "no_path": 0,
                 **metrics,
             }
         )
 
     all_paths = pd.concat(path_tables, ignore_index=True) if path_tables else pd.DataFrame()
-    summary_df = pd.DataFrame(summary_rows)
+    metrics_df = pd.DataFrame(metric_rows)
+
+    predictive_df, predictive_summary = summarize_groups(metrics_df)
 
     all_paths.to_csv(outdir / "scaled_probe_paths.csv", index=False)
-    summary_df.to_csv(outdir / "scaled_probe_metrics.csv", index=False)
+    metrics_df.to_csv(outdir / "scaled_probe_metrics.csv", index=False)
+    predictive_df.to_csv(outdir / "scaled_probe_predictive_test.csv", index=False)
+    predictive_summary.to_csv(outdir / "scaled_probe_predictive_summary.csv", index=False)
 
-    # predictive summary: median split on path_lazarus_max
-    valid = summary_df[summary_df["no_path"] == 0].copy()
-    if not valid.empty and "path_lazarus_max" in valid.columns:
-        med = valid["path_lazarus_max"].median()
-        valid["lazarus_group"] = np.where(valid["path_lazarus_max"] >= med, "high", "low")
-
-        pred_summary = (
-            valid.groupby("lazarus_group", as_index=False)
-            .agg(
-                n_paths=("path_id", "count"),
-                seam_cross_rate=("crosses_seam", "mean"),
-                mean_phase_flip_count=("phase_flip_count", "mean"),
-                mean_min_distance_to_seam=("min_distance_to_seam", "mean"),
-                mean_max_curvature=("max_curvature_along_path", "mean"),
-                mean_path_length=("path_length_fisher", "mean"),
-                mean_lazarus_max=("path_lazarus_max", "mean"),
-            )
-        )
-        pred_summary.to_csv(outdir / "scaled_probe_predictive_summary.csv", index=False)
-
-    render_sample_plot(node_df, all_paths, outdir / "scaled_probe_sample_on_mds.png")
+    render_probe_cloud(node_df, seam, all_paths, outdir / "scaled_probe_cloud_on_mds.png", max_draw=args.max_draw)
+    render_predictive_bar(predictive_summary, outdir / "scaled_probe_predictive_bar.png")
 
     print(outdir / "scaled_probe_pairs.csv")
     print(outdir / "scaled_probe_paths.csv")
     print(outdir / "scaled_probe_metrics.csv")
-    if (outdir / "scaled_probe_predictive_summary.csv").exists():
-        print(outdir / "scaled_probe_predictive_summary.csv")
-    print(outdir / "scaled_probe_sample_on_mds.png")
+    print(outdir / "scaled_probe_predictive_test.csv")
+    print(outdir / "scaled_probe_predictive_summary.csv")
+    print(outdir / "scaled_probe_cloud_on_mds.png")
+    print(outdir / "scaled_probe_predictive_bar.png")
 
 
-if __name__ == "__name__":
+if __name__ == "__main__":
     main()
