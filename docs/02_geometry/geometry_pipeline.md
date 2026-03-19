@@ -1,80 +1,152 @@
-# Geometry Pipeline
+# Geometry Analysis Pipeline
 
-This document describes how experimental data is transformed into an intrinsic geometric structure.
+This document defines how experimental observables are transformed into an intrinsic manifold geometry in the PAM Observatory.
 
-The PAM Observatory does not treat experiments as independent results. Instead, it constructs a continuous manifold over parameter space using information geometry.
+---
 
-## Overview
+## Pipeline Overview
 
-The full pipeline is:
+experiments → index.csv → Fisher metric → geodesic distances → MDS embedding → curvature → phase seam
 
-experiments → observables → Fisher metric → geodesic distances → embedding → curvature → phase
+---
 
-Each stage adds a layer of structure.
+## Parameter Manifold
 
-## 1. Experiments
+The PAM Observatory studies a parameter manifold:
 
-The system is evaluated over a parameter manifold:
+```math
+\theta = (r, \alpha)
+```
 
-θ = (r, α)
+where:
+- r controls recursion / coupling strength
+- α controls update / mixing dynamics
 
-For each configuration:
-- a trajectory is generated
-- multiple seeds are run
-- observables are extracted
+---
 
-Output:
+## Fisher Information Metric
 
-outputs/index.csv
+The Fisher Information Metric defines local geometry:
 
-## 2. Observables
+```math
+G_{ij}(\theta) = \partial_i m(\theta)^T \Sigma^{-1} \partial_j m(\theta)
+```
 
-Each parameter configuration produces a feature vector x(θ) ∈ ℝⁿ.
+Where:
+- m(θ) = observable vector
+- Σ = covariance of observables
 
-These observables capture entropy, coupling, correlation, and temporal structure.
+Interpretation:
+- Measures sensitivity of observables to parameter changes
+- High values indicate sharp behavioral transitions
 
-## 3. Fisher Information Metric
+---
 
-From the observable field, we construct a metric:
+## Geodesic Distance
 
-G_ij(θ) = ∂_i x(θ)ᵀ Σ⁻¹ ∂_j x(θ)
+Distances on the manifold are defined as:
 
-This defines a **local geometry** on parameter space.
+```math
+d_G(\theta_1, \theta_2) = \inf_{\gamma} \int \sqrt{\dot{\gamma}^T G(\gamma) \dot{\gamma}} \, dt
+```
 
-## 4. Geodesic Distances
+In practice:
+- Approximated via graph shortest paths
+- Nodes = parameter grid points
+- Edges = local Fisher distances
 
-Using the metric, we construct a graph over parameter points:
-- nodes → parameter configurations
-- edges → neighboring points
-- weights → local metric distance
+---
 
-From this graph, we compute geodesic distance ≈ shortest path distance.
+## MDS Embedding
 
-## 5. Manifold Embedding (MDS)
+The manifold is embedded into 2D using multidimensional scaling (MDS):
 
-We embed the distance matrix into a low-dimensional space 𝓜 ⊂ ℝ² using Multidimensional Scaling (MDS).
+- Preserves geodesic distances
+- Produces visual coordinates (mds1, mds2)
 
-## 6. Curvature
+Interpretation:
+- Reveals global structure
+- Makes curvature and seams visible
 
-From the metric and/or embedding, we compute a curvature field.
+---
 
-Curvature measures how the geometry bends or concentrates.
+## Curvature
 
-## 7. Phase Extraction
+Curvature is derived from the metric:
 
-The final step is the extraction of a phase structure from the geometry:
-- identify a phase seam
-- compute distance to the seam
-- assign a signed phase coordinate
+- Scalar curvature approximated numerically
+- Highlights regions of instability and transition
 
-Result:
+Interpretation:
+- High curvature → high sensitivity
+- Indicates phase transition regions
 
-φ : 𝓜 → [-1, 1]
+---
 
-See: `../03_pipeline/phase_geometry.md`
+## Phase Structure
 
-## 8. Key Insight
+A signed phase field is constructed over the manifold:
 
-The pipeline does not analyze parameters directly. Instead, it constructs geometry from how observables change, how configurations relate, and how structure emerges globally.
+- Separates distinct behavioral regimes
+- Defines a phase boundary (seam)
 
-Phase transitions are therefore **properties of the manifold, not of individual parameters**.
+Interpretation:
+- Seam = outcome-equivalence boundary
+- Crossing seam = qualitative change in system behavior
+
+---
+
+## Christoffel Symbols (Connection)
+
+Local geometric dynamics are defined by:
+
+```math
+\Gamma^k_{ij} = \frac{1}{2} G^{kl}
+\left(
+\partial_i G_{jl} +
+\partial_j G_{il} -
+\partial_l G_{ij}
+\right)
+```
+
+Interpretation:
+- Defines how trajectories bend under the geometry
+- Enables continuous geodesic dynamics
+
+---
+
+## Implementation Mapping
+
+| Concept | File |
+|--------|------|
+| Experiments | experiments/exp_batch.py |
+| Observables | outputs/index.csv |
+| Fisher metric | experiments/fim.py |
+| Distance graph | experiments/fim_distance.py |
+| MDS embedding | experiments/fim_mds.py |
+| Curvature | experiments/fim_curvature.py |
+| Phase extraction | experiments/fim_signed_phase.py |
+
+---
+
+## Outputs
+
+- outputs/fim/
+- outputs/fim_distance/
+- outputs/fim_mds/
+- outputs/fim_curvature/
+- outputs/fim_phase/
+
+---
+
+## Summary
+
+The pipeline converts experimental observables into an intrinsic geometric structure:
+
+- Metric → defines local sensitivity
+- Distances → define global structure
+- Embedding → makes structure visible
+- Curvature → reveals transitions
+- Phase → defines qualitative regimes
+
+This forms the geometric backbone of the PAM Observatory.
