@@ -2,14 +2,6 @@
 ![Status](https://img.shields.io/badge/status-observatory_active-green)
 ![Runs](https://img.shields.io/badge/quenches-750-orange)
 
-# PAM Observatory
-
-**Phase Analysis of Meaning — Information Geometry of Recursive Language Systems**
-
-The PAM Observatory studies the geometry of recursive language systems across a parameter manifold, revealing an emergent phase structure using Fisher information geometry.
-
----
-
 ## Phase Flow on the PAM Manifold
 
 ![Phase Flow on the PAM Manifold](docs/figures/phase_flow_on_manifold.png)
@@ -22,85 +14,197 @@ This provides a **purely data-driven phase diagram**, derived from the intrinsic
 
 ---
 
+# PAM Observatory
+
+**Phase Analysis of Meaning (PAM)**
+
+The PAM Observatory is an experimental instrument for studying how meaning behaves across a parameter manifold.
+
+It combines large-scale parameter sweeps with information geometry, field dynamics, and topology extraction to reveal how systems organize, transition, and stabilize.
+
+---
+
 ## Overview
 
-The observatory constructs an intrinsic manifold from observable surfaces extracted from experimental quenches.  
-Using the Fisher Information Metric, the system is embedded into a geometric space where curvature and phase structure emerge.
-
----
-
-## Geometry Pipeline
-
-```text
-experiments → index.csv → Fisher metric → geodesic distances → MDS embedding → curvature → phase seam
+We study the parameter space:
+```math
+\[
+\theta = (r, \alpha)
+\]
 ```
-The pipeline converts experimental observables into an intrinsic manifold geometry.
+by running controlled experiments and extracting structure at multiple levels:
 
----
+- observables → what is measured  
+- geometry → how states are arranged  
+- dynamics → how states evolve  
+- topology → how behavior is organized  
 
-## Parameter Sweep
-
-```text
-r ∈ {0.10, 0.15, 0.20, 0.25, 0.30}  
-α ∈ linspace(0.03, 0.15, 15)  
-seeds = 10
-```
-**Total runs: 750 quenches**
-
----
-
-## Documentation
-
-The observatory is structured into five layers:
-
-- **Observatory** — how to read outputs and observables  
-- **Geometry** — parameter sweep and Fisher information geometry  
-- **Pipeline** — transformation from data to manifold  
-- **Interface** — visualization and TUI tools  
-- **Project** — roadmap and reproducibility  
-
-→ See [`docs/`](docs/)
-
----
-
-## Current Status
-
-| Component              | Status         |
-|-----------------------|----------------|
-| Parameter Sweep       | running        |
-| Geometry Pipeline     | operational    |
-| Trajectory Recovery   | implemented    |
-| Observatory Interface | in development |
-
----
-
-## Repository Structure
-
-```text
-experiments/     # parameter sweep + data generation
-src/pam/         # core library (metrics, geometry)
-tools/           # analysis tools (e.g. phase_movie)
-tui/             # observatory interface (in development)
-docs/            # full documentation
-outputs/         # generated data + geometry artifacts
-```
----
+The system has evolved from a visualization pipeline into a **geometry + dynamics + topology instrument**.
 
 ---
 
 ## Core Idea
 
-The PAM Observatory treats a parameter sweep not as a collection of independent experiments, but as a **continuous geometric object**.
+> The goal is not to identify what a system *is*,  
+> but how it *behaves under transformation*.
 
-From observable surfaces, we construct:
+This leads to a central principle:
 
-- a **Fisher information metric**
-- a **geodesic distance graph**
-- a **low-dimensional manifold embedding**
-- a **curvature field**
-- and an emergent **phase structure**
+> **Topology is the relational identity of the field.**
 
-The result is a system where **phase transitions are discovered, not imposed**.
+Two runs are considered equivalent if they share:
+- critical point structure  
+- connectivity  
+- seam relationships  
+
+—not if they merely look similar.
+
+---
+
+## Pipeline
+
+The observatory processes data through the following stages:
+
+```text
+experiments (exp_batch.py)
+↓
+observables (index.csv)
+↓
+Fisher Information Metric (fim.py)
+↓
+Fisher distance graph (fim_distance.py)
+↓
+MDS embedding (fim_mds.py)
+↓
+curvature estimation (fim_curvature.py)
+↓
+phase field (fim_signed_phase.py)
+↓
+continuous scalar field φ(x, y)
+↓
+flow field v = -∇φ
+↓
+field topology (critical points, basins, saddles)
+↓
+operators (GE / S) → experimental probing
+```
+---
+
+## Conceptual Layers
+
+### Geometry
+- Fisher Information Metric  
+- distance structure  
+- manifold embedding  
+- curvature  
+
+### Dynamics
+- signed phase field  
+- flow field \( v = -\nabla \phi \)  
+- trajectory behavior  
+
+### Topology
+- sinks (attractors)  
+- saddles (transition structure)  
+- basin organization  
+- seam interaction  
+
+---
+
+## Operators
+
+The observatory now supports **active probing** of the manifold.
+
+Operators act on trajectories:
+```math
+\[
+\theta(t) \xrightarrow{S} \tilde{\theta}(t)
+\]
+```
+This enables:
+
+- controlled interaction with the geometry  
+- measurement of collapse, divergence, and recovery  
+- identification of dynamical constraint surfaces  
+
+The first canonical operator is:
+
+- **S — Geodesic Extraction**
+
+---
+
+## What This Enables
+
+The system can now:
+
+- identify stable regions (basins)  
+- locate transition structures (saddles)  
+- trace flow across the manifold  
+- compare runs structurally  
+- detect regime shifts  
+
+In short:
+
+> Geometry tells you what exists.  
+> Topology tells you how it is organized.  
+> Operators tell you how it behaves.
+
+---
+
+## Repository Structure
+```text
+experiments/     # data generation and analysis pipeline
+src/             # core PAM logic and metrics
+tui/             # observatory interface
+tools/           # visualization utilities
+docs/            # documentation
+outputs/         # experiment outputs and derived data
+```
+---
+
+## Documentation
+
+See the full documentation:
+
+- [`docs/README.md`](docs/README.md)
+
+Key sections:
+
+- geometry pipeline  
+- phase geometry  
+- field topology  
+- operators  
+
+---
+
+## Current State
+
+- parameter sweep: ~750 runs  
+- trajectory recovery: in progress  
+- geometry pipeline: operational  
+- phase and seam detection: established  
+- field topology: operational  
+- operators: introduced  
+
+---
+
+## One-Line Summary
+
+> The PAM Observatory is an instrument for extracting invariant structure from dynamic behavior on a parameter manifold.
+
+---
+
+## Closing
+
+The system is designed to move beyond visualization and toward **structural understanding**.
+
+It does not ask:
+
+> “what does this look like?”
+
+It asks:
+
+> “what stays the same when everything else changes?”
 
 ---
 
