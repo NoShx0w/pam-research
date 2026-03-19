@@ -1,0 +1,44 @@
+<svg width="900" height="300" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .box { fill:#f4f4f4; stroke:#333; stroke-width:1.5; rx:8; ry:8; }
+    .text { font-family:Arial, sans-serif; font-size:14px; fill:#111; }
+    .arrow { stroke:#333; stroke-width:1.5; marker-end:url(#arrowhead); }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+  </defs>
+
+  <!-- Boxes -->
+  <rect x="20" y="120" width="120" height="50" class="box"/>
+  <text x="30" y="150" class="text">Experiments</text>
+
+  <rect x="160" y="120" width="120" height="50" class="box"/>
+  <text x="175" y="150" class="text">index.csv</text>
+
+  <rect x="300" y="120" width="140" height="50" class="box"/>
+  <text x="310" y="150" class="text">Fisher Metric</text>
+
+  <rect x="460" y="120" width="160" height="50" class="box"/>
+  <text x="470" y="150" class="text">Geodesic Distance</text>
+
+  <rect x="640" y="120" width="120" height="50" class="box"/>
+  <text x="660" y="150" class="text">MDS</text>
+
+  <rect x="780" y="120" width="120" height="50" class="box"/>
+  <text x="790" y="140" class="text">Curvature</text>
+  <text x="790" y="160" class="text">+ Phase</text>
+
+  <!-- Arrows -->
+  <line x1="140" y1="145" x2="160" y2="145" class="arrow"/>
+  <line x1="280" y1="145" x2="300" y2="145" class="arrow"/>
+  <line x1="440" y1="145" x2="460" y2="145" class="arrow"/>
+  <line x1="620" y1="145" x2="640" y2="145" class="arrow"/>
+  <line x1="760" y1="145" x2="780" y2="145" class="arrow"/>
+
+  <!-- Title -->
+  <text x="300" y="40" class="text" style="font-size:18px;">PAM Geometry Pipeline</text>
+
+</svg>
