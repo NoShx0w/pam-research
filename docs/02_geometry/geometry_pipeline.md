@@ -5,9 +5,7 @@ This document defines how experimental observables are transformed into an intri
 ---
 
 ## Pipeline Overview
-
-experiments → index.csv → Fisher metric → geodesic distances → MDS embedding → curvature → phase seam
-
+![Geometry Pipeline](../figures/geometry_pipeline.svg)
 ---
 
 ## Parameter Manifold
