@@ -7,18 +7,37 @@ import numpy as np
 import pandas as pd
 
 
-def build_graph(edges: pd.DataFrame) -> nx.Graph:
+def build_graph(edges):
+    import networkx as nx
+
+    src_candidates = ["src", "u", "src_id"]
+    dst_candidates = ["dst", "v", "dst_id"]
+    weight_candidates = ["distance", "weight", "edge_cost", "fisher_distance", "dist", "length"]
+
+    src_col = next((c for c in src_candidates if c in edges.columns), None)
+    dst_col = next((c for c in dst_candidates if c in edges.columns), None)
+    w_col = next((c for c in weight_candidates if c in edges.columns), None)
+
+    if src_col is None or dst_col is None:
+        raise ValueError(
+            f"fisher_edges.csv must contain a source and destination column. "
+            f"Found columns: {list(edges.columns)}"
+        )
+
+    if w_col is None:
+        raise ValueError(
+            f"fisher_edges.csv must contain a distance/weight column. "
+            f"Found columns: {list(edges.columns)}"
+        )
+
     G = nx.Graph()
-    src_col = "src" if "src" in edges.columns else "source"
-    dst_col = "dst" if "dst" in edges.columns else "target"
-    if "distance" in edges.columns:
-        w_col = "distance"
-    elif "weight" in edges.columns:
-        w_col = "weight"
-    else:
-        raise ValueError("fisher_edges.csv must contain a distance or weight column")
     for _, row in edges.iterrows():
-        G.add_edge(int(row[src_col]), int(row[dst_col]), weight=float(row[w_col]))
+        G.add_edge(
+            int(row[src_col]),
+            int(row[dst_col]),
+            weight=float(row[w_col]),
+        )
+
     return G
 
 
