@@ -1,4 +1,4 @@
-![Python](https://img.shields.io/badge/python-3.12-blue)
+![Python](https://img.shields.io/badge/python-3.14-blue)
 ![Status](https://img.shields.io/badge/status-observatory_active-green)
 ![Runs](https://img.shields.io/badge/quenches-750-orange)
 
@@ -28,9 +28,7 @@ It combines large-scale parameter sweeps with information geometry, field dynami
 
 We study the parameter space:
 ```math
-\[
 \theta = (r, \alpha)
-\]
 ```
 by running controlled experiments and extracting structure at multiple levels:
 
