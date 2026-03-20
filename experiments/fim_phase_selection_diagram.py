@@ -38,28 +38,47 @@ def build_dominant_table(summary: pd.DataFrame) -> pd.DataFrame:
     work = summary.copy()
     work["outcome_priority"] = work["outcome_class"].map(OUTCOME_PRIORITY)
 
+    # Per-family dominant outcome
     dominant = (
-        work.groupby(["corpus", "r", "alpha"], dropna=False, group_keys=False)
-        .apply(choose_dominant_outcome)
-        .reset_index(drop=True)
+        work.sort_values(
+            by=["corpus", "r", "alpha", "rate", "outcome_priority"],
+            ascending=[True, True, True, False, False],
+        )
+        .drop_duplicates(subset=["corpus", "r", "alpha"], keep="first")
+        .copy()
     )
 
+    # Overall dominant outcome pooled across families
     pooled = (
         work.groupby(["r", "alpha", "outcome_class"], dropna=False, as_index=False)
-        .agg(n=("n", "sum"), n_total=("n_total", "sum"))
+        .agg(
+            n=("n", "sum"),
+            n_total=("n_total", "sum"),
+        )
     )
     pooled["rate"] = pooled["n"] / pooled["n_total"]
     pooled["outcome_priority"] = pooled["outcome_class"].map(OUTCOME_PRIORITY)
 
     pooled_dom = (
-        pooled.groupby(["r", "alpha"], dropna=False, group_keys=False)
-        .apply(choose_dominant_outcome)
-        .reset_index(drop=True)
+        pooled.sort_values(
+            by=["r", "alpha", "rate", "outcome_priority"],
+            ascending=[True, True, False, False],
+        )
+        .drop_duplicates(subset=["r", "alpha"], keep="first")
+        .copy()
     )
     pooled_dom["corpus"] = "all"
 
-    out = pd.concat([dominant, pooled_dom], ignore_index=True)
+    out = pd.concat([dominant, pooled_dom], ignore_index=True, sort=False)
     out["outcome_code"] = out["outcome_class"].map(OUTCOME_TO_CODE)
+
+    # keep only columns we actually need
+    keep_cols = [
+        "corpus", "r", "alpha", "outcome_class",
+        "n", "n_total", "rate", "outcome_code"
+    ]
+    out = out[keep_cols]
+
     return out.sort_values(["corpus", "r", "alpha"]).reset_index(drop=True)
 
 
