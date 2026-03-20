@@ -101,10 +101,20 @@ def build_base_tables():
     ycol = infer_column(mds_df, ["mds2", "MDS2", "y", "mds_y"])
     lcol = infer_column(laz_df, ["lazarus_score", "lazarus", "compression", "constraint_strength"])
 
-    merged = mds_df.merge(laz_df, on=["r", "alpha"], how="inner").copy()
-    merged["_x"] = merged[xcol].astype(float)
-    merged["_y"] = merged[ycol].astype(float)
-    merged["_lazarus_raw"] = merged[lcol].astype(float)
+    merged = mds_df.merge(
+        laz_df,
+        on=["r", "alpha"],
+        how="inner",
+        suffixes=("_mds", "_laz"),
+    ).copy()
+
+    x_mds = f"{xcol}_mds" if f"{xcol}_mds" in merged.columns else xcol
+    y_mds = f"{ycol}_mds" if f"{ycol}_mds" in merged.columns else ycol
+    l_laz = f"{lcol}_laz" if f"{lcol}_laz" in merged.columns else lcol
+
+    merged["_x"] = merged[x_mds].astype(float)
+    merged["_y"] = merged[y_mds].astype(float)
+    merged["_lazarus_raw"] = merged[l_laz].astype(float)
 
     seam_pts = seam_df[[xcol, ycol]].dropna().to_numpy(dtype=float)
     return merged, seam_pts
@@ -142,10 +152,21 @@ def maybe_load_curvature_overlay(mds_df: pd.DataFrame):
 
     xcol = infer_column(mds_df, ["mds1", "MDS1", "x", "mds_x"])
     ycol = infer_column(mds_df, ["mds2", "MDS2", "y", "mds_y"])
-    merged = mds_df.merge(curv_df, on=["r", "alpha"], how="inner").copy()
-    merged["_x"] = merged[xcol].astype(float)
-    merged["_y"] = merged[ycol].astype(float)
-    merged["_curv"] = np.abs(merged[ccol].astype(float))
+
+    merged = mds_df.merge(
+        curv_df,
+        on=["r", "alpha"],
+        how="inner",
+        suffixes=("_mds", "_curv"),
+    ).copy()
+
+    x_mds = f"{xcol}_mds" if f"{xcol}_mds" in merged.columns else xcol
+    y_mds = f"{ycol}_mds" if f"{ycol}_mds" in merged.columns else ycol
+    c_curv = f"{ccol}_curv" if f"{ccol}_curv" in merged.columns else ccol
+
+    merged["_x"] = merged[x_mds].astype(float)
+    merged["_y"] = merged[y_mds].astype(float)
+    merged["_curv"] = np.abs(merged[c_curv].astype(float))
     return merged
 
 
