@@ -112,11 +112,16 @@ def build_base_tables():
     c_curv = f"{ccol}_curv" if f"{ccol}_curv" in merged.columns else ccol
 
     raw_curv = np.abs(merged[c_curv].astype(float).to_numpy())
-    lifted_curv = np.log1p(raw_curv)
+    log_curv = np.log1p(raw_curv)
+    
+    # clip extreme outliers (VERY important)
+    p_low, p_high = np.percentile(log_curv, [5, 95])
+    clipped = np.clip(log_curv, p_low, p_high)
+
     merged["_x"] = merged[x_mds].astype(float)
     merged["_y"] = merged[y_mds].astype(float)
     merged["_curv_raw"] = raw_curv
-    merged["_curv_lift"] = normalize_01(lifted_curv)
+    merged["_curv_lift"] = normalize_01(clipped)
 
     seam_pts = seam_df[[xcol, ycol]].dropna().to_numpy(dtype=float)
     return merged, seam_pts
