@@ -16,7 +16,7 @@ OUTDIR.mkdir(parents=True, exist_ok=True)
 
 MDS_CSV = ROOT / "fim_mds" / "mds_coords.csv"
 SEAM_CSV = ROOT / "fim_phase" / "phase_boundary_mds_backprojected.csv"
-LAZ_CSV = ROOT / "fim_phase" / "lazarus_surface.csv"
+LAZ_CSV = ROOT / "fim_lazarus" / "lazarus_scores.csv"
 CURV_CSV = ROOT / "fim_curvature" / "curvature_surface.csv"
 TRAJ_DIRS = [
     ROOT / "fim_geodesics",
