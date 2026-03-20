@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+set -euo pipefail
+bash scripts/pre_push_seal.sh
