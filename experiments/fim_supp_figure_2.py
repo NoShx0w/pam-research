@@ -30,7 +30,7 @@ def build_scaling_variables(df):
 
     # base variables
     d = df["distance_to_seam"].values
-    k = df["scalar_curvature"].values
+    k = np.clip(df["scalar_curvature"].values, a_min=0.0, a_max=None)
 
     # candidates (you can expand this later)
     df["Z1"] = k / (1 + d)
