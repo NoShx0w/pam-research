@@ -16,7 +16,19 @@ set -euo pipefail
 #
 # This script assumes the canonical experiment scripts already exist.
 
-PYTHON_BIN="${PYTHON_BIN:-python}"
+if [[ -z "${PYTHON_BIN:-}" ]]; then
+  if [[ -x ".venv/bin/python" ]]; then
+    PYTHON_BIN=".venv/bin/python"
+  elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="$(command -v python3)"
+  elif command -v python >/dev/null 2>&1; then
+    PYTHON_BIN="$(command -v python)"
+  else
+    echo "ERROR: no Python interpreter found (.venv/bin/python, python3, or python)." >&2
+    exit 1
+  fi
+fi
+
 SCALE_ROOT="${SCALE_ROOT:-outputs/scales}"
 DEFAULT_SCALES="${DEFAULT_SCALES:-10,100,1000,10000}"
 WITHIN_K="${WITHIN_K:-2}"

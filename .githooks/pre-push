@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+if [[ -x ".venv/bin/python" ]]; then
+  export PYTHON_BIN=".venv/bin/python"
+fi
+
 bash scripts/pre_push_seal.sh
