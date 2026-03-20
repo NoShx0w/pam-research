@@ -107,6 +107,12 @@ def render_figure(
         y_bins=y_bins,
     )
 
+    surface = surface.copy()
+    counts = counts.copy()
+
+    # mask unsupported regions
+    surface[counts < min_count] = np.nan
+
     # mask unsupported regions
     surface[counts < min_count] = np.nan
 
