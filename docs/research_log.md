@@ -224,3 +224,132 @@ The observatory is no longer mapping the manifold.
 It is now identifying **where the manifold becomes unstable under interaction**.
 
 ---
+
+## 📓 OBS-005
+
+**DATE:** 2026-03-20  
+**STATE:** Transition-rate law identified under Lazarus conditioning
+
+---
+
+### Instrument Status
+
+- Geometry pipeline fully operational  
+  *(FIM → MDS → curvature → signed phase → seam)*  
+- Operator **S** and scaled geodesic probe system active  
+- Lazarus temporal analysis executed at large scale (`n_paths = 10000`)  
+- Transition-rate estimator established on operator trajectories
+
+---
+
+### Highlights
+
+- Lazarus conditioning now predicts **near-term transition probability**
+- High-Lazarus states are nearly **3× more likely** to transition within 2 steps
+- Lazarus peak is **boundary-aligned**, not an early-warning signal for seam location
+- Lazarus peak precedes **phase transition** by a consistent temporal lag
+- The observatory now resolves a three-part dynamical chain:
+
+  **boundary contact → compression peak → phase transition**
+
+---
+
+### Data Status
+
+- Large-scale probe analysis completed (`n_paths = 10000`)
+- Temporal ordering stabilized across probe set
+- Transition-rate summary computed from operator-path states
+- Pretty-geometry panel rendered from full observatory stack
+
+---
+
+### Metrics
+
+#### Temporal ordering
+
+| Metric | Value |
+|------|------:|
+| share_lazarus_precedes_seam | 0.603 |
+| share_lazarus_precedes_flip | 0.354 |
+| mean_lag_lazarus_to_seam | -0.901 |
+| median_lag_lazarus_to_seam | 0.0 |
+| mean_lag_lazarus_to_flip | 1.735 |
+| median_lag_lazarus_to_flip | 1.0 |
+
+#### Transition-rate law
+
+| Metric | High Lazarus | Low Lazarus |
+|------|-------------:|------------:|
+| transition_rate (within 2 steps) | 0.1718 | 0.0590 |
+| mean_lag_to_next_transition | 4.07 | 4.96 |
+| mean_distance_to_seam | 0.150 | 0.930 |
+| mean_curvature | 9.14e6 | 0.167 |
+
+---
+
+### Interpretation
+
+- Lazarus is **not** a predictor of boundary location in advance  
+- Instead, Lazarus behaves as a **maximum-compression field localized on the boundary**
+- Phase transitions occur *after* this compression peak, typically with lag ≈ 1–2 steps
+- High-Lazarus states are:
+  - closer to the seam
+  - embedded in extreme curvature
+  - more likely to undergo imminent transition
+
+This identifies a quantitative law of the manifold:
+
+> **compression on the boundary predicts short-horizon phase transition**
+
+---
+
+### Formal Statement
+
+> The Lazarus signal defines a boundary-aligned compression field whose high-exposure states are substantially more likely to transition within a short future window, with phase transition typically following the compression peak by approximately 1–2 steps.
+
+---
+
+### System Upgrade
+
+The observatory now supports:
+
+1. **Observe** → manifold geometry  
+2. **Probe** → geodesic operator trajectories  
+3. **Measure** → seam, curvature, Lazarus, transition events  
+4. **Predict** → short-horizon transition probability  
+
+This marks the transition from descriptive phase geometry to **predictive dynamical geometry**.
+
+---
+
+### Visual Status
+
+Canonical visualization stack now includes:
+
+- phase manifold
+- curvature field
+- Lazarus compression field
+- probe flow with transition markers
+
+The observatory is now able to render both:
+- the geometry of the system
+- and the dynamics induced by interaction with that geometry
+
+---
+
+### Next Step
+
+- condition transition-rate law on probe family / direction of approach
+- regularize curvature-driven pressure metrics near seam singularities
+- fit continuous transition law:
+  `P(transition within k steps | Lazarus, curvature, seam distance)`
+
+---
+
+### Status
+
+The observatory no longer only detects where the manifold becomes unstable.
+
+It now estimates **when transition is likely to occur once compression is reached**.
+
+---
