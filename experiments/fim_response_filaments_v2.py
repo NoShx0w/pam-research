@@ -203,16 +203,12 @@ def interpolate_surface(df: pd.DataFrame, grid_n: int = 220):
         np.linspace(ymin, ymax, grid_n),
     )
 
+    # phase is piecewise / seam-structured -> use linear, preserve NaNs
     gz = griddata((x, y), z, (gx, gy), method="linear")
+
+    # Lazarus is smoother -> cubic is okay, then gently fill color holes only
     gl = griddata((x, y), laz, (gx, gy), method="cubic")
-
-    # fill remaining holes with nearest-neighbor values
-    #gz_near = griddata((x, y), z, (gx, gy), method="nearest")
     gl_near = griddata((x, y), laz, (gx, gy), method="nearest")
-
-    mask = np.isfinite(gz)
-    gz[~mask] = np.nan
-    #gz = np.where(np.isfinite(gz), gz, gz_near)
     gl = np.where(np.isfinite(gl), gl, gl_near)
 
     return gx, gy, gz, gl
@@ -303,13 +299,37 @@ def render(df: pd.DataFrame, seam: pd.DataFrame, paths: pd.DataFrame, outpath: P
     ax = fig.add_subplot(111, projection="3d")
 
     surf = ax.plot_surface(
-        gx, gy, gz,
-        facecolors=facecolors,
-        linewidth=0,
-        antialiased=True,
-        shade=False,
-        alpha=0.97,
-        where=np.isfinite(gz)
+        gx, gy, gz, gl = interpolate_surface(df, grid_n=220)
+
+        laz_norm = gl.copy()
+        laz_norm = laz_norm - np.nanmin(laz_norm)
+        maxv = np.nanmax(laz_norm)
+        if maxv > 0:
+            laz_norm = laz_norm / maxv
+
+        facecolors = plt.cm.magma(laz_norm)
+
+        # mask invalid phase regions directly
+        invalid = ~np.isfinite(gz)
+        gz_plot = gz.copy()
+        gz_plot[invalid] = np.nan
+
+        facecolors_plot = facecolors.copy()
+        facecolors_plot[invalid] = (0.0, 0.0, 0.0, 0.0)
+
+        fig = plt.figure(figsize=(11, 9))
+        ax = fig.add_subplot(111, projection="3d")
+
+        surf = ax.plot_surface(
+            gx,
+            gy,
+            gz_plot,
+            facecolors=facecolors_plot,
+            linewidth=0,
+            antialiased=True,
+            shade=False,
+            alpha=0.97,
+        )
     )
 
     mappable = plt.cm.ScalarMappable(cmap="magma")
