@@ -203,13 +203,16 @@ def interpolate_surface(df: pd.DataFrame, grid_n: int = 220):
         np.linspace(ymin, ymax, grid_n),
     )
 
-    gz = griddata((x, y), z, (gx, gy), method="cubic")
+    gz = griddata((x, y), z, (gx, gy), method="linear")
     gl = griddata((x, y), laz, (gx, gy), method="cubic")
 
     # fill remaining holes with nearest-neighbor values
-    gz_near = griddata((x, y), z, (gx, gy), method="nearest")
+    #gz_near = griddata((x, y), z, (gx, gy), method="nearest")
     gl_near = griddata((x, y), laz, (gx, gy), method="nearest")
-    gz = np.where(np.isfinite(gz), gz, gz_near)
+
+    mask = np.isfinite(gz)
+    gz[~mask] = np.nan
+    #gz = np.where(np.isfinite(gz), gz, gz_near)
     gl = np.where(np.isfinite(gl), gl, gl_near)
 
     return gx, gy, gz, gl
@@ -306,6 +309,7 @@ def render(df: pd.DataFrame, seam: pd.DataFrame, paths: pd.DataFrame, outpath: P
         antialiased=True,
         shade=False,
         alpha=0.97,
+        where=np.isfinite(gz)
     )
 
     mappable = plt.cm.ScalarMappable(cmap="magma")
