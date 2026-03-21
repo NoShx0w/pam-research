@@ -288,48 +288,35 @@ def render(df: pd.DataFrame, seam: pd.DataFrame, paths: pd.DataFrame, outpath: P
     canonical = pick_canonical_path(paths)
 
     gx, gy, gz, gl = interpolate_surface(df, grid_n=220)
+
     laz_norm = gl.copy()
     laz_norm = laz_norm - np.nanmin(laz_norm)
     maxv = np.nanmax(laz_norm)
     if maxv > 0:
         laz_norm = laz_norm / maxv
+
     facecolors = plt.cm.magma(laz_norm)
+
+    # mask invalid phase regions directly
+    invalid = ~np.isfinite(gz)
+    gz_plot = gz.copy()
+    gz_plot[invalid] = np.nan
+
+    facecolors_plot = facecolors.copy()
+    facecolors_plot[invalid] = (0.0, 0.0, 0.0, 0.0)
 
     fig = plt.figure(figsize=(11, 9))
     ax = fig.add_subplot(111, projection="3d")
 
     surf = ax.plot_surface(
-        gx, gy, gz, gl = interpolate_surface(df, grid_n=220)
-
-        laz_norm = gl.copy()
-        laz_norm = laz_norm - np.nanmin(laz_norm)
-        maxv = np.nanmax(laz_norm)
-        if maxv > 0:
-            laz_norm = laz_norm / maxv
-
-        facecolors = plt.cm.magma(laz_norm)
-
-        # mask invalid phase regions directly
-        invalid = ~np.isfinite(gz)
-        gz_plot = gz.copy()
-        gz_plot[invalid] = np.nan
-
-        facecolors_plot = facecolors.copy()
-        facecolors_plot[invalid] = (0.0, 0.0, 0.0, 0.0)
-
-        fig = plt.figure(figsize=(11, 9))
-        ax = fig.add_subplot(111, projection="3d")
-
-        surf = ax.plot_surface(
-            gx,
-            gy,
-            gz_plot,
-            facecolors=facecolors_plot,
-            linewidth=0,
-            antialiased=True,
-            shade=False,
-            alpha=0.97,
-        )
+        gx,
+        gy,
+        gz_plot,
+        facecolors=facecolors_plot,
+        linewidth=0,
+        antialiased=True,
+        shade=False,
+        alpha=0.97,
     )
 
     mappable = plt.cm.ScalarMappable(cmap="magma")
