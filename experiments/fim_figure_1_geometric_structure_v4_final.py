@@ -134,7 +134,7 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
     if np.any(valid):
         ymin, ymax = float(np.nanmin(y)), float(np.nanmax(y))
         ridge_norm = (ridge.copy() - np.nanmin(ridge[valid])) / (np.nanmax(ridge[valid]) - np.nanmin(ridge[valid]) + 1e-12)
-        #ridge_norm = ridge_norm ** 0.7
+        ridge_norm = ridge_norm ** 0.7
         y_anchor = ymax - 0.12 * (ymax - ymin)
         amplitude = 0.08 * (ymax - ymin)
         ridge_scaled = y_anchor + ridge_norm * amplitude
