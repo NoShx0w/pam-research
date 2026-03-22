@@ -202,16 +202,24 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
     for label, ax in zip(["A", "B", "C", "D"], [axA, axB, axC, axD]):
         ax.text(-0.10, 1.05, label, transform=ax.transAxes, fontweight="bold", fontsize=14)
 
-    fig.suptitle("Figure 1 — Geometric structure of the state space", fontsize=17)
+    fig.suptitle(
+        "Figure 1 — Geometric structure of the state space",
+        fontsize=17,
+        y=0.985,
+    )
+
     fig.text(
-        0.5, 0.965,
+        0.5,
+        0.955,
         "Transitions concentrate near the phase boundary along a geometric ridge",
         ha="center",
+        va="top",
         fontsize=11,
         alpha=0.8,
     )
-    fig.tight_layout(rect=[0, 0, 1, 0.94])
-    fig.savefig(outpath, dpi=300)
+
+    fig.tight_layout(rect=[0, 0, 1, 0.90])
+    fig.savefig(outpath, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
 
