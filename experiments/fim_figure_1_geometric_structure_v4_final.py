@@ -199,7 +199,7 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
         amplitude = 0.08 * (ymax - ymin)
         ridge_scaled = y_anchor + ridge_norm * amplitude
 
-        ridge_x = np.array([0.00, 0.12, 0.22, 0.33, 0.45, 0.58, 0.72, 0.88, 1.10, 1.35, 1.55])
+        ridge_x = np.array([0.03, 0.12, 0.22, 0.33, 0.45, 0.58, 0.72, 0.88, 1.10, 1.35, 1.55])
         ridge_y = np.array([7.95, 7.78, 7.60, 7.48, 7.28, 7.30, 7.24, 7.28, 7.46, 7.68, 7.86])
 
         axA.plot(
@@ -213,7 +213,7 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
             clip_on=False,
         )
 
-    axA.text(0.03, 0.95, "boundary\n(high curvature)", transform=axA.transAxes, va="top")
+    axA.text(-0.03, 8.25, "boundary\n(high curvature)", ha="left", va="top", fontsize=11, zorder=7)
     axA.text(0.43, 0.95, "transition\nzone", transform=axA.transAxes, va="top")
     axA.text(0.79, 0.95, "stable\ninterior", transform=axA.transAxes, va="top")
     axA.text(0.02, 0.03, "geometry defines regimes", transform=axA.transAxes, fontsize=9, alpha=0.7)
@@ -256,6 +256,15 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
         monotone_nonincreasing=True,
         floor=0.01,
     )
+    scD = axD.scatter(
+        x, y,
+        c=t,
+        s=10,
+        alpha=0.22,
+        vmin=t_vmin,
+        vmax=t_vmax,
+        zorder=1,
+    )
 
     if len(ridge_x2) > 0:
         axD_t = axD.twinx()
@@ -277,8 +286,8 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
 
         label_idx = max(0, min(len(ridge_x2) - 1, int(len(ridge_x2) * 0.40)))
         axD_t.text(
-            ridge_x2[label_idx],
-            ridge_y2[label_idx] + 0.01,
+            0.40,
+            0.045,
             "transition ridge",
             fontsize=10,
             rotation=-24,
