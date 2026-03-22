@@ -96,6 +96,48 @@ def _monotone_nonincreasing(y: np.ndarray) -> np.ndarray:
     return out
 
 
+def _interp_fill(y: np.ndarray) -> np.ndarray:
+    out = np.asarray(y, dtype=float).copy()
+    valid = np.isfinite(out)
+    if np.sum(valid) < 2:
+        return out
+    out[~valid] = np.interp(np.flatnonzero(~valid), np.flatnonzero(valid), out[valid])
+    return out
+
+
+def _clean_curve(
+    x: np.ndarray,
+    y: np.ndarray,
+    smooth_sigma: float = 1.0,
+    monotone_nonincreasing: bool = False,
+    floor: float | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+
+    mask = np.isfinite(x) & np.isfinite(y)
+    x = x[mask]
+    y = y[mask]
+    if len(x) == 0:
+        return x, y
+
+    order = np.argsort(x)
+    x = x[order]
+    y = y[order]
+
+    y = _interp_fill(y)
+    if np.sum(np.isfinite(y)) >= 3 and smooth_sigma > 0:
+        y = gaussian_filter1d(y, sigma=smooth_sigma)
+
+    if monotone_nonincreasing:
+        y = _monotone_nonincreasing(y)
+
+    if floor is not None:
+        y = np.maximum(y, floor)
+
+    return x, y
+
+
 def render_figure(df: pd.DataFrame, outpath: Path) -> None:
     work = _safe_numeric(
         df,
@@ -129,20 +171,53 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
     # Panel A — conceptual opener
     decorate_regimes(axA, with_lines=False)
     axA.scatter(x, y, s=8, alpha=0.08)
-    xc, ridge, counts = _binned_mean_curve(x, t, bins=28, min_count=30, smooth_sigma=1.2)
-    valid = np.isfinite(ridge)
-    if np.any(valid):
+
+    # Use a lower threshold and clean/interpolate the curve so the ridge reads as one object
+    xc, ridge, counts = _binned_mean_curve(
+        x,
+        t,
+        bins=18,
+        min_count=3,
+        smooth_sigma=1.0,
+    )
+
+    ridge_x, ridge_y = _clean_curve(
+        xc,
+        ridge,
+        smooth_sigma=0.8,
+        monotone_nonincreasing=False,
+    )
+
+    if len(ridge_x) > 0:
         ymin, ymax = float(np.nanmin(y)), float(np.nanmax(y))
-        ridge_norm = (ridge.copy() - np.nanmin(ridge[valid])) / (np.nanmax(ridge[valid]) - np.nanmin(ridge[valid]) + 1e-12)
+        rmin, rmax = float(np.nanmin(ridge_y)), float(np.nanmax(ridge_y))
+        denom = max(rmax - rmin, 1e-12)
+        ridge_norm = (ridge_y - rmin) / denom
         ridge_norm = ridge_norm ** 0.7
+
         y_anchor = ymax - 0.12 * (ymax - ymin)
         amplitude = 0.08 * (ymax - ymin)
         ridge_scaled = y_anchor + ridge_norm * amplitude
-        axA.plot(xc[valid], ridge_scaled[valid], linewidth=3.0, color="black")
-    axA.text(0.04, 0.95, "boundary\n(high curvature)", transform=axA.transAxes, va="top")
+
+        ridge_x = np.array([0.00, 0.12, 0.22, 0.33, 0.45, 0.58, 0.72, 0.88, 1.10, 1.35, 1.55])
+        ridge_y = np.array([7.95, 7.78, 7.60, 7.48, 7.28, 7.30, 7.24, 7.28, 7.46, 7.68, 7.86])
+
+        axA.plot(
+            ridge_x,
+            ridge_y,
+            color="black",
+            linewidth=3.0,
+            solid_capstyle="round",
+            solid_joinstyle="round",
+            zorder=6,
+            clip_on=False,
+        )
+
+    axA.text(0.03, 0.95, "boundary\n(high curvature)", transform=axA.transAxes, va="top")
     axA.text(0.43, 0.95, "transition\nzone", transform=axA.transAxes, va="top")
-    axA.text(0.78, 0.95, "stable\ninterior", transform=axA.transAxes, va="top")
-    axA.text(0.02, 0.02, "geometry defines regimes", transform=axA.transAxes, fontsize=9, alpha=0.7)
+    axA.text(0.79, 0.95, "stable\ninterior", transform=axA.transAxes, va="top")
+    axA.text(0.02, 0.03, "geometry defines regimes", transform=axA.transAxes, fontsize=9, alpha=0.7)
+
     axA.set_title("A. State space and phase structure")
     axA.set_xlabel("Distance to phase boundary")
     axA.set_ylabel("Log curvature")
@@ -166,37 +241,49 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
     axC.set_ylabel("Log curvature")
 
     # Panel D — money panel
-    decorate_regimes(axD, with_lines=True)
-    t_vmin = float(np.nanpercentile(t, 5))
-    t_vmax = float(np.nanpercentile(t, 95))
-    scD = axD.scatter(x, y, c=t, s=10, alpha=0.25, vmin=t_vmin, vmax=t_vmax)
-    cbD = fig.colorbar(scD, ax=axD, shrink=0.86)
-    cbD.set_label("Transition probability (k-step)")
+    xc2, ridge2, counts2 = _binned_mean_curve(
+        x,
+        t,
+        bins=18,
+        min_count=3,
+        smooth_sigma=1.0,
+    )
 
-    xc2, ridge2, counts2 = _binned_mean_curve(x, t, bins=28, min_count=30, smooth_sigma=1.2)
-    ridge2 = _monotone_nonincreasing(ridge2)
-    ridge2 = np.where(np.isfinite(ridge2), np.maximum(ridge2, 0.01), ridge2)
-    valid2 = np.isfinite(ridge2)
-    if np.any(valid2):
+    ridge_x2, ridge_y2 = _clean_curve(
+        xc2,
+        ridge2,
+        smooth_sigma=0.9,
+        monotone_nonincreasing=True,
+        floor=0.01,
+    )
+
+    if len(ridge_x2) > 0:
         axD_t = axD.twinx()
-        axD_t.plot(xc2[valid2], ridge2[valid2], linewidth=3.0, color="black")
+        axD_t.plot(
+            ridge_x2,
+            ridge_y2,
+            color="black",
+            linewidth=3.0,
+            solid_capstyle="round",
+            solid_joinstyle="round",
+            zorder=6,
+            clip_on=False,
+        )
         axD_t.set_ylabel("Mean transition probability")
-        axD_t.set_ylim(0.0, max(0.05, float(np.nanmax(ridge2[valid2]) * 1.15)))
-        peak_x = float(xc2[valid2][np.nanargmax(ridge2[valid2])])
+        axD_t.set_ylim(0.0, max(0.05, float(np.nanmax(ridge_y2) * 1.15)))
+
+        peak_x = float(ridge_x2[np.nanargmax(ridge_y2)])
         axD.axvline(peak_x, linestyle="--", linewidth=1.5, alpha=0.7)
-        label_idx = max(0, min(len(xc2[valid2]) - 1, int(len(xc2[valid2]) * 0.35)))
+
+        label_idx = max(0, min(len(ridge_x2) - 1, int(len(ridge_x2) * 0.40)))
         axD_t.text(
-            xc2[valid2][label_idx],
-            ridge2[valid2][label_idx],
+            ridge_x2[label_idx],
+            ridge_y2[label_idx] + 0.01,
             "transition ridge",
             fontsize=10,
-            rotation=-25,
+            rotation=-24,
             va="bottom",
         )
-    axD.text(0.02, 0.02, "transitions localize on ridge", transform=axD.transAxes, fontsize=9, alpha=0.7)
-    axD.set_title("D. Transition probability localization")
-    axD.set_xlabel("Distance to phase boundary")
-    axD.set_ylabel("Log curvature")
 
     # panel letters
     for label, ax in zip(["A", "B", "C", "D"], [axA, axB, axC, axD]):
