@@ -256,15 +256,7 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
         monotone_nonincreasing=True,
         floor=0.01,
     )
-    scD = axD.scatter(
-        x, y,
-        c=t,
-        s=10,
-        alpha=0.22,
-        vmin=t_vmin,
-        vmax=t_vmax,
-        zorder=1,
-    )
+
 
     if len(ridge_x2) > 0:
         axD_t = axD.twinx()
@@ -277,6 +269,13 @@ def render_figure(df: pd.DataFrame, outpath: Path) -> None:
             solid_joinstyle="round",
             zorder=6,
             clip_on=False,
+        )
+        scD = axD.scatter(
+            x, t,
+            s=10,
+            alpha=0.18,
+            color="#4c4c4c",
+            zorder=1,
         )
         axD_t.set_ylabel("Mean transition probability")
         axD_t.set_ylim(0.0, max(0.05, float(np.nanmax(ridge_y2) * 1.15)))
