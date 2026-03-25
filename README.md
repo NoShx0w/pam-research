@@ -10,6 +10,19 @@ It combines large-scale parameter sweeps with information geometry, field dynami
 ![Python](https://img.shields.io/badge/python-3.14-blue)
 ![Status](https://img.shields.io/badge/status-observatory_active-green)
 ![Runs](https://img.shields.io/badge/quenches-750-orange)
+![DOI](https://doi.org/10.5281/zenodo.19218700)
+
+---
+
+## Preprint
+
+Preprint on Zenodo: [Geometric Constraints on Transition Dynamics in Recursive Language Systems](https://zenodo.org/records/19218700)
+
+---
+
+## Status
+
+Active research repository.
 
 ---
 
