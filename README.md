@@ -16,7 +16,10 @@ It combines large-scale parameter sweeps with information geometry, field dynami
 
 ## Preprint
 
-Preprint on Zenodo: [Geometric Constraints on Transition Dynamics in Recursive Language Systems](https://zenodo.org/records/19218700)
+## Preprint
+
+Preprint on Zenodo: [Geometric Constraints on Transition Dynamics in Recursive Language Systems](https://zenodo.org/records/19218700)  
+DOI: [10.5281/zenodo.19218700](https://doi.org/10.5281/zenodo.19218700)
 
 ---
 
