@@ -190,8 +190,8 @@ Key sections:
 
 ## Current State
 
-- parameter sweep: ~750 runs  
-- trajectory recovery: in progress  
+- parameter sweep: 750 runs  
+- trajectory recovery: completed  
 - geometry pipeline: operational  
 - phase and seam detection: established  
 - field topology: operational  
