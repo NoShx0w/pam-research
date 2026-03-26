@@ -1,8 +1,3 @@
-Here is a clean, canonical field_topology.md aligned with everything you’ve built and refined.
-
-⸻
-
-
 # Field Topology
 
 ## Overview
