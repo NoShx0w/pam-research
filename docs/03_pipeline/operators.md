@@ -1,8 +1,3 @@
-Here is a clean, canonical operators.md that fits your current system state and vocabulary.
-
-⸻
-
-
 # Operators
 
 ## Overview
