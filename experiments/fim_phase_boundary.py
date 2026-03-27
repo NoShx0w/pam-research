@@ -1,64 +1,23 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from pathlib import Path
 import argparse
 
+from pam.phase.seam import run_seam_extraction
 
-def main():
 
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--curvature", default="outputs/fim_curvature/curvature_surface.csv")
     parser.add_argument("--outdir", default="outputs/fim_phase")
     parser.add_argument("--threshold", type=float, default=10)
+    return parser.parse_args()
 
-    args = parser.parse_args()
 
-    df = pd.read_csv(args.curvature)
-
-    # magnitude of curvature
-    df["absK"] = np.abs(df.scalar_curvature)
-
-    # ridge candidates
-    ridge = df[df.absK > args.threshold].copy()
-
-    # sort along r
-    ridge = ridge.sort_values("r")
-
-    Path(args.outdir).mkdir(parents=True, exist_ok=True)
-
-    ridge.to_csv(Path(args.outdir) / "phase_boundary_points.csv", index=False)
-
-    # plot in parameter space
-    fig, ax = plt.subplots()
-
-    ax.scatter(df.alpha, df.r, s=20, alpha=0.3)
-
-    ax.scatter(
-        ridge.alpha,
-        ridge.r,
-        s=80,
-        color="red"
+def main():
+    args = parse_args()
+    run_seam_extraction(
+        curvature_csv=args.curvature,
+        outdir=args.outdir,
+        threshold=args.threshold,
     )
-
-    ax.plot(
-        ridge.alpha,
-        ridge.r,
-        linewidth=2
-    )
-
-    ax.set_xlabel("alpha")
-    ax.set_ylabel("r")
-
-    ax.set_title("PAM phase boundary (curvature ridge)")
-
-    fig.tight_layout()
-
-    fig.savefig(Path(args.outdir) / "phase_boundary.png", dpi=180)
-
-    plt.close()
-
-    print("boundary extracted")
 
 
 if __name__ == "__main__":
