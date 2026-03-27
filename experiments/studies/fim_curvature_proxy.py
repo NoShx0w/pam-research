@@ -1,3 +1,13 @@
+"""
+Diagnostic curvature-proxy study for the PAM geometry pipeline.
+
+This script is not the canonical scalar-curvature stage.
+The canonical curvature implementation lives in:
+    pam.geometry.curvature
+
+This study computes derived curvature-like diagnostics from FIM summary fields
+such as det(G) and condition structure.
+"""
 
 import argparse
 from pathlib import Path
