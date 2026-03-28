@@ -8,7 +8,7 @@ import numpy as np
 from dataclasses import asdict
 from typing import Callable, List, Optional, Any
 from pam.types import RunParams, RunResult
-from pam.dynamics_mixture import run_mixture_quench
+from pam.engine.mixture import run_mixture_quench
 
 MacrostateFn = Callable[[List[List[str]], Any, RunParams], List[Any]]
 
