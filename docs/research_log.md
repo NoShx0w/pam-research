@@ -353,3 +353,68 @@ The observatory no longer only detects where the manifold becomes unstable.
 It now estimates **when transition is likely to occur once compression is reached**.
 
 ---
+
+## 📓 OBS-006
+
+**DATE:** 2026-03-29  
+**STATE:** Canonical observatory architecture consolidated
+
+---
+
+### Instrument Status
+
+- canonical layer packages implemented under `src/pam/`
+- pipeline stages established for geometry, phase, operators, and topology
+- canonical runner implemented
+- full shell entrypoint established via `scripts/run_full_pipeline.sh`
+- corpora externalized under `observatory/corpora/`
+- experiment tree reorganized into canonical wrappers, figures, studies, toy, and archive
+
+---
+
+### Highlights
+
+- repository now reflects the true conceptual architecture of the observatory
+- canonical runtime no longer depends on a flat script collection
+- file-first artifact flow preserved under `outputs/`
+- documentation aligned with the implemented layered instrument
+- historical and exploratory material retained without obscuring canonical ownership
+
+---
+
+### System Upgrade
+
+The observatory now operates as a layered instrument with explicit ownership for:
+
+1. engine  
+2. measurement  
+3. observables  
+4. geometry  
+5. phase  
+6. operators  
+7. topology  
+8. pipeline orchestration  
+
+---
+
+### Interpretation
+
+This marks the transition from a research codebase with a canonical scientific core to a repository whose structure now matches that core.
+
+The observatory is no longer only scientifically coherent.
+
+It is now also architecturally coherent.
+
+---
+
+### Status
+
+The instrument backbone is now in place.
+
+Future work can focus more cleanly on:
+- scientific refinement
+- figure communication
+- operator and topology extensions
+- continuous geometric and response-field development
+
+---

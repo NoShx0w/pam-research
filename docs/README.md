@@ -2,9 +2,9 @@
 
 ## Overview
 
-This documentation describes the architecture and analysis pipeline of the PAM (Phase Analysis of Meaning) Observatory.
+This documentation describes the canonical architecture, runtime flow, and research context of the PAM Observatory.
 
-The repository is structured as an **experimental instrument** for studying the parameter manifold:
+The repository is now organized as a **layered computational instrument** for studying phase structure in recursive language systems across the control manifold
 
 \[
 \theta = (r, \alpha)
@@ -12,173 +12,177 @@ The repository is structured as an **experimental instrument** for studying the 
 
 through:
 
-- large-scale parameter sweeps  
-- observable extraction  
-- information geometry  
-- field topology  
-- operator-driven probing  
+- recursive corpus dynamics
+- invariant measurement
+- observable extraction
+- information geometry
+- phase structure
+- operator-driven probing
+- topological organization
 
-The system has evolved from a descriptive pipeline into a **geometry + dynamics + topology instrument**.
+The canonical runtime is now exposed through:
 
----
-
-## Documentation Structure
-
-### 01 — Foundations
-
-- [`architecture.md`](../architecture.md)  
-  High-level structure of the repository and observatory components
-
-- [`observable_glossary.md`](../observable_glossary.md)  
-  Definitions of all recorded observables
-
----
-
-### 02 — Geometry
-
-- [`geometry_pipeline.md`](../02_geometry/geometry_pipeline.md)  
-  End-to-end pipeline from observables to manifold geometry
-
-- [`parameter_sweep_geometry.md`](../02_geometry/parameter_sweep_geometry.md)  
-  Structure and coverage of the (r, α) parameter space
-
----
-
-### 03 — Pipeline (Dynamics & Topology)
-
-- [`phase_geometry.md`](../03_pipeline/phase_geometry.md)  
-  Signed phase, seam structure, and phase interpretation
-
-- [`field_topology.md`](../03_pipeline/field_topology.md)  
-  Continuous field construction, flow dynamics, and topological structure
-
-- [`operators.md`](../03_pipeline/operators.md)  
-  Active transformations (e.g. Geodesic Extraction) and experimental probing
-
----
-
-## Analysis Pipeline
-
-The PAM Observatory processes data through the following stages:
-```text
-experiments (exp_batch.py)
-↓
-observables (index.csv)
-↓
-Fisher Information Metric (fim.py)
-↓
-Fisher distance graph (fim_distance.py)
-↓
-MDS embedding (fim_mds.py)
-↓
-curvature estimation (fim_curvature.py)
-↓
-phase field (fim_signed_phase.py)
-↓
-continuous scalar field φ(x, y)
-↓
-flow field v = -∇φ
-↓
-field topology (critical points, basins, saddles)
-↓
-operators (GE / S) → experimental probing
+```bash
+bash scripts/run_full_pipeline.sh
 ```
----
-
-## 4. Observatory Interface
-
-- `04_interface/` reserved for TUI and observatory interface documentation
-
-## 5. Project
-
-- `05_project/` reserved for roadmap and reproducibility guides
 
 ---
 
-## Conceptual Layers
+## Documentation Index
 
-The system can be understood in three layers:
+### Core architecture
+
+- [`architecture.md`](architecture.md)  
+  Canonical repository architecture and layer ownership
+
+- [`README.md`](../README.md)  
+  Top-level repository overview and canonical runtime entrypoint
+
+---
 
 ### Geometry
 
-- parameter manifold
-- Fisher metric
-- distances and embedding
-- curvature
+- [`02_geometry/geometry_pipeline.md`](02_geometry/geometry_pipeline.md)  
+  Geometry pipeline from observables to Fisher manifold structure
 
-### Dynamics
-
-- phase field
-- flow field \( v = -\nabla \phi \)
-- trajectory behavior
-
-### Topology
-
-- critical points (sinks, saddles, sources)
-- basin structure
-- seam interaction
-- invariant organization
+- [`02_geometry/parameter_sweep_geometry.md`](02_geometry/parameter_sweep_geometry.md)  
+  Parameter-space coverage and geometric interpretation of the \((r, \alpha)\) sweep
 
 ---
 
-## Key Principle
+### Phase, topology, and operators
 
-> **Topology is the part of the field that does not disappear when representation changes.**
+- [`03_pipeline/phase_geometry.md`](03_pipeline/phase_geometry.md)  
+  Seam extraction, signed phase, and phase interpretation
 
-The observatory does not identify point identity.
+- [`03_pipeline/field_topology.md`](03_pipeline/field_topology.md)  
+  Field alignment, critical structure, and topological organization
 
-It identifies:
-
-> **relational identity of behavior**
-
-Two runs are equivalent if they share:
-- critical point structure  
-- connectivity  
-- seam relationships  
+- [`03_pipeline/operators.md`](03_pipeline/operators.md)  
+  Geodesic extraction, probes, scaled probes, and operator-based analysis
 
 ---
 
-## Operators and Experimental Mode
+### Observatory and interpretation
 
-With the introduction of operators (e.g. Geodesic Extraction):
+- [`01_observatory/how_to_read.md`](01_observatory/how_to_read.md)  
+  How to read observatory outputs and manifold-derived artifacts
 
-- trajectories are no longer passive  
-- the system can be actively probed  
+- [`01_observatory/observable_glossary.md`](01_observatory/observable_glossary.md)  
+  Definitions of key observables and derived quantities
 
-This enables:
-
-- controlled interaction with the manifold  
-- measurement of collapse, divergence, and recovery  
-- identification of dynamical constraint surfaces  
+- [`observatory_philosophy.md`](observatory_philosophy.md)  
+  Conceptual framing of the observatory
 
 ---
 
-## Current State
+### Research context
 
-The observatory now supports:
+- [`abstract.md`](abstract.md)  
+  Project abstract
 
-- full parameter sweep (≈750 runs)  
-- trajectory recovery and validation  
-- Fisher geometry extraction  
-- manifold embedding  
-- phase and seam detection  
-- field topology extraction  
-- operator-driven probing  
+- [`research_log.md`](research_log.md)  
+  Running research log
+
+- [`conversation_excerpts.md`](conversation_excerpts.md)  
+  Selected excerpts that informed framing and development
+
+---
+
+## Canonical Runtime
+
+The repository now has a single canonical full-pipeline entrypoint:
+
+```bash
+bash scripts/run_full_pipeline.sh
+```
+
+This executes the orchestrated stage pipeline defined in:
+
+- `src/pam/pipeline/stages/`
+- `src/pam/pipeline/runner.py`
+
+Stage order:
+
+```text
+engine
+↓
+measurement
+↓
+observables
+↓
+geometry
+↓
+phase
+↓
+operators
+↓
+topology
+```
+
+---
+
+## Canonical Code Layout
+
+The main package structure is:
+
+```text
+src/pam/
+  engine/
+  measurement/
+  observables/
+  geometry/
+  phase/
+  topology/
+  operators/
+  pipeline/
+```
+
+Supporting repository roots:
+
+```text
+observatory/
+  corpora/
+  runs/
+  derived/
+  reports/
+  figures/
+
+experiments/
+  figures/
+  studies/
+  toy/
+  archive/
+
+outputs/
+  active file-first artifact store
+```
+
+---
+
+## Documentation Notes
+
+A number of older documents reflect earlier stages of the repository, when the system was centered more strongly on:
+
+- flat experiment scripts
+- TUI-first monitoring
+- visualization-first workflows
+- `outputs/index.csv` as the main architectural interface
+
+Those materials remain useful historically, but the canonical repository architecture is now the layered instrument described in:
+
+- [`architecture.md`](architecture.md)
 
 ---
 
 ## Summary
 
-The PAM Observatory is no longer just a visualization pipeline.
+The PAM Observatory documentation now supports a repository that is no longer just a script collection or visualization workflow.
 
-It is an instrument for:
+It documents a canonical layered instrument for:
 
-- extracting structure from data  
-- measuring behavior under transformation  
-- identifying invariant organization across representations  
-
-In short:
-
-> Geometry describes the manifold.  
-> Topology defines its structure.  
-> Operators reveal how it behaves.
+- evolving recursive systems
+- measuring invariant structure
+- extracting geometry and phase
+- probing the manifold with operators
+- analyzing topological organization

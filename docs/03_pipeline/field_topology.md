@@ -2,183 +2,226 @@
 
 ## Overview
 
-Field topology is the layer where the PAM Observatory transitions from:
+Field topology is the layer where the PAM Observatory moves from manifold description to structural organization.
 
-> geometry → structure
+If geometry answers:
 
-It extracts the **organizational skeleton** of the manifold by analyzing the behavior of a continuous field derived from empirical data.
+> how are states arranged?
 
-This is where the system stops being visual and becomes structural.
+and phase answers:
 
----
+> where do regime boundaries emerge?
 
-## From Geometry to Field
+then topology answers:
 
-Starting point:
+> how is the manifold-organized field structurally put together?
 
-- discrete observations embedded in a parameter manifold (via MDS)
-- signed phase information defined over points
+In the canonical PAM Observatory, topology studies organization through:
 
-We construct a continuous scalar field:
+- field alignment
+- gradient alignment
+- critical structure
+- seam-relative organization
+- phase-selection summaries
 
-\[
-\phi(x, y)
-\]
-
-This field represents:
-- signed phase distance
-- or a derived potential over the manifold
+This is where the system becomes relational rather than merely geometric.
 
 ---
 
-## Flow Field
+## From Geometry and Phase to Topology
 
-From the scalar field, we define a vector field:
+The topology layer begins downstream of geometry and phase.
 
-\[
-\mathbf{v}(x, y) = -\nabla \phi(x, y)
-\]
+Its main inputs are:
+
+- manifold coordinates
+- signed phase structure
+- seam-relative distance
+- Lazarus-related fields
+- operator-path outcomes
+
+So the conceptual flow is:
+
+```text
+observables
+↓
+geometry
+↓
+phase
+↓
+operators
+↓
+topology
+```
+
+Topology does not replace geometry or phase. It organizes their relational consequences.
+
+---
+
+## Field View
+
+A useful conceptual view is to think in terms of fields over the manifold.
+
+Examples include:
+
+- signed phase
+- seam distance
+- Lazarus intensity
+- response-alignment structure
+
+These fields allow the observatory to ask not only where points lie, but how structure is distributed and how local changes align with global organization.
+
+In this sense, the manifold supports a field description even when the implementation remains partly discrete and artifact-driven.
+
+---
+
+## Gradient Structure
+
+A central topological question is how different field directions align locally.
+
+Examples:
+
+- phase-gradient alignment with Lazarus-gradient structure
+- seam-relative organization of high-response regions
+- local directional structure near transition zones
+
+This is why the canonical topology layer includes field and gradient alignment analysis.
 
 Interpretation:
 
-- vectors point in the direction of decreasing potential
-- trajectories follow the flow induced by the field
-
-This converts:
-- static geometry → dynamic behavior
+- aligned gradients indicate co-organized structure
+- orthogonal or weakly aligned gradients indicate partially independent axes of organization
+- strong boundary-localized gradients often mark transition structure
 
 ---
 
-## Critical Points
+## Critical Structure
 
-Critical points are locations where:
+Topology also studies where organization becomes concentrated or unstable.
 
-\[
-\mathbf{v}(x, y) \approx 0
-\]
+In the current observatory, this is expressed through criticality summaries rather than only through a classical continuous critical-point solver.
 
-These are the fundamental organizing elements of the field.
+Examples include:
 
-They are classified via the local curvature (Hessian of \( \phi \)).
+- high-curvature regions
+- seam-adjacent concentration
+- criticality scores combining determinant, curvature, and seam distance
+- organizational concentration near transition zones
 
----
+Interpretation:
 
-## Classification
-
-### 🟢 Sink (Attractor)
-
-- local minimum of \( \phi \)
-- all nearby trajectories converge
-
-Represents:
-- stable phase region
-- basin of attraction
+- these structures indicate where the manifold reorganizes most strongly
+- they function as topological anchors for phase transition analysis
 
 ---
 
-### 🔴 Source (Repeller)
+## Seam as Structural Organizer
 
-- local maximum of \( \phi \)
-- trajectories diverge outward
+The seam is not merely a boundary curve.
 
-Represents:
-- unstable region
-- rarely dominant in this system
+Topologically, it acts as a structural organizer.
 
----
+Observations in the observatory include:
 
-### 🟡 Saddle
+- alignment structure changes near the seam
+- Lazarus intensity concentrates near seam-relative regions
+- operator-path outcomes are strongly organized by seam distance
+- critical regions often cluster near seam-adjacent structure
 
-- mixed curvature (eigenvalues of opposite sign)
-- trajectories both converge and diverge along different axes
-
-Represents:
-- transition structure
-- instability boundaries
-- phase transition corridors
+So the seam is central not only to phase assignment, but to the relational organization of the manifold.
 
 ---
 
-## Basins and Flow Organization
+## Field Alignment
 
-The field organizes into:
+One topological task is to compare different fields over the manifold.
 
-- **basins** → regions dominated by sinks  
-- **separatrices** → boundaries defined by saddle points  
-- **flow lines** → trajectories connecting regions  
+For example:
 
-This structure defines:
+- Lazarus vs seam distance
+- phase vs Lazarus temporal ordering
+- boundary contact vs later phase transitions
 
-> how the system moves, not just where it is
+This produces a structural picture of how different observables and derived fields cohere.
+
+It lets the observatory distinguish:
+
+- mere correlation
+- local directional alignment
+- boundary-driven structural coupling
 
 ---
 
-## The Role of the Seam
+## Organizational Topology
 
-The phase seam is not just a visual boundary.
+Topology in the current repository also includes organizational summaries over trajectories and outcomes.
 
-In the field:
+This includes:
 
-> it acts as a **dynamical constraint surface**
+- initial-condition outcome maps
+- dominant outcome regimes
+- phase-selection structure
+- operator-conditioned organization
 
-Observations:
+In this form, topology becomes a ledger of how the manifold organizes possible behavior.
 
-- saddle points often align with or cluster near the seam  
-- flow lines bend or compress near it  
-- transitions between basins frequently occur along seam-adjacent regions  
+This is the point where the observatory moves from:
 
-This makes the seam central to:
-
-- phase transitions  
-- trajectory deformation  
-- structural organization  
+- where states are
+to
+- how possible behaviors are structurally arranged
 
 ---
 
 ## Topological Ledger
 
-The topology of the field can be summarized as a set of invariants:
+A useful summary object is the **topological ledger**.
 
-- number and type of critical points  
-- connectivity between them  
-- basin structure  
-- relation to the seam  
+This ledger may include:
 
-This forms the **topological ledger**.
+- critical structure
+- seam relations
+- alignment summaries
+- outcome organization
+- basin-like or transition-like regions
+- path-conditioned structural differences
+
+This ledger is not just a visualization artifact.
+
+It is the structural record of how the field is organized.
 
 ---
 
 ## Relational Identity
 
-A key principle:
+A key principle remains:
 
 > **Topology is the relational identity of the field.**
 
 Unlike point-wise measurements, topology encodes:
 
-- how regions connect  
-- how trajectories flow  
-- how transitions occur  
+- how structures align
+- how transition organization is arranged
+- how boundaries constrain outcomes
+- how different fields relate across the manifold
 
-Two systems are considered equivalent if they share:
-
-- critical point structure  
-- connectivity  
-- seam relationships  
-
-Not if they look visually similar.
+Two systems are structurally close when these relational patterns are preserved, not merely when their pictures look similar.
 
 ---
 
 ## Invariance
 
-Field topology is invariant under:
+Topological interpretation is more stable than raw representation.
 
-- embedding distortions (e.g. MDS variations)  
-- interpolation choices (within reasonable limits)  
-- visualization differences  
+It is comparatively robust to:
 
-As long as the underlying structure is preserved.
+- embedding distortions
+- moderate plotting differences
+- superficial coordinate changes
+
+provided the underlying relational organization is preserved.
+
+That is why topology is the strongest candidate for structural identity in the observatory.
 
 ---
 
@@ -186,49 +229,93 @@ As long as the underlying structure is preserved.
 
 With topology extracted, the observatory can:
 
-- identify phase regions (basins)  
-- locate transition zones (saddles)  
-- trace transition corridors (flow lines)  
-- compare different runs structurally  
-- detect regime shifts  
+- identify structurally important transition zones
+- compare manifold organization across runs
+- relate phase structure to operator outcomes
+- identify boundary-conditioned behavior
+- summarize initial-condition selection structure
+- move from local measurements to global organization
+
+---
+
+## Canonical Implementation Mapping
+
+### Canonical modules
+
+| Concept | Canonical module |
+|--------|------|
+| Field alignment | `src/pam/topology/field.py` |
+| Gradient alignment | `src/pam/topology/flow.py` |
+| Critical structure | `src/pam/topology/critical_points.py` |
+| Organizational topology | `src/pam/topology/organization.py` |
+
+### Pipeline orchestration
+
+| Concept | Pipeline module |
+|--------|------|
+| Topology stage | `src/pam/pipeline/stages/topology.py` |
+| Full pipeline runner | `src/pam/pipeline/runner.py` |
+| Canonical shell entrypoint | `scripts/run_full_pipeline.sh` |
+
+### Compatibility wrappers
+
+| Concept | Wrapper script |
+|--------|------|
+| Field alignment | `experiments/fim_field_alignment.py` |
+| Gradient alignment | `experiments/fim_gradient_alignment.py` |
+| Critical structure | `experiments/fim_critical_points.py` |
+| Organizational topology | `experiments/fim_phase_selection_diagram.py` |
+
+---
+
+## Active Topology Outputs
+
+The topology layer writes active artifacts under directories such as:
+
+- `outputs/fim_field_alignment/`
+- `outputs/fim_gradient_alignment/`
+- `outputs/fim_critical/`
+- `outputs/fim_initial_conditions/`
+
+These outputs summarize how the manifold is structurally organized beyond raw geometric position.
 
 ---
 
 ## From Visualization to Structure
 
-Before:
+The critical shift is:
 
-- arrows, colors, plots  
-- local interpretation  
+Before:
+- embeddings
+- colors
+- seam plots
+- local diagnostics
 
 After:
+- alignment structure
+- critical organization
+- outcome-conditioned topology
+- relational summaries of the field
 
-- sinks, saddles, basins  
-- global organization  
-
-This is the critical shift:
-
-> from seeing the field → to understanding its structure
+This is the move from seeing the manifold to understanding its organization.
 
 ---
 
 ## One-Line Summary
 
-> Topology is the part of the field that does not disappear when representation changes.
+> Topology is the part of manifold organization that remains when representation changes but structural relations are preserved.
 
 ---
 
 ## Closing
 
-Field topology is the layer where the PAM Observatory becomes definitional.
+Field topology is the layer where the PAM Observatory becomes structurally comparative.
 
 It extracts:
 
-- stable structure from dynamic behavior  
-- invariant organization from variable representation  
+- organization from geometry
+- relation from fields
+- transition structure from phase
+- behavioral arrangement from operator outcomes
 
-And provides the foundation for:
-
-- operator-driven experiments  
-- phase equivalence classes  
-- structural comparison across runs
+and turns the manifold into a space of structural identity.

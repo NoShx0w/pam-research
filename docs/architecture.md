@@ -1,312 +1,404 @@
-PAM Observatory Architecture
+# PAM Observatory Architecture
 
-This document describes the structure and data flow of the PAM Observatory system.
+This document describes the canonical architecture of the PAM Observatory.
 
-The repository is organized around three core layers:
-	1.	Experiment Engine
-	2.	Observatory Interface
-	3.	Visualization Tools
+The repository is now organized as a **layered computational instrument** for studying phase structure in recursive language systems.
 
-These layers communicate through simple, durable data artifacts.
+Its canonical structure is:
 
-⸻
+1. Engine  
+2. Measurement  
+3. Observables  
+4. Geometry  
+5. Phase  
+6. Operators  
+7. Topology  
+8. Pipeline orchestration  
 
-System Overview
+The system remains **file-first**: stages communicate through explicit artifacts written to the repository’s active output store.
 
-exp_batch.py
-      │
-      │ runs parameter sweeps
-      ▼
-outputs/index.csv
-      │
-      │ live experiment state
-      ▼
-PAM Observatory (TUI)
-      │
-      ├─ screenshots
-      │
-      ▼
-tools/phase_movie.py
+---
 
-The architecture intentionally uses files as interfaces between layers. This keeps the experiment runner, observatory, and analysis tools loosely coupled.
+## System Overview
 
-⸻
+The canonical entrypoint is:
 
-1. Experiment Engine
+```bash
+bash scripts/run_full_pipeline.sh
+```
 
-The experiment engine is responsible for executing parameter sweeps.
+which invokes the pipeline runner:
 
-Primary entry point:
+```text
+src/pam/pipeline/runner.py
+```
 
-exp_batch.py
+The canonical stage order is:
 
-Each experiment run (called a quench) evolves a recursive language system for a fixed number of iterations.
+```text
+engine
+↓
+measurement
+↓
+observables
+↓
+geometry
+↓
+phase
+↓
+operators
+↓
+topology
+```
 
-Parameter sweeps explore combinations of:
+The pipeline is orchestrated through:
 
-r      reinforcement strength
-α      mixture rate
-seed   stochastic initialization
+```text
+src/pam/pipeline/stages/
+src/pam/pipeline/runner.py
+```
 
-Typical sweep size:
+and uses:
 
-r values     = 5
-α values     = 15
-seeds        = 10
-total runs   = 750
+```text
+src/pam/pipeline/state.py
+src/pam/io/paths.py
+```
 
+to address artifact families.
 
-⸻
+---
 
-Execution Model
+## 1. Engine
 
-Experiments are executed in parallel using a bounded process pool.
+The engine governs recursive corpus dynamics over the control manifold.
 
-ProcessPoolExecutor
+Canonical package:
 
-Each worker performs:
+```text
+src/pam/engine/
+```
 
-run_one_job()
-      │
-      ▼
-run_one_summary()
-      │
-      ▼
-compute summary metrics
-      │
-      ▼
-append row to index.csv
+Primary responsibilities:
 
-Workers operate independently and return only compact summary data.
+- corpus evolution over \((r, \alpha)\)
+- mixture/quench execution
+- injector composition
+- runtime dynamics wrappers
 
-⸻
+Key modules include:
 
-2. Data Interface
+- `src/pam/engine/core.py`
+- `src/pam/engine/mixture.py`
+- `src/pam/engine/injectors.py`
 
-The central data artifact is:
+The engine is responsible for how the system changes over time, but not for higher-level interpretation of those changes.
 
-outputs/index.csv
+---
 
-Each row represents one completed quench.
+## 2. Measurement
 
-Example columns:
+The measurement layer scores invariant structure in texts and rescaled views.
 
-corpus
-r
-alpha
-seed
-iters
-W
+Canonical package:
 
-piF_mean
-piF_tail
-H_joint_mean
-var_H_joint
-corr0
-best_corr
-delta_r2_freeze
-delta_r2_entropy
-K_max
+```text
+src/pam/measurement/
+```
 
-This file serves as the live experiment state.
+Primary responsibilities:
 
-Important properties:
-	•	append-only
-	•	human readable
-	•	restart-safe
-	•	suitable for streaming analysis
+- invariant scoring through TIP
+- time/scale-invariant diagnostics through TIM
+- reusable builders for active measurement configuration
 
-⸻
+Key modules include:
 
-3. Trajectory Data
+- `src/pam/measurement/tip.py`
+- `src/pam/measurement/tim.py`
+- `src/pam/measurement/builders.py`
 
-In addition to summary metrics, the experiment engine stores lightweight trajectory files.
+This layer turns raw text states into structured measurements.
 
-outputs/trajectories/
+---
 
-Each trajectory file contains time-series data for a single run.
+## 3. Observables
 
-Example contents:
+The observables layer derives scalar and sequence-valued descriptors from runs.
 
-F_raw      freeze state over time
-H_joint    entropy series
-K          cluster count series
+Canonical package:
 
-These files allow detailed inspection of system dynamics.
+```text
+src/pam/observables/
+```
 
-⸻
+Primary responsibilities:
 
-4. PAM Observatory (TUI)
+- entropy observables
+- macrostate and microstructure observables
+- lag/correlation analysis
+- regression-derived summaries
 
-The observatory is a terminal interface for monitoring experiments.
+Key modules include:
 
-Entry point:
+- `src/pam/observables/core.py`
+- `src/pam/observables/derived.py`
 
-tui/app.py
+This is the bridge between measurement and geometry.
 
-The interface reads index.csv and updates automatically.
+---
 
-The observatory is composed of modular widgets.
+## 4. Geometry
 
-tui/widgets
+The geometry layer constructs the intrinsic manifold induced by observables.
 
+Canonical package:
 
-⸻
+```text
+src/pam/geometry/
+```
 
-Observatory Layers
+Primary responsibilities:
 
-The interface is organized into three conceptual layers.
+- Fisher-type metric estimation
+- geodesic distance graph construction
+- manifold embedding
+- scalar curvature estimation
+- geodesic tracing and extraction
 
-Coverage
+Key modules include:
 
-Displays which parameter combinations have been executed.
+- `src/pam/geometry/fisher_metric.py`
+- `src/pam/geometry/distance_graph.py`
+- `src/pam/geometry/embedding.py`
+- `src/pam/geometry/curvature.py`
+- `src/pam/geometry/geodesics.py`
 
-CoverageHeatmap
+This layer answers: **how are states arranged?**
 
-Each cell shows seed coverage for a given (r, α) pair.
+---
 
-⸻
+## 5. Phase
 
-Phase Diagram
+The phase layer extracts regime structure from the geometry.
 
-Displays aggregated observables across parameter space.
+Canonical package:
 
-PhaseDiagram
+```text
+src/pam/phase/
+```
 
-Each cell represents the mean value of a chosen metric.
+Primary responsibilities:
 
-Default metric:
+- seam / boundary extraction
+- seam embedding and backprojection
+- distance to seam
+- signed phase coordinates
 
-πF_tail
+This layer turns geometry into regime structure.
 
+---
 
-⸻
+## 6. Operators
 
-Detail View
+The operators layer actively probes the manifold.
 
-Displays local information for the selected parameter configuration.
+Canonical package:
 
-Three modes:
+```text
+src/pam/operators/
+```
 
-row view
-cell view
-trajectory view
+Primary responsibilities:
 
-Trajectory view renders ASCII plots of the time series.
+- geodesic extraction
+- canonical probes
+- scaled probe experiments
+- Lazarus regime diagnostics
+- transition-rate estimation
 
-⸻
+Key modules include:
 
-5. Selection Model
+- `src/pam/operators/geodesic_extraction.py`
+- `src/pam/operators/probes.py`
+- `src/pam/operators/scaled_probes.py`
+- `src/pam/operators/lazarus.py`
+- `src/pam/operators/transition_rate.py`
 
-Navigation is handled by a small state controller.
+Operators answer: **how does the system behave under controlled traversal or perturbation?**
 
-tui/controllers/selection.py
+---
 
-The selection state tracks:
+## 7. Topology
 
-selected r
-selected α
-view mode
+The topology layer analyzes structural organization of the phase field and operator response.
 
-Navigation controls:
+Canonical package:
 
-↑ ↓    change r
-← →    change α
-Enter  toggle row/cell
-T      trajectory view
+```text
+src/pam/topology/
+```
 
+Primary responsibilities:
 
-⸻
+- field alignment
+- gradient alignment
+- critical point / criticality summaries
+- organizational topology
+- phase-selection structure
 
-6. Screenshot System
+This layer answers: **how is the field organized?**
 
-The observatory can export vector screenshots.
+---
 
-Key binding:
+## 8. Pipeline Orchestration
 
-S
+The orchestration layer composes the full instrument.
 
-Screenshots are saved to:
+Canonical package:
 
-tui/screenshots/
+```text
+src/pam/pipeline/
+```
 
-Example filename:
+Key components:
 
-obs_r0.20_a0.039_2026-03-13_11-01-53.svg
+- `src/pam/pipeline/state.py`
+- `src/pam/pipeline/stages/geometry.py`
+- `src/pam/pipeline/stages/phase.py`
+- `src/pam/pipeline/stages/operators.py`
+- `src/pam/pipeline/stages/topology.py`
+- `src/pam/pipeline/runner.py`
 
-SVG format preserves the exact terminal layout and is ideal for documentation.
+The runner uses a shared `PipelineState` to address current artifact families through the active file-first output store.
 
-⸻
+Canonical shell entrypoint:
 
-7. Visualization Tools
+```text
+scripts/run_full_pipeline.sh
+```
 
-The repository includes tools for converting observatory artifacts into visualizations.
+---
 
-Example:
+## Artifact Model
 
-tools/phase_movie.py
+The repository remains explicitly file-first.
 
-This tool converts screenshot sequences into time-lapse movies showing the phase diagram emerging as experiments complete.
+### Active output store
 
-⸻
+Current derived artifacts are written under:
 
-8. Design Principles
+```text
+outputs/
+```
 
-The system follows several architectural principles.
+Important active families include:
 
-File-Based Interfaces
+- `outputs/index.csv`
+- `outputs/trajectories/`
+- `outputs/fim/`
+- `outputs/fim_distance/`
+- `outputs/fim_mds/`
+- `outputs/fim_curvature/`
+- `outputs/fim_phase/`
+- `outputs/fim_ops/`
+- `outputs/fim_ops_scaled/`
+- `outputs/fim_lazarus/`
+- `outputs/fim_transition_rate/`
+- `outputs/fim_field_alignment/`
+- `outputs/fim_gradient_alignment/`
+- `outputs/fim_critical/`
+- `outputs/fim_initial_conditions/`
 
-Components communicate via files rather than in-memory APIs.
+### Observatory data root
 
-Benefits:
-	•	robustness
-	•	easy debugging
-	•	simple tooling
-	•	reproducibility
+Corpora and longer-lived observatory data are externalized under:
 
-⸻
+```text
+observatory/
+```
 
-Incremental Computation
+especially:
 
-Experiments append results as they finish.
+```text
+observatory/corpora/
+```
 
-Benefits:
-	•	safe interruption
-	•	restart capability
-	•	live observability
+This separation keeps corpus payloads out of canonical implementation code.
 
-⸻
+---
 
-Loose Coupling
+## Experiment Layer vs Canonical Layer
 
-The experiment engine and observatory are independent.
+The repository still contains an `experiments/` directory, but it no longer defines the canonical architecture.
 
-The observatory can analyze past runs without modification.
+Instead:
 
-⸻
+- canonical code lives under `src/pam/`
+- `experiments/` now contains:
+  - thin compatibility wrappers
+  - operational study scripts
+  - figure-generation scripts
+  - toy experiments
+  - archived legacy material
 
-9. Future Architecture
+Current organization:
 
-Planned extensions include:
+```text
+experiments/
+  figures/
+  studies/
+  toy/
+  archive/
+```
 
-phase boundary detection
-direct movie generation from index.csv
-cluster-scale parameter sweeps
-interactive trajectory animation
-information-geometric visualizations
+This keeps exploratory and historical work available without confusing it with the canonical instrument.
 
-These additions will build on the same file-based architecture.
+---
 
-⸻
+## Design Principles
 
-Summary
+### Layered ownership
 
-The PAM Observatory architecture is designed to make experimental phase structure visible while experiments are running.
+Each conceptual layer has a canonical package home.
 
-The combination of:
+### File-first interfaces
 
-parameter sweeps
-live observatory interface
-visual artifact generation
+Stages communicate through explicit artifacts rather than hidden in-memory coupling.
 
-creates a flexible environment for exploring recursive language systems and their emergent dynamics.
+### Reproducibility
+
+Corpora are externalized, outputs are inspectable, and the canonical runtime is explicit.
+
+### Compatibility-preserving refactoring
+
+Legacy wrappers and shims are retained where useful so the repository can evolve without abrupt breakage.
+
+### Separation of canonical and exploratory work
+
+Canonical instrument code lives under `src/pam/`; non-canonical studies and figures live under `experiments/`.
+
+---
+
+## Historical Note
+
+Earlier versions of the repository centered more strongly on:
+
+- flat experiment scripts
+- terminal observatory interfaces
+- visualization tooling
+- `outputs/index.csv` as the main live interface
+
+Those workflows remain historically important, but the architecture has since been consolidated into the layered instrument described above.
+
+---
+
+## Summary
+
+The PAM Observatory is now best understood as a **canonical layered instrument** for extracting geometric, phase, topological, and operator structure from recursive language dynamics.
+
+Its core logic lives in `src/pam/`, its corpora live in `observatory/corpora/`, and its canonical runtime is exposed through:
+
+```bash
+bash scripts/run_full_pipeline.sh
+```
