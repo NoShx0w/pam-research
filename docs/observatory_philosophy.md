@@ -1,44 +1,59 @@
-The Observatory
+# The Observatory
 
 Scientific instruments change how we see phenomena.
 
-A telescope did not create the stars, but it made their structure visible.
-A microscope did not create microorganisms, but it revealed the hidden dynamics of living systems.
+A telescope did not create the stars, but it made their structure visible.  
+A microscope did not create microorganisms, but it revealed the hidden organization of living systems.
 
 The PAM Observatory exists for a similar reason.
 
-Recursive language systems exhibit complex dynamical behavior. When a system repeatedly consumes its own generated output, small parameter changes can lead to qualitatively different regimes: stable evolution, oscillatory dynamics, or collapse into self-reference.
+Recursive language systems exhibit complex dynamical behavior. When a system repeatedly consumes or transforms its own generated output, small parameter changes can lead to qualitatively different regimes: structural persistence, mixed behavior, instability, or collapse-like drift.
 
-These transitions are difficult to understand if experiments are treated as static datasets. A spreadsheet of numbers or a final plot hides the temporal and spatial structure of the system.
+These transitions are difficult to understand if experiments are treated as isolated outputs or static tables. A spreadsheet of summary values or a single final plot hides the geometric and relational structure of the system.
 
 The observatory was created to address this limitation.
 
-Instead of treating experiments as isolated runs, the observatory treats them as points in a phase landscape that emerges gradually as computation progresses.
+Instead of treating experiments as disconnected runs, the observatory treats them as samples from an emerging phase landscape. As measurements accumulate, the system reveals organization across parameter space:
 
-The interface exposes three layers of this landscape.
+- where behavior is stable
+- where transitions concentrate
+- where seams separate regimes
+- where operator paths compress, graze, or cross
+- where topology organizes possible outcomes
 
-First, the coverage layer shows which regions of parameter space have already been explored. Each cell represents an experiment configuration. The grid becomes a map of the territory that has been sampled.
+In this sense, the observatory is not merely a visualization tool.
 
-Second, the phase layer aggregates the results of those experiments into a phase diagram. As new runs complete, patterns begin to appear: gradients, ridges, and boundaries between regimes.
+It is a way of making structure visible.
 
-Third, the dynamics layer reveals the mechanism behind those patterns. Individual runs can be inspected as trajectories of entropy, freeze probability, and other observables. These trajectories expose how the system moves through its internal state space.
+The repository now implements this observatory through a layered instrument:
 
-Together these layers form a single instrument.
+- engine
+- measurement
+- observables
+- geometry
+- phase
+- operators
+- topology
 
-The observatory is not merely a visualization tool. It is a way of thinking about the experiment while it unfolds.
+Those layers turn recursive experiments into manifold structure, regime organization, and experimentally probeable transition behavior.
 
-Rather than waiting until a parameter sweep is complete to analyze the results, the researcher can watch phase structure emerge in real time. Patterns that would be invisible in raw data become immediately apparent when seen as evolving geometry.
+The observatory therefore changes the rhythm of experimentation.
 
-This changes the rhythm of experimentation. The system becomes something closer to a laboratory apparatus than a batch script.
+Instead of running experiments first and interpreting them only afterward, the researcher can work with a system that progressively reveals organization:
 
-Experiments run.
-The observatory reveals structure.
-New hypotheses form.
-The sweep is adjusted.
+experiments run  
+artifacts accumulate  
+geometry emerges  
+phase structure sharpens  
+operator behavior becomes measurable  
+new hypotheses form
 
-In this sense the observatory is both a monitoring interface and a cognitive aid. It helps transform large parameter sweeps into an exploratory process.
+In this sense, the observatory is both an instrument and a cognitive aid.
 
-The goal of PAM Observatory is therefore simple:
-to make the structure of recursive language systems visible.
+It helps transform large parameter sweeps from passive computation into structural inquiry.
 
-Not after the experiment is finished, but while it is happening.
+The goal of the PAM Observatory is therefore simple:
+
+to make the organization of recursive language systems visible.
+
+Not only after the experiment is complete, but through the layered structures that emerge as the system is measured, geometrized, and probed.

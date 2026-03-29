@@ -1,11 +1,10 @@
-
 # PAM Observatory
 
 **Phase Analysis of Meaning (PAM)**
 
-The PAM Observatory is an experimental instrument for studying how meaning behaves across a parameter manifold.
+The PAM Observatory is a computational instrument for studying phase structure in recursive language systems.
 
-It combines large-scale parameter sweeps with information geometry, field dynamics, and topology extraction to reveal how systems organize, transition, and stabilize.
+It combines controlled corpus dynamics, information geometry, phase extraction, topology analysis, and operator-based probing to reveal how systems organize, transition, and stabilize across a parameter manifold.
 
 ![Python](https://img.shields.io/badge/python-3.14-blue)
 ![Status](https://img.shields.io/badge/status-observatory_active-green)
@@ -23,7 +22,20 @@ DOI: [10.5281/zenodo.19218700](https://doi.org/10.5281/zenodo.19218700)
 
 ## Status
 
-Active research repository.
+Active research repository.  
+The canonical instrument architecture is now implemented in layered package form under `src/pam/`, with a single full-pipeline entrypoint under `scripts/`.
+
+---
+
+## Canonical Entry Point
+
+Run the full instrument with:
+
+```bash
+bash scripts/run_full_pipeline.sh
+```
+
+This executes the canonical file-first pipeline over the current `outputs/` artifact store.
 
 ---
 
@@ -31,28 +43,33 @@ Active research repository.
 
 ![Phase Flow on the PAM Manifold](docs/figures/phase_flow_on_manifold.png)
 
-Each point represents a parameter configuration \((r, \alpha)\), embedded using Fisher–information geodesic distances.  
-Color encodes a **signed phase coordinate**, revealing two distinct regimes separated by an emergent phase boundary (black curve).  
-Critical points (stars) concentrate along this boundary, indicating regions of maximal structural change.
+Each point represents a parameter configuration \((r, \alpha)\), embedded using Fisher-geodesic distances.  
+Color encodes a **signed phase coordinate**, revealing two distinct regimes separated by an emergent phase boundary.  
+Critical points concentrate near that boundary, indicating regions of maximal structural change.
 
-This provides a **purely data-driven phase diagram**, derived from the intrinsic geometry of the system.
+This yields a **data-driven phase diagram** derived from the intrinsic geometry of the system.
 
 ---
 
 ## Overview
 
-We study the parameter space:
+We study the control manifold
+
 ```math
 \theta = (r, \alpha)
 ```
-by running controlled experiments and extracting structure at multiple levels:
 
-- observables → what is measured  
-- geometry → how states are arranged  
-- dynamics → how states evolve  
-- topology → how behavior is organized  
+by running controlled recursive experiments and extracting structure at multiple levels:
 
-The system has evolved from a visualization pipeline into a **geometry + dynamics + topology instrument**.
+- **engine** — how the corpus evolves
+- **measurement** — how invariants are scored
+- **observables** — what is measured from runs
+- **geometry** — how states are arranged
+- **phase** — how regimes are separated
+- **operators** — how the manifold is actively probed
+- **topology** — how the field is structurally organized
+
+The repository has evolved from a script-heavy analysis workflow into a **canonical layered instrument**.
 
 ---
 
@@ -65,181 +82,173 @@ This leads to a central principle:
 
 > **Topology is the relational identity of the field.**
 
-Two runs are considered equivalent if they share:
-- critical point structure  
-- connectivity  
-- seam relationships  
+Two runs are considered structurally equivalent if they preserve:
 
-—not if they merely look similar.
+- critical organization
+- seam relationships
+- basin and transition structure
+
+—not if they merely look similar in raw coordinates.
 
 ---
 
-## Pipeline
+## Canonical Pipeline
 
-The observatory processes data through the following stages:
+The instrument now runs through these stages:
 
 ```text
-experiments (exp_batch.py)
+engine
 ↓
-observables (index.csv)
+measurement
 ↓
-Fisher Information Metric (fim.py)
+observables
 ↓
-Fisher distance graph (fim_distance.py)
+geometry
+  - Fisher metric
+  - distance graph
+  - embedding
+  - curvature
 ↓
-MDS embedding (fim_mds.py)
+phase
+  - seam extraction
+  - seam distance
+  - signed phase
 ↓
-curvature estimation (fim_curvature.py)
+operators
+  - geodesic extraction
+  - probes
+  - scaled probes
+  - Lazarus regime
+  - transition-rate analysis
 ↓
-phase field (fim_signed_phase.py)
-↓
-continuous scalar field φ(x, y)
-↓
-flow field v = -∇φ
-↓
-field topology (critical points, basins, saddles)
-↓
-operators (GE / S) → experimental probing
+topology
+  - field alignment
+  - gradient alignment
+  - critical structure
+  - organizational summaries
 ```
+
+The canonical orchestration lives in:
+
+- `src/pam/pipeline/stages/`
+- `src/pam/pipeline/runner.py`
+
+and is exposed through:
+
+- `scripts/run_full_pipeline.sh`
+
 ---
 
 ## Conceptual Layers
 
-### Geometry
-- Fisher Information Metric  
-- distance structure  
-- manifold embedding  
-- curvature  
+### Engine
+Recursive corpus dynamics over the control parameters \((r, \alpha)\).
 
-### Dynamics
-- signed phase field  
-- flow field \( v = -\nabla \phi \)  
-- trajectory behavior  
+### Measurement
+TIP and TIM instruments for scoring invariant and time/scale-stable structure.
+
+### Observables
+Entropy, macrostate, lag, regression, and related derived descriptors.
+
+### Geometry
+Fisher information metric, geodesic distance graph, manifold embedding, and curvature.
+
+### Phase
+Seam extraction, seam-relative geometry, and signed phase coordinates.
+
+### Operators
+Active probing of the manifold through geodesic extraction, canonical probes, scaled probes, and transition diagnostics.
 
 ### Topology
-- sinks (attractors)  
-- saddles (transition structure)  
-- basin organization  
-- seam interaction  
-
----
-
-## Operators
-
-The observatory now supports **active probing** of the manifold.
-
-Operators act on trajectories:
-```math
-\theta(t) \xrightarrow{S} \tilde{\theta}(t)
-```
-This enables:
-
-- controlled interaction with the geometry  
-- measurement of collapse, divergence, and recovery  
-- identification of dynamical constraint surfaces  
-
-The first canonical operator is:
-
-- **S — Geodesic Extraction**
-
----
-
-## What This Enables
-
-The system can now:
-
-- identify stable regions (basins)  
-- locate transition structures (saddles)  
-- trace flow across the manifold  
-- compare runs structurally  
-- detect regime shifts  
-
-In short:
-
-> Geometry tells you what exists.  
-> Topology tells you how it is organized.  
-> Operators tell you how it behaves.
+Critical structure, field alignment, organizational summaries, and phase-selection structure.
 
 ---
 
 ## Repository Structure
+
 ```text
-experiments/     # data generation and analysis pipeline
-src/             # core PAM logic and metrics
-tui/             # observatory interface
-tools/           # visualization utilities
-docs/            # documentation
-outputs/         # experiment outputs and derived data
+src/pam/
+  engine/         # runtime dynamics and injector logic
+  measurement/    # TIP, TIM, and measurement builders
+  observables/    # core and derived observables
+  geometry/       # FIM, distances, embedding, curvature, geodesics
+  phase/          # seam extraction, seam distance, signed phase
+  topology/       # alignment, criticality, organization
+  operators/      # probes, Lazarus, transition-rate analysis
+  pipeline/       # PipelineState, stages, runner
+
+observatory/
+  corpora/        # externalized corpus payloads and registry
+  runs/
+  derived/
+  reports/
+  figures/
+
+experiments/
+  root wrappers and operational scripts
+  figures/        # figure-generation scripts
+  studies/        # active analytical studies
+  toy/            # pedagogical / toy experiments
+  archive/        # legacy and superseded material
+
+scripts/
+  canonical entrypoints and repository guards
+
+outputs/
+  active file-first artifact store
 ```
----
-
-## Documentation
-
-See the full documentation:
-
-- [`docs/README.md`](docs/README.md)
-
-Key sections:
-
-- geometry pipeline  
-- phase geometry  
-- field topology  
-- operators  
-
----
-
-## Current State
-
-- parameter sweep: 750 runs  
-- trajectory recovery: completed  
-- geometry pipeline: operational  
-- phase and seam detection: established  
-- field topology: operational  
-- operators: introduced  
-
----
-
-## One-Line Summary
-
-> The PAM Observatory is an instrument for extracting invariant structure from dynamic behavior on a parameter manifold.
-
----
-
-## Closing
-
-The system is designed to move beyond visualization and toward **structural understanding**.
-
-It does not ask:
-
-> “what does this look like?”
-
-It asks:
-
-> “what stays the same when everything else changes?”
 
 ---
 
 ## Reproducibility
 
-All results are generated from:
+The canonical full run is:
 
 ```bash
-python experiments/exp_batch.py
+bash scripts/run_full_pipeline.sh
 ```
-Followed by the geometric pipeline:
-```bash
-python experiments/fim.py
-python experiments/fim_distance.py
-python experiments/fim_mds.py
-python experiments/fim_curvature.py
-```
-Phase extraction and visualization:
-```bash
-python experiments/fim_signed_phase.py
-python experiments/fim_canonical_figure.py
-```
+
+The repository remains file-first:
+- current derived outputs are written under `outputs/`
+- corpus payloads are externalized under `observatory/corpora/`
+
+Many legacy experiment wrappers are preserved under `experiments/` for compatibility and inspection, but the canonical runtime path is now the pipeline runner.
+
+---
+
+## Documentation
+
+See:
+
+- [`docs/README.md`](docs/README.md)
+
+Useful repository anchors:
+
+- `src/pam/pipeline/runner.py`
+- `scripts/run_full_pipeline.sh`
+- `observatory/corpora/README.md`
+
+---
+
+## Current State
+
+- parameter sweep completed
+- trajectory recovery completed
+- canonical geometry layer implemented
+- canonical phase layer implemented
+- canonical operators layer implemented
+- canonical topology layer implemented
+- canonical pipeline stages and runner implemented
+- corpora externalized into observatory data storage
+
+---
+
+## One-Line Summary
+
+> The PAM Observatory is a layered instrument for extracting geometric, phase, topological, and operator structure from recursive language dynamics.
+
 ---
 
 ## License
 
-![MIT License](LICENSE)
+[MIT License](LICENSE)

@@ -1,5 +1,8 @@
 # Conversation Excerpts
 
+> These excerpts are conceptual research provenance, not canonical implementation documentation.  
+> For the current repository structure, see [`docs/architecture.md`](architecture.md).
+
 These excerpts are intentionally brief and curated.  
 They illustrate conceptual turning points in the development of the PAM framework rather than reproducing full transcripts.
 
@@ -23,8 +26,8 @@ An alternative viewpoint emerged during early exploration:
 A recursively updated corpus can be treated as a dynamical system evolving in a semantic state space.
 
 At each iteration, the corpus is transformed through a mixture of processes:
-	•	resampling from existing generated text
-	•	mutation of anchor texts drawn from a fixed reference subset
+- resampling from existing generated text
+- mutation of anchor texts drawn from a fixed reference subset
 
 The balance between these mechanisms is controlled by parameters such as:
 
@@ -42,9 +45,9 @@ Does the system exhibit qualitatively different regimes as these parameters vary
 In many physical and dynamical systems, changes in control parameters produce phase transitions: sharp shifts in macroscopic behavior despite continuous parameter changes.
 
 Examples include:
-	•	magnetization in spin systems
-	•	fluid turbulence
-	•	pattern formation in reaction–diffusion systems
+- magnetization in spin systems
+- fluid turbulence
+- pattern formation in reaction–diffusion systems
 
 The hypothesis motivating PAM was that recursive generative systems might exhibit analogous regime behavior.
 
@@ -59,10 +62,10 @@ K     — microstructure complexity
 These observables summarize large-scale structural behavior of the evolving corpus.
 
 The research program then becomes a classical phase-discovery protocol:
-	1.	Introduce tunable control parameters.
-	2.	Define macroscopic observables.
-	3.	Sweep parameter space.
-	4.	Detect regime changes.
+1. Introduce tunable control parameters.
+2. Define macroscopic observables.
+3. Sweep parameter space.
+4. Detect regime changes.
 
 Under this framing, recursive language model dynamics are no longer merely a question of degradation or drift. They become a phase-structured dynamical system whose behavior can be mapped empirically.
 
@@ -89,8 +92,8 @@ In this sense, the experiments function less like isolated simulations and more 
 A key step in the development of PAM was recognizing that the system required a tunable control parameter to probe its behavior.
 
 The corpus evolution mechanism mixes two processes:
-	•	self-resampling of recently generated text
-	•	anchor mutation from a fixed reference subset
+- self-resampling of recently generated text
+- anchor mutation from a fixed reference subset
 
 The probability of selecting the anchor pathway is controlled by a parameter α.
 
@@ -100,7 +103,7 @@ If recursive mixture alone drives collapse, then introducing controlled anchorin
 
 In experimental terms, α becomes analogous to a field strength or coupling parameter.
 
-Small α values allow the system to drift freely under self-mixture.
+Small α values allow the system to drift freely under self-mixture.  
 Large α values continually reintroduce structural constraints from the anchor set.
 
 The system can therefore be studied by sweeping α and observing macroscopic behavior.
@@ -136,7 +139,7 @@ In other words, neither variable significantly improves prediction of the other 
 
 This led to the following interpretation:
 
-The strong anticorrelation between freeze and entropy is not evidence of direct causal forcing.
+The strong anticorrelation between freeze and entropy is not evidence of direct causal forcing.  
 Instead, both observables appear to track a latent regime variable governing the system’s macrostate.
 
 Freeze and entropy are therefore best understood as co-manifestations of a shared slow manifold, rather than drivers of one another.
@@ -144,12 +147,12 @@ Freeze and entropy are therefore best understood as co-manifestations of a share
 This insight reframed the research program. Rather than modeling the system as coupled autoregressive variables, we treat it as a phase-structured dynamical system governed by control parameters.
 
 The role of the experiments then becomes:
-	1.	Introduce a control parameter (α, r).
-	2.	Measure orthogonal macroscopic observables (π_F, H, K).
-	3.	Sweep parameter space.
-	4.	Detect regime transitions.
+1. Introduce a control parameter (α, r).
+2. Measure orthogonal macroscopic observables (π_F, H, K).
+3. Sweep parameter space.
+4. Detect regime transitions.
 
-This realization is what ultimately motivated the construction of the PAM phase diagram.
+This realization is what ultimately motivated the construction of the PAM phase diagram and, later, the broader observatory architecture built on top of it.
 
 ---
 
@@ -166,7 +169,7 @@ boundary density
 grain size
 ```
 
-Boundary density measures how frequently regime transitions occur across adjacent windows.
+Boundary density measures how frequently regime transitions occur across adjacent windows.  
 Grain size measures the length of contiguous regions exhibiting similar structural signatures.
 
 Together these observables make it possible to classify macrostates such as:
@@ -196,9 +199,9 @@ This hierarchical view proved essential for identifying regime boundaries and in
 As parameter sweeps accumulated, a pattern began to emerge.
 
 Across seeds and perturbations we consistently observed:
-	•	strong anticorrelation between freeze occupancy and entropy
-	•	stable ranges of microstructure complexity
-	•	minimal cross-predictive coupling between observables
+- strong anticorrelation between freeze occupancy and entropy
+- stable ranges of microstructure complexity
+- minimal cross-predictive coupling between observables
 
 Most importantly, these patterns changed systematically as the parameters (r, α) varied.
 
@@ -216,12 +219,12 @@ The research objective therefore becomes:
 
 map the geometry of the system in parameter space.
 
-In this framing, the experiments are no longer merely exploratory.
+In this framing, the experiments are no longer merely exploratory.  
 They collectively reveal a phase surface describing how macroscopic observables respond to changes in control parameters.
 
 The batch experiment framework was then built specifically to populate this space with samples.
 
-The resulting dataset forms the basis for constructing the PAM phase diagram.
+The resulting dataset formed the basis for the PAM phase diagram and later supported the transition to Fisher geometry, seam extraction, and manifold-based phase analysis.
 
 ---
 
@@ -248,7 +251,7 @@ deep-run JSON artifacts
 summary CSV phase samples
 ```
 
-This allowed the system to operate as a phase scanner, gradually populating the parameter space:
+This allowed the system to operate as a phase scanner, gradually populating the parameter space
 
 ```code
 (r, α)
@@ -260,6 +263,22 @@ with measured observables.
 outputs/index.csv
 ```
 
-From this dataset, empirical phase surfaces can be reconstructed and visualized.
+From this dataset, empirical phase surfaces could be reconstructed and visualized.
 
-The final research objective is therefore not a single experiment but a map of the system’s phase geometry.
+The long-term research objective therefore became not a single experiment, but a map of the system’s phase geometry — an aim that later expanded into the geometry, phase, operators, and topology layers of the PAM Observatory.
+
+---
+
+## Closing Note
+
+These excerpts capture the conceptual path by which PAM moved from exploratory dialogue toward a layered observatory architecture.
+
+The current repository now extends these early ideas into canonical implementations for:
+
+- geometry
+- phase
+- operators
+- topology
+- pipeline orchestration
+
+So this document should be read as research provenance rather than as a current technical specification.

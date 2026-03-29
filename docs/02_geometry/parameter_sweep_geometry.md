@@ -1,6 +1,8 @@
 # Parameter Sweep Geometry
 
-This document defines how the discrete parameter sweep over (r, α) gives rise to a structured geometric manifold in the PAM Observatory.
+This document defines how the discrete parameter sweep over \((r, \alpha)\) gives rise to the sampled substrate from which the PAM manifold is constructed.
+
+Before the observatory can recover intrinsic geometry, it must first populate parameter space with measured experiment outputs.
 
 ---
 
@@ -9,10 +11,11 @@ This document defines how the discrete parameter sweep over (r, α) gives rise t
 The PAM Observatory constructs its manifold from a finite experimental sweep:
 
 - parameters are sampled on a grid
-- each grid point produces observable data
-- geometry emerges from relationships between these points
+- each grid point produces run-level observables
+- repeated seeds reduce stochastic noise
+- geometry emerges from relationships across the sampled grid
 
-This document explains how discrete sampling becomes continuous structure.
+This document explains how discrete sampling becomes geometric input.
 
 ---
 
@@ -24,10 +27,10 @@ The system is defined over:
 \theta = (r, \alpha)
 ```
 
-With:
+with a canonical sweep such as:
 
-- r ∈ {0.10, 0.15, 0.20, 0.25, 0.30}
-- α ∈ linspace(0.03, 0.15, 15)
+- \(r \in \{0.10, 0.15, 0.20, 0.25, 0.30\}\)
+- \(\alpha \in \mathrm{linspace}(0.03, 0.15, 15)\)
 - seeds = 10
 
 Total runs:
@@ -36,242 +39,221 @@ Total runs:
 5 \times 15 \times 10 = 750
 ```
 
-Each configuration corresponds to a point in parameter space.
+Each run corresponds to a specific experimental configuration in parameter space.
 
 ---
 
 ## Discrete Sampling
 
-The sweep produces a lattice:
+The sweep produces a lattice over the control manifold:
 
-- nodes = (r, α) pairs
-- repeated trials (seeds) reduce stochastic noise
-- outputs aggregated into summary observables
+- nodes = parameter pairs \((r, \alpha)\)
+- repeated trials over seeds reduce stochastic noise
+- each run contributes summary observables and optional trajectory artifacts
 
-Stored in:
+Important active artifacts include:
 
-- outputs/index.csv
+- `outputs/index.csv`
+- `outputs/trajectories/`
+
+`outputs/index.csv` acts as the main run ledger from which downstream geometry inputs are assembled.
 
 ---
 
-## Observable Surface
+## Each Parameter Point as a Measured System
 
-Each observable defines a scalar field over the grid:
+Each parameter configuration should be read as:
+
+```text
+(r, α, seed)
+↓
+recursive experiment
+↓
+trajectory
+↓
+run-level observables
+```
+
+So a point in parameter space is not just a coordinate.
+
+It is a measured dynamical system instance.
+
+---
+
+## Observable Surfaces
+
+From the run ledger, observables can be organized into scalar fields over the grid.
+
+Conceptually:
 
 ```math
 f(\theta)
 ```
 
-Examples:
+Examples include:
 
-- piF_tail(θ)
-- H_joint_mean(θ)
-- K_max(θ)
+- `piF_tail(\theta)`
+- `H_joint_mean(\theta)`
+- `K_max(\theta)`
 
-These form layered surfaces over parameter space.
+These observables form layered surfaces over parameter space and become the empirical basis for geometry construction.
 
 ---
 
 ## From Grid to Geometry
 
-The key transformation:
+The key transformation is:
 
-> discrete samples → continuous geometric structure
+> discrete samples → intrinsic geometric structure
 
-Steps:
+In practice, this involves:
 
-1. Estimate gradients across grid
-2. Construct Fisher metric
-3. Define local distances
-4. Connect nodes into graph
+1. assembling observable vectors over parameter space  
+2. estimating local variation across the grid  
+3. constructing a Fisher-type metric  
+4. building local distance structure  
+5. recovering global manifold geometry through graph distances and embedding  
+
+So the sweep is not the geometry itself.
+
+It is the sampled substrate from which geometry is inferred.
 
 ---
 
 ## Local Neighborhood Structure
 
-Each point interacts with neighbors:
+Each sampled point interacts with nearby parameter neighbors.
 
-- finite differences approximate derivatives
-- local patches approximate tangent space
-- anisotropy emerges from observable variation
+This supports:
+
+- finite-difference derivative estimates
+- local tangent-like approximation
+- detection of anisotropy in observable variation
 
 Interpretation:
 
-- flat region → uniform behavior
-- steep region → sensitive transitions
+- flat regions correspond to relatively uniform behavioral organization
+- steep or anisotropic regions correspond to sensitive transition structure
 
 ---
 
 ## Metric Construction
 
-From observable gradients:
+From local observable variation, the observatory constructs a Fisher-type metric:
 
 ```math
 G_{ij}(\theta) = \partial_i m(\theta)^T \Sigma^{-1} \partial_j m(\theta)
 ```
 
-This converts discrete variation into a continuous metric.
+This converts discrete observable variation into an intrinsic local geometry.
 
 ---
 
 ## Graph Approximation
 
-The manifold is approximated as a weighted graph:
+The manifold is then approximated as a weighted graph:
 
-- nodes = parameter points
-- edges = local neighbors
-- weights = Fisher distances
+- nodes = sampled parameter points
+- edges = local neighborhood relations
+- weights = Fisher-derived local distances
 
-This enables:
+This graph supports:
 
-- geodesic computation
-- global structure recovery
+- shortest-path geodesic approximation
+- global distance recovery
+- embedding into low-dimensional manifold coordinates
 
 ---
 
 ## Resolution and Limits
 
-The manifold quality depends on:
+The quality of the inferred manifold depends on:
 
 - grid density
 - observable smoothness
-- noise in measurements
+- seed coverage
+- noise level in measurements
 
-Limitations:
+Important limitations include:
 
-- coarse grids → aliasing of structure
-- missing data → holes in manifold
-- edge effects near parameter bounds
+- coarse grids can alias structure
+- missing data can distort local derivatives
+- edge regions have weaker neighborhood support
+- unstable observables can degrade metric quality
 
 ---
 
 ## Backfilling and Completion
 
-Missing trajectories create gaps:
+Missing trajectories or missing run summaries create geometric problems:
 
-- incomplete observables
-- unreliable gradients
-- distorted geometry
+- incomplete observable surfaces
+- unreliable local derivatives
+- distorted distance structure
+- unstable curvature estimates
 
 Backfilling restores:
 
-- continuity
+- continuity of the sampled manifold
 - metric stability
-- reliable curvature
+- more reliable downstream geometry and phase outputs
+
+This is why sweep completion and trajectory validation matter scientifically, not just operationally.
 
 ---
 
-## Relation to Geometry Pipeline
+## Relation to the Geometry Layer
 
-This document defines the **input layer** of the pipeline.
+This document describes the sampling substrate that feeds the canonical geometry layer.
 
-It feeds into:
+It supports downstream construction of:
 
-- Fisher metric → local geometry
-- distances → global structure
-- embedding → visualization
-- phase → behavioral segmentation
+- Fisher metric
+- geodesic distance graph
+- manifold embedding
+- curvature diagnostics
+
+Those are implemented canonically under:
+
+- `src/pam/geometry/`
+
+and orchestrated through:
+
+- `src/pam/pipeline/stages/geometry.py`
+- `scripts/run_full_pipeline.sh`
 
 ---
 
 ## Implementation Mapping
 
+### Experimental substrate
+
 | Concept | File |
 |--------|------|
-| Parameter sweep | experiments/exp_batch.py |
-| Data aggregation | outputs/index.csv |
-| Trajectories | outputs/trajectories/ |
-| Backfill tools | experiments/backfill_trajectories.py |
+| Parameter sweep | `experiments/exp_batch.py` |
+| Run execution | `experiments/exp_quench.py` |
+| Run ledger | `outputs/index.csv` |
+| Trajectory artifacts | `outputs/trajectories/` |
+| Missing-scan tooling | `experiments/scan_missing_trajectories.py` |
+| Backfill tooling | `experiments/backfill_trajectories.py` |
+| Validation tooling | `experiments/validate_trajectories.py` |
 
----
+### Canonical downstream consumer
 
-## Outputs
-
-- outputs/index.csv
-- outputs/trajectories/
-- outputs/manifests/
+| Concept | Canonical module |
+|--------|------|
+| Geometry layer | `src/pam/geometry/` |
+| Geometry pipeline stage | `src/pam/pipeline/stages/geometry.py` |
 
 ---
 
 ## Summary
 
-The parameter sweep defines the substrate of the PAM manifold.
+The parameter sweep defines the sampled substrate of the PAM manifold.
 
-- Grid → defines sampling
-- Observables → define fields
-- Gradients → define structure
-- Metric → defines geometry
+- grid coverage defines where the system is measured
+- observables define empirical fields over that grid
+- local variation defines metric structure
+- the geometry layer turns those measurements into an intrinsic manifold
 
-This is the layer where experimental data becomes geometric input.
-# Parameter Sweep Geometry
-
-This document explains how the PAM parameter sweep forms the foundation of the observatory.
-
-Before constructing geometry, we must understand what the parameter space represents.
-
-## 1. The Parameter Manifold
-
-The system is defined over a two-dimensional parameter space:
-
-θ = (r, α)
-
-where:
-- **r** — controls recursive strength
-- **α** — controls update sensitivity / coupling
-
-The parameter space is discretized as:
-
-r ∈ {0.10, 0.15, 0.20, 0.25, 0.30}
-α ∈ linspace(0.03, 0.15, 15)
-
-Each point corresponds to one experimental configuration.
-
-## 2. The Grid as a Sampling of a Continuous Space
-
-Although the parameter space is evaluated on a grid, it is conceptually Θ ⊂ ℝ², a continuous domain.
-
-The grid should therefore be interpreted as a discrete sampling of an underlying continuous system.
-
-## 3. Each Point as a System
-
-For each parameter configuration θ:
-- a trajectory is generated
-- the system evolves over time
-- observables are extracted
-
-Thus, each point in parameter space corresponds to:
-
-θ → dynamical system → observable signature
-
-## 4. From Grid to Field
-
-The collection of observables defines a field x : Θ → ℝⁿ.
-
-Each observable becomes a scalar field over the parameter domain.
-
-## 5. Structure in Parameter Space
-
-In PAM:
-- observables vary nonlinearly
-- distinct regions emerge
-- transitions occur between regimes
-
-This implies the parameter space contains latent structure.
-
-## 6. From Parameter Space to Geometry
-
-Instead of treating Θ as a flat grid, we construct:
-- a metric (Fisher Information)
-- a distance structure (geodesics)
-- an embedding (manifold)
-
-This transforms Θ → 𝓜, where 𝓜 is an intrinsic geometric representation.
-
-## 7. Final Perspective
-
-The role of the parameter sweep is to provide:
-- coverage of the system
-- resolution of structure
-- input to geometry
-
-The final object of interest is the manifold 𝓜 and its phase structure.
+This is the layer where recursive experiments first become geometric input.

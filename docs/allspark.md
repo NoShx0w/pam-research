@@ -1,203 +1,237 @@
 # The Allspark
+
 ### A Conceptual Attractor for the PAM Observatory
+
+> This document is conceptual rather than architectural.  
+> For the canonical implemented repository structure, see [`docs/architecture.md`](architecture.md).
 
 The **Allspark** is a guiding concept for the repository.
 
 It is not a module, script, or analysis stage.  
-Instead, it represents the **conceptual attractor** that aligns the different research branches in the project.
+Instead, it represents the **conceptual attractor** that helps align the different research branches in the project.
 
-Where the geometry pipeline explains **how the system is measured**, the Allspark explains **why the system exists**.
+Where the canonical architecture explains **how the system is organized and run**, the Allspark explains **what kind of scientific instrument this repository is trying to become**.
 
 ---
 
-# The Core Idea
+## The Core Idea
 
 The repository explores a simple hypothesis:
 
 > Meaning, interaction, and capability may behave as **phase phenomena** in recursive dynamical systems.
 
-Instead of treating language systems as static objects, we treat them as **dynamical processes** that evolve under controlled parameter changes.
+Instead of treating language systems as static objects, the PAM Observatory treats them as **dynamical processes** that evolve under controlled parameter changes.
 
 When these parameters vary, the system may exhibit:
 
-* stable regimes
-* metastable regions
-* sharp transitions
-* emergent structures
+- stable regimes
+- metastable regions
+- sharp transitions
+- emergent organizational structure
 
 These are the hallmarks of **phase structure**.
 
 ---
 
-# The Observatory Philosophy
+## Observatory Philosophy
 
 The PAM Observatory is designed around a measurement-first philosophy.
 
-```
+```text
 dynamics
-   ↓
+↓
+measurement
+↓
 observables
-   ↓
+↓
 geometry
-   ↓
-structure
+↓
+phase
+↓
+operators
+↓
+topology
 ```
 
-The system does not assume a theory of meaning in advance.  
-Instead, it observes statistical behavior and reconstructs structure from measurable quantities.
+The system does not assume a complete theory of meaning in advance.  
+Instead, it observes behavior, derives measurable structure, and only then asks how that structure should be interpreted.
 
-This mirrors the way physical observatories work:
+This mirrors the logic of physical observatories:
 
-```
-astronomy   → telescopes
-particle physics → detectors
+```text
+astronomy         → telescopes
+particle physics  → detectors
 language dynamics → PAM observatory
 ```
 
+The observatory is therefore an instrument before it is an explanation.
+
 ---
 
-# The Three Manifolds
+## The Three Manifolds
 
 The project naturally evolves across three related manifolds.
 
-### 1. Parameter Manifold
+### 1. Parameter manifold
 
-Defined by experiment parameters
+Defined by experiment parameters:
 
+```math
+\theta = (r, \alpha)
 ```
-θ = (r, α)
-```
 
-This is the space explored by quench experiments.
+This is the control space explored by recursive experiments and parameter sweeps.
 
 ---
 
-### 2. Information Manifold
+### 2. Information manifold
 
-Derived from observable statistics using a Fisher-type metric.
+Derived from observable statistics through a Fisher-type metric:
 
-```
-g_ij = ∂_i mᵀ Σ⁻¹ ∂_j m
+```math
+g_{ij} = \partial_i m^T \Sigma^{-1} \partial_j m
 ```
 
 This manifold measures how distinguishable parameter configurations are in terms of system behavior.
 
 ---
 
-### 3. Documentation Manifold
+### 3. Documentation manifold
 
-The repository documentation itself forms a stable coordinate system describing the project.
+The repository documentation itself stabilizes the conceptual coordinates of the project.
 
+Conceptually:
+
+```text
+chat      → trajectory
+markdown  → state
+git       → time
 ```
-chat → trajectory
-markdown → state
-git → time
-```
 
-The documentation stabilizes the conceptual structure of the system.
+This is not a technical manifold in the same sense as the first two.  
+It is a way of naming the fact that documentation, interpretation, and version history help preserve the project’s conceptual continuity.
 
 ---
 
-# The Geometry Hypothesis
+## The Geometry Hypothesis
 
-If the observable statistics of a system vary smoothly across parameters, they induce a **metric geometry**.
+If observable statistics vary systematically across parameters, they induce a geometry.
 
 The result is a manifold where:
 
-* distance measures behavioral distinguishability
-* curvature signals regime changes
-* folds or separations correspond to phase boundaries
+- distance measures behavioral distinguishability
+- curvature signals structural transition
+- seams separate behavioral regimes
+- geodesics reveal constrained manifold traversal
 
-In other words:
+In schematic form:
 
-```
+```text
 system behavior
-      ↓
+↓
 observable statistics
-      ↓
+↓
 information geometry
-      ↓
-phase manifold
+↓
+phase structure
+↓
+topological organization
 ```
+
+This is the scientific spine of the observatory.
 
 ---
 
-# Why the Allspark Matters
+## Why the Allspark Matters
 
-Research projects tend to fragment into disconnected components:
+Research projects tend to fragment into disconnected pieces:
 
-* experiments
-* analysis scripts
-* visualizations
-* documentation
-* theoretical speculation
+- experiments
+- analysis scripts
+- figures
+- documentation
+- theoretical speculation
 
-The Allspark serves as a **conceptual attractor** that keeps these pieces aligned.
+The Allspark acts as a **conceptual attractor** that keeps those pieces aligned.
 
-Each component answers a different question:
+Different components answer different questions:
 
 | Component | Question |
 |----------|----------|
-| experiments | what dynamics occur |
-| observatory | how to observe them |
-| geometry | what structure emerges |
-| documentation | how to understand it |
+| engine and experiments | what dynamics occur |
+| measurement and observables | what can be stably measured |
+| geometry and phase | what structure emerges |
+| operators and topology | how the structure behaves |
+| documentation | how the system is understood and stabilized |
 
-The Allspark connects them into a single research narrative.
+The Allspark is the idea that keeps these from becoming separate projects.
 
 ---
 
-# Design Principle
+## Design Principle
 
-The project follows a simple design rule:
+The project follows a simple rule:
 
 > Build instruments that reveal structure before attempting to explain it.
 
-The observatory is therefore not merely a data pipeline.  
-It is an **instrument for exploring the geometry of recursive systems**.
+That principle now appears concretely in the repository:
+
+- canonical layer packages under `src/pam/`
+- file-first artifact interfaces under `outputs/`
+- externalized corpora under `observatory/corpora/`
+- a full canonical runtime through `scripts/run_full_pipeline.sh`
+
+So the observatory is not merely a data pipeline.
+
+It is an instrument for discovering structure in recursive systems.
 
 ---
 
-# Future Branches
+## Future Branches
 
 The Allspark concept allows the repository to support multiple research directions while maintaining coherence.
 
-Potential branches include:
+Possible branches include:
 
-* Fisher-geometry analysis
-* capability manifold reconstruction
-* protocol trajectory analysis
-* interaction geometry studies
-* epistemic observatories for language models
+- Fisher-geometry analysis
+- capability-manifold reconstruction
+- interaction-geometry studies
+- operator-response structure
+- epistemic observatories for language models
+- richer continuous geodesic and connection-based geometry
 
-Each branch extends the same central idea: **structure emerges when trajectories are observed geometrically**.
+Each branch extends the same central idea:
+
+> structure emerges when trajectories are observed geometrically and tested experimentally
 
 ---
 
-# The Attractor
+## The Attractor
 
 In dynamical systems, an attractor is a state toward which trajectories converge.
 
 In this repository, the Allspark plays a similar role:
 
-```
+```text
 experiments
-   ↓
-observables
-   ↓
+↓
+measurement
+↓
 geometry
-   ↓
+↓
+structure
+↓
 understanding
 ```
 
-Different research paths may explore different parts of the system, but they remain guided by the same attractor.
+Different lines of work may explore different regions of the project, but they remain oriented toward the same attractor.
 
 ---
 
-# Final Perspective
+## Final Perspective
 
 The PAM Observatory is not simply a codebase.
 
-It is an attempt to build a **scientific instrument for studying the geometry of meaning in recursive language systems**.
+It is an attempt to build a **scientific instrument for studying the geometry and phase structure of recursive language systems**.
 
-The Allspark is the conceptual center that keeps the instrument aligned with that goal.
+The Allspark is the conceptual center that helps keep the instrument aligned with that goal.
