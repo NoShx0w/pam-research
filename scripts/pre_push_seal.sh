@@ -58,7 +58,7 @@ echo "==> pre-push seal: ensuring default scales"
 PYTHONPATH=./:./src:./experiments bash scripts/ensure_default_scales.sh
 
 echo "==> pre-push seal: refreshing figure-facing data"
-PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/run_refresh_data_for_figures.py \
+PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/figures/run_refresh_data_for_figures.py \
   --within-k "$WITHIN_K" \
   --scales-root "$SCALE_ROOT" \
   --scales "$DEFAULT_SCALES"
