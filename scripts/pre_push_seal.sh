@@ -26,11 +26,11 @@ REQUIRED_SCRIPTS=(
   "scripts/run_geometry_pipeline.sh"
   "scripts/ensure_default_scales.sh"
   "scripts/pre_push_seal.sh"
-  "experiments/run_refresh_data_for_figures.py"
-  "experiments/fim_figure_1_geometric_structure_v3.py"
-  "experiments/fim_figure_2.py"
-  "experiments/fim_figure_3_conditional_v2.py"
-  "experiments/fim_figure_4.py"
+  "experiments/figures/run_refresh_data_for_figures.py"
+  "experiments/figures/fim_figure_1_geometric_structure_v3.py"
+  "experiments/figures/fim_figure_2.py"
+  "experiments/figures/fim_figure_3_conditional_v2.py"
+  "experiments/figures/fim_figure_4.py"
 )
 
 REQUIRED_OUTPUTS=(
@@ -57,11 +57,11 @@ done
 echo "==> pre-push seal: ensuring default scales"
 PYTHONPATH=./:./src:./experiments bash scripts/ensure_default_scales.sh
 
-echo "==> pre-push seal: refreshing figure-facing data"
-PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/run_refresh_data_for_figures.py \
-  --within-k "$WITHIN_K" \
-  --scales-root "$SCALE_ROOT" \
-  --scales "$DEFAULT_SCALES"
+#echo "==> pre-push seal: refreshing figure-facing data"
+#PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/figures/run_refresh_data_for_figures.py \
+#  --within-k "$WITHIN_K" \
+#  --scales-root "$SCALE_ROOT" \
+#  --scales "$DEFAULT_SCALES"
 
 echo "==> pre-push seal: validating required outputs"
 for path in "${REQUIRED_OUTPUTS[@]}"; do
