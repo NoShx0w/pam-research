@@ -137,16 +137,14 @@ echo "==> 16/18 Final report"
   --phase-distance-csv outputs/fim_phase/phase_distance_to_seam.csv \
   --outdir outputs/fim_report
 
-echo "==> PAM geometry pipeline complete"
-
 REFRESH_PUBLICATION_LAYER="${REFRESH_PUBLICATION_LAYER:-1}"
 
 if [ "$REFRESH_PUBLICATION_LAYER" -eq 1 ]; then
   echo "==> [Stage 17/18] Ensure canonical default scales"
-  PYTHON_BIN=./:./src:./experiments bash scripts/ensure_default_scales.sh
+  PYTHONPATH=./:./src:./experiments bash scripts/ensure_default_scales.sh
 
   echo "==> [Stage 18/18] Refresh figure-facing data products"
-  PYTHON_BIN=./:./src:./experiments "$PYTHON_BIN" experiments/run_refresh_data_for_figures.py
+  PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/figures/run_refresh_data_for_figures.py
 fi
 
 echo "==> PAM geometry pipeline complete"

@@ -66,7 +66,7 @@ def refresh_horizon(python_bin: str, env: dict[str, str]) -> None:
     run_cmd(
         [
             python_bin,
-            "experiments/fim_horizon_from_probes.py",
+            "experiments/studies/fim_horizon_from_probes.py",
             "--input-csv",
             "outputs/fim_ops_scaled/scaled_probe_metrics.csv",
             "--outdir",
@@ -81,7 +81,7 @@ def refresh_temporal(python_bin: str, env: dict[str, str]) -> None:
     run_cmd(
         [
             python_bin,
-            "experiments/fim_lazarus_temporal.py",
+            "experiments/studies/fim_lazarus_temporal.py",
             "--paths-csv",
             "outputs/fim_ops_scaled/scaled_probe_paths.csv",
             "--outdir",
@@ -105,7 +105,7 @@ def refresh_scaling_summary(
     run_cmd(
         [
             python_bin,
-            "experiments/fim_scaling_summary.py",
+            "experiments/studies/fim_scaling_summary.py",
             *scale_args,
             "--outdir",
             "outputs/fim_scaling",

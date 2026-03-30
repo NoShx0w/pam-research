@@ -66,11 +66,11 @@ run_scale_pipeline() {
     --outdir "$root/fim_transition_rate" \
     --within-k "$WITHIN_K"
 
-  PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/fim_horizon_from_probes.py \
+  PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/studies/fim_horizon_from_probes.py \
     --input-csv "$root/fim_ops_scaled/scaled_probe_metrics.csv" \
     --outdir "$root/fim_horizon"
 
-  PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/fim_lazarus_temporal.py \
+  PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/studies/fim_lazarus_temporal.py \
     --paths-csv "$root/fim_ops_scaled/scaled_probe_paths.csv" \
     --outdir "$root/fim_lazarus_temporal"
 }

@@ -18,6 +18,7 @@ set -euo pipefail
 #   git config core.hooksPath .githooks
 
 PYTHON_BIN="${PYTHON_BIN:-python}"
+PYTHON_VENV="${PYTHON_VENV:-.venv/bin/python}"
 WITHIN_K="${WITHIN_K:-2}"
 SCALE_ROOT="${SCALE_ROOT:-outputs/scales}"
 DEFAULT_SCALES="${DEFAULT_SCALES:-10,100,1000,10000}"
@@ -57,11 +58,11 @@ done
 echo "==> pre-push seal: ensuring default scales"
 PYTHONPATH=./:./src:./experiments bash scripts/ensure_default_scales.sh
 
-#echo "==> pre-push seal: refreshing figure-facing data"
-#PYTHONPATH=./:./src:./experiments "$PYTHON_BIN" experiments/figures/run_refresh_data_for_figures.py \
-#  --within-k "$WITHIN_K" \
-#  --scales-root "$SCALE_ROOT" \
-#  --scales "$DEFAULT_SCALES"
+echo "==> pre-push seal: refreshing figure-facing data"
+PYTHONPATH=./:./src:./experiments "$PYTHON_VENV" experiments/figures/run_refresh_data_for_figures.py \
+  --within-k "$WITHIN_K" \
+  --scales-root "$SCALE_ROOT" \
+  --scales "$DEFAULT_SCALES"
 
 echo "==> pre-push seal: validating required outputs"
 for path in "${REQUIRED_OUTPUTS[@]}"; do
