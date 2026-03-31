@@ -12,13 +12,11 @@ def safe_numeric(s: pd.Series) -> pd.Series:
 
 def make_mechanism_plane(df: pd.DataFrame, x_col: str, y_col: str, z_col: str, n_bins: int = 12):
     work = df[[x_col, y_col, z_col]].copy()
-    work[x_col] = safe_numeric(work[x_col])
-    work[y_col] = safe_numeric(work[y_col])
-    work[z_col] = safe_numeric(work[z_col])
+    for c in [x_col, y_col, z_col]:
+        work[c] = safe_numeric(work[c])
     work = work.dropna()
-
     if len(work) == 0:
-        return None, None, None
+        return None
 
     xbins = np.linspace(work[x_col].min(), work[x_col].max(), n_bins + 1)
     ybins = np.linspace(work[y_col].min(), work[y_col].max(), n_bins + 1)
@@ -26,19 +24,60 @@ def make_mechanism_plane(df: pd.DataFrame, x_col: str, y_col: str, z_col: str, n
     work["x_bin"] = pd.cut(work[x_col], bins=xbins, include_lowest=True)
     work["y_bin"] = pd.cut(work[y_col], bins=ybins, include_lowest=True)
 
-    grid = (
-        work.groupby(["y_bin", "x_bin"], observed=False)[z_col]
-        .mean()
-        .unstack()
-    )
-
-    return grid, xbins, ybins
+    grid = work.groupby(["y_bin", "x_bin"], observed=False)[z_col].mean().unstack()
+    return grid
 
 
-def render_figure_3(df: pd.DataFrame, outpath: Path, within_k: int):
-    fig, axes = plt.subplots(2, 2, figsize=(13.0, 10.0))
+def conditional_distance_bin_summary(df: pd.DataFrame, n_bins: int = 4) -> pd.DataFrame:
+    work = df[["distance_to_seam", "lazarus_score", "transition_within_k"]].copy()
+    work["distance_to_seam"] = safe_numeric(work["distance_to_seam"])
+    work["lazarus_score"] = safe_numeric(work["lazarus_score"])
+    work["transition_within_k"] = safe_numeric(work["transition_within_k"])
+    work = work.dropna()
 
-    # Derived fields
+    work["distance_bin"] = pd.qcut(work["distance_to_seam"], q=n_bins, duplicates="drop")
+
+    rows = []
+    for i, (b, g) in enumerate(work.groupby("distance_bin", observed=False)):
+        if len(g) < 20:
+            continue
+        thr = float(g["lazarus_score"].median())
+        high = g[g["lazarus_score"] >= thr]
+        low = g[g["lazarus_score"] < thr]
+
+        def rate_and_se(x: pd.DataFrame):
+            n = len(x)
+            if n == 0:
+                return np.nan, np.nan
+            p = float(x["transition_within_k"].mean())
+            se = float(np.sqrt(max(p * (1.0 - p), 0.0) / n))
+            return p, se
+
+        high_rate, high_se = rate_and_se(high)
+        low_rate, low_se = rate_and_se(low)
+        diff = high_rate - low_rate if np.isfinite(high_rate) and np.isfinite(low_rate) else np.nan
+        diff_se = np.sqrt((high_se ** 2 if np.isfinite(high_se) else 0.0) + (low_se ** 2 if np.isfinite(low_se) else 0.0))
+
+        rows.append({
+            "distance_bin": str(b),
+            "bin_label": f"bin {i+1}",
+            "n": int(len(g)),
+            "high_n": int(len(high)),
+            "low_n": int(len(low)),
+            "high_rate": high_rate,
+            "low_rate": low_rate,
+            "high_se": high_se,
+            "low_se": low_se,
+            "diff": diff,
+            "diff_se": diff_se,
+            "bin_mid": float(g["distance_to_seam"].median()),
+        })
+    return pd.DataFrame(rows)
+
+
+def render_figure(df: pd.DataFrame, outpath: Path, within_k: int, n_bins: int):
+    fig, axes = plt.subplots(2, 2, figsize=(13.2, 10.2))
+
     plot_df = df.copy()
     plot_df["distance_to_seam"] = safe_numeric(plot_df["distance_to_seam"])
     plot_df["lazarus_score"] = safe_numeric(plot_df["lazarus_score"])
@@ -46,31 +85,25 @@ def render_figure_3(df: pd.DataFrame, outpath: Path, within_k: int):
     plot_df["transition_within_k"] = safe_numeric(plot_df["transition_within_k"])
     plot_df["log_curvature"] = np.log10(1.0 + plot_df["scalar_curvature"].clip(lower=0))
 
-    # A. Lazarus vs distance to seam
+    # A
     ax = axes[0, 0]
     a = plot_df[["distance_to_seam", "lazarus_score"]].dropna()
-    ax.scatter(a["distance_to_seam"], a["lazarus_score"], alpha=0.18, s=18)
+    ax.scatter(a["distance_to_seam"], a["lazarus_score"], alpha=0.12, s=12)
     ax.set_xlabel("distance_to_seam")
     ax.set_ylabel("lazarus_score")
     ax.set_title("A. Compression localizes near the seam")
 
-    # B. Lazarus vs log curvature
+    # B
     ax = axes[0, 1]
     b = plot_df[["lazarus_score", "log_curvature"]].dropna()
-    ax.scatter(b["lazarus_score"], b["log_curvature"], alpha=0.18, s=18)
+    ax.scatter(b["lazarus_score"], b["log_curvature"], alpha=0.12, s=12)
     ax.set_xlabel("lazarus_score")
     ax.set_ylabel("log10(1 + curvature)")
     ax.set_title("B. Compression tracks geometric stress")
 
-    # C. Transition probability in mechanism plane
+    # C
     ax = axes[1, 0]
-    grid, xbins, ybins = make_mechanism_plane(
-        plot_df,
-        x_col="lazarus_score",
-        y_col="distance_to_seam",
-        z_col="transition_within_k",
-        n_bins=12,
-    )
+    grid = make_mechanism_plane(plot_df, "lazarus_score", "distance_to_seam", "transition_within_k", n_bins=12)
     if grid is not None and grid.size > 0:
         arr = grid.to_numpy(dtype=float)
         im = ax.imshow(arr, origin="lower", aspect="auto")
@@ -82,37 +115,34 @@ def render_figure_3(df: pd.DataFrame, outpath: Path, within_k: int):
         ax.text(0.5, 0.5, "insufficient data", ha="center", va="center")
         ax.set_title(f"C. P(transition within {within_k} steps)")
 
-    # D. Curvature-conditioned Lazarus effect
+    # D upgraded conditional separation with error bars + diff panel overlay
     ax = axes[1, 1]
-    d = plot_df[["scalar_curvature", "lazarus_score", "transition_within_k"]].dropna().copy()
-    if len(d) > 0:
-        curv_med = d["scalar_curvature"].median()
-        laz_med = d["lazarus_score"].median()
-
-        d["curvature_group"] = np.where(d["scalar_curvature"] >= curv_med, "high_curvature", "low_curvature")
-        d["lazarus_group"] = np.where(d["lazarus_score"] >= laz_med, "high_lazarus", "low_lazarus")
-
-        summary = (
-            d.groupby(["curvature_group", "lazarus_group"], observed=False)["transition_within_k"]
-            .mean()
-            .reset_index()
-        )
-
-        order = [("low_curvature", "low_lazarus"), ("low_curvature", "high_lazarus"),
-                 ("high_curvature", "low_lazarus"), ("high_curvature", "high_lazarus")]
-        labels = [f"{c}\n{l}" for c, l in order]
-        vals = []
-        for c, l in order:
-            row = summary[(summary["curvature_group"] == c) & (summary["lazarus_group"] == l)]
-            vals.append(float(row["transition_within_k"].iloc[0]) if len(row) else np.nan)
-
-        ax.bar(labels, vals)
-        ax.set_ylim(0, 1)
+    cond = conditional_distance_bin_summary(plot_df, n_bins=n_bins)
+    if len(cond):
+        x = np.arange(len(cond))
+        w = 0.34
+        ax.bar(x - w/2, cond["low_rate"], width=w, yerr=cond["low_se"], capsize=4, label="low Lazarus")
+        ax.bar(x + w/2, cond["high_rate"], width=w, yerr=cond["high_se"], capsize=4, label="high Lazarus")
+        ax.set_xticks(x)
+        ax.set_xticklabels(cond["bin_label"], rotation=0)
         ax.set_ylabel(f"P(transition within {within_k} steps)")
-        ax.set_title("D. Lazarus effect strengthens under curvature")
+        ax.set_title("D. Conditional separation within distance bins")
+        ax.legend(loc="upper left", fontsize=8)
+
+        ax2 = ax.twinx()
+        ax2.plot(x, cond["diff"], marker="o", linestyle="--", label="high - low")
+        ax2.fill_between(
+            x,
+            cond["diff"] - cond["diff_se"],
+            cond["diff"] + cond["diff_se"],
+            alpha=0.18,
+        )
+        ax2.set_ylabel("difference")
+        ax2.axhline(0.0, linewidth=1.0, linestyle=":")
+        ax2.legend(loc="upper right", fontsize=8)
     else:
         ax.text(0.5, 0.5, "insufficient data", ha="center", va="center")
-        ax.set_title("D. Lazarus effect strengthens under curvature")
+        ax.set_title("D. Conditional separation within distance bins")
 
     fig.suptitle("Figure 3 — Transition mechanism", fontsize=17)
     fig.tight_layout(rect=[0, 0, 1, 0.965])
@@ -121,20 +151,25 @@ def render_figure_3(df: pd.DataFrame, outpath: Path, within_k: int):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Render Figure 3 — Transition mechanism.")
+    parser = argparse.ArgumentParser(description="Render upgraded Figure 3 with conditional separation.")
     parser.add_argument("--transition-labeled-csv", default="outputs/fim_transition_rate/transition_rate_labeled.csv")
     parser.add_argument("--outdir", default="outputs/fim_figure_3")
     parser.add_argument("--within-k", type=int, default=2)
+    parser.add_argument("--distance-bins", type=int, default=4)
     args = parser.parse_args()
 
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(args.transition_labeled_csv)
-    outpath = outdir / "figure_3_transition_mechanism.png"
-    render_figure_3(df, outpath, within_k=args.within_k)
+    outpath = outdir / "figure_3_transition_mechanism_conditional_v2.png"
+    render_figure(df, outpath, within_k=args.within_k, n_bins=args.distance_bins)
+
+    cond = conditional_distance_bin_summary(df, n_bins=args.distance_bins)
+    cond.to_csv(outdir / "figure_3_conditional_distance_bins_v2.csv", index=False)
 
     print(outpath)
+    print(outdir / "figure_3_conditional_distance_bins_v2.csv")
 
 
 if __name__ == "__main__":
