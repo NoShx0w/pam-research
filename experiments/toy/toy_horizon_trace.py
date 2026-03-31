@@ -1,80 +1,4 @@
 #!/usr/bin/env python3
-"""
-toy_horizon_trace.py (v2)
-
-Canonical toy experiment for the PAM Observatory.
-
-v2 patch
---------
-Changes from v1:
-1. Optional log-scaling for curvature before inverse transform
-2. Component plotting for diagnostic visibility
-3. Optional raw + transformed curvature columns in output
-4. Slightly richer plotting layout
-5. More explicit CLI flags for curvature handling
-
-Purpose
--------
-Compute a first-pass "distance to horizon" trace and "horizon pressure"
-trace along an existing manifold / trajectory dataset.
-
-This script is intentionally simple and explicit:
-- no hidden assumptions
-- no overloaded symbols
-- safe normalization
-- inspectable component terms
-- optional plotting
-
-Expected input
---------------
-A CSV with one row per state / sample / trajectory point. The script looks for
-the following columns:
-
-Required:
-    - id                      unique row identifier
-    - entropy_joint           joint entropy proxy H(x)
-    - outcome_diversity       outcome diversity U(x)
-    - mode_count              active mode count M_c(x)
-    - curvature_proxy         criticality / curvature proxy C(x)
-    - dominant_fraction       dominant-mode fraction D(x)
-
-Optional:
-    - trajectory_id           group identifier for multiple trajectories
-    - step                    within-trajectory order
-    - seam_distance           optional diagnostic
-    - criticality             optional diagnostic alias
-
-If your column names differ, use the CLI flags to map them.
-
-Outputs
--------
-1. A CSV with horizon metrics added
-2. Optional plots:
-   - distance_to_horizon vs step
-   - horizon_pressure vs step
-   - dominant_fraction vs step
-   - diagnostic component plots
-
-Interpretation
---------------
-Low distance_to_horizon:
-    the system is near outcome-collapse
-
-High horizon_pressure:
-    the system is under strong transition pressure,
-    i.e. diversity is shrinking under high curvature
-    without full domination yet
-
-Horizon type:
-    - "open"
-    - "false_horizon"
-    - "true_horizon"
-
-Canonical reading:
-    good extraction lowers distance_to_horizon by removing false alternatives
-    without driving dominant_fraction to 1.0
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -85,7 +9,6 @@ from typing import Iterable, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 
 EPS = 1e-8
 
@@ -100,95 +23,43 @@ class ColumnSpec:
     mode_count_col: str = "mode_count"
     curvature_col: str = "curvature_proxy"
     dominant_col: str = "dominant_fraction"
+    seam_distance_col: str = "seam_distance"
+    lazarus_score_col: str = "lazarus_score"
+    lazarus_hit_col: str = "lazarus_hit"
 
 
 def clamp01(series: pd.Series) -> pd.Series:
-    """Clip values into [0, 1]."""
     return series.clip(lower=0.0, upper=1.0)
 
 
-def safe_normalize(
-    series: pd.Series,
-    *,
-    max_value: Optional[float] = None,
-) -> pd.Series:
-    """
-    Normalize a nonnegative series into [0, 1].
-
-    If max_value is not provided, uses the observed max.
-    If max is 0 or NaN, returns zeros.
-    """
+def safe_normalize(series: pd.Series, *, max_value: Optional[float] = None) -> pd.Series:
     if max_value is None:
         max_value = float(series.max(skipna=True))
-
     if not np.isfinite(max_value) or max_value <= 0:
         return pd.Series(np.zeros(len(series)), index=series.index, dtype=float)
-
-    out = series.astype(float) / max_value
-    return clamp01(out)
+    return clamp01(series.astype(float) / max_value)
 
 
-def transform_curvature(
-    curvature: pd.Series,
-    *,
-    use_log: bool = False,
-) -> pd.Series:
-    """
-    Transform curvature before inverse mapping.
-
-    Parameters
-    ----------
-    use_log:
-        If True, use log1p(curvature) to reduce dynamic-range compression
-        when curvature spans multiple orders of magnitude.
-    """
+def transform_curvature(curvature: pd.Series, *, mode: str = "raw") -> pd.Series:
     c = curvature.astype(float).clip(lower=0.0)
-    if use_log:
-        c = np.log1p(c)
-    return c
+    if mode == "raw":
+        return c
+    if mode == "log":
+        return np.log1p(c)
+    if mode == "sqrt":
+        return np.sqrt(c)
+    raise ValueError(f"Unknown curvature transform mode: {mode}")
 
 
-def inverse_curvature(
-    curvature: pd.Series,
-    *,
-    use_log: bool = False,
-) -> pd.Series:
-    """
-    K(x) = 1 / (1 + C(x))
-
-    Optionally applies log1p to curvature first.
-    """
-    c = transform_curvature(curvature, use_log=use_log)
-    return 1.0 / (1.0 + c)
+def inverse_curvature(curvature: pd.Series, *, mode: str = "raw") -> pd.Series:
+    return 1.0 / (1.0 + transform_curvature(curvature, mode=mode))
 
 
 def log_product_terms(*terms: pd.Series) -> pd.Series:
-    """
-    Stable product in log space:
-        exp(sum(log(term_i + eps)))
-    """
     acc = pd.Series(np.zeros(len(terms[0])), index=terms[0].index, dtype=float)
     for term in terms:
         acc = acc + np.log(term.astype(float) + EPS)
     return np.exp(acc)
-
-
-def distance_to_horizon(
-    entropy_norm: pd.Series,
-    diversity: pd.Series,
-    mode_norm: pd.Series,
-    inv_curvature: pd.Series,
-) -> pd.Series:
-    """
-    D_H = E * U * B * K
-
-    where:
-        E = normalized entropy
-        U = outcome diversity
-        B = normalized mode count
-        K = inverse curvature
-    """
-    return log_product_terms(entropy_norm, diversity, mode_norm, inv_curvature)
 
 
 def horizon_components(
@@ -196,38 +67,50 @@ def horizon_components(
     diversity: pd.Series,
     mode_norm: pd.Series,
     inv_curvature: pd.Series,
+    seam_proximity: Optional[pd.Series] = None,
 ) -> pd.DataFrame:
-    """
-    Expose log-space contributions for diagnostics.
-    More negative => stronger collapse contribution.
-    """
-    return pd.DataFrame(
-        {
-            "log_entropy_term": np.log(entropy_norm + EPS),
-            "log_diversity_term": np.log(diversity + EPS),
-            "log_mode_term": np.log(mode_norm + EPS),
-            "log_inverse_curvature_term": np.log(inv_curvature + EPS),
-        }
-    )
+    data = {
+        "log_entropy_term": np.log(entropy_norm + EPS),
+        "log_diversity_term": np.log(diversity + EPS),
+        "log_mode_term": np.log(mode_norm + EPS),
+        "log_inverse_curvature_term": np.log(inv_curvature + EPS),
+    }
+    if seam_proximity is not None:
+        data["log_seam_proximity_term"] = np.log(seam_proximity + EPS)
+    return pd.DataFrame(data)
+
+
+def distance_to_horizon(
+    entropy_norm: pd.Series,
+    diversity: pd.Series,
+    mode_norm: pd.Series,
+    inv_curvature: pd.Series,
+    seam_proximity: Optional[pd.Series] = None,
+    *,
+    seam_weight: float = 0.0,
+) -> pd.Series:
+    base = log_product_terms(entropy_norm, diversity, mode_norm, inv_curvature)
+    if seam_proximity is None or seam_weight <= 0:
+        return base
+    seam_factor = (1.0 - seam_weight) + seam_weight * seam_proximity
+    return log_product_terms(base, seam_factor)
 
 
 def horizon_pressure(
     diversity: pd.Series,
-    curvature: pd.Series,
+    curvature_raw: pd.Series,
     dominant_fraction: pd.Series,
+    lazarus_score: Optional[pd.Series] = None,
+    *,
+    lazarus_weight: float = 0.0,
 ) -> pd.Series:
-    """
-    P_H = C * (1 - U) * (1 - D)
-
-    High when:
-        - curvature is high
-        - diversity is already shrinking
-        - but no full domination yet
-    """
     u = clamp01(diversity.astype(float))
     d = clamp01(dominant_fraction.astype(float))
-    c = curvature.astype(float).clip(lower=0.0)
-    return c * (1.0 - u) * (1.0 - d)
+    c = curvature_raw.astype(float).clip(lower=0.0)
+    out = c * (1.0 - u) * (1.0 - d)
+    if lazarus_score is not None and lazarus_weight > 0:
+        out = out * ((1.0 - lazarus_weight) + lazarus_weight * clamp01(lazarus_score.astype(float)))
+    return out
 
 
 def classify_horizon_type(
@@ -237,15 +120,8 @@ def classify_horizon_type(
     diversity_threshold: float = 0.2,
     dominance_threshold: float = 0.85,
 ) -> pd.Series:
-    """
-    Distinguish:
-        - false_horizon: diversity low, but not dominated
-        - true_horizon: diversity low, and strongly dominated
-        - open: otherwise
-    """
     u = clamp01(diversity.astype(float))
     d = clamp01(dominant_fraction.astype(float))
-
     labels = np.full(len(u), "open", dtype=object)
     labels[(u < diversity_threshold) & (d < dominance_threshold)] = "false_horizon"
     labels[(u < diversity_threshold) & (d >= dominance_threshold)] = "true_horizon"
@@ -266,10 +142,108 @@ def sort_dataframe(df: pd.DataFrame, spec: ColumnSpec) -> pd.DataFrame:
         sort_cols.append(spec.step_col)
     elif spec.id_col in df.columns:
         sort_cols.append(spec.id_col)
-
     if sort_cols:
         return df.sort_values(sort_cols).reset_index(drop=True)
     return df.reset_index(drop=True)
+
+
+def compute_horizon_metrics(
+    df: pd.DataFrame,
+    spec: ColumnSpec,
+    *,
+    entropy_max: Optional[float] = None,
+    mode_count_max: Optional[float] = None,
+    diversity_threshold: float = 0.2,
+    dominance_threshold: float = 0.85,
+    curvature_mode: str = "raw",
+    seam_weight: float = 0.0,
+    lazarus_weight: float = 0.0,
+) -> pd.DataFrame:
+    required = [
+        spec.entropy_col,
+        spec.diversity_col,
+        spec.mode_count_col,
+        spec.curvature_col,
+        spec.dominant_col,
+    ]
+    require_columns(df, required)
+
+    out = df.copy()
+    out["entropy_norm"] = safe_normalize(out[spec.entropy_col], max_value=entropy_max)
+    out["outcome_diversity_norm"] = clamp01(out[spec.diversity_col].astype(float))
+    out["mode_count_norm"] = safe_normalize(out[spec.mode_count_col], max_value=mode_count_max)
+    out["curvature_raw"] = out[spec.curvature_col].astype(float).clip(lower=0.0)
+    out["curvature_transformed"] = transform_curvature(out["curvature_raw"], mode=curvature_mode)
+    out["inverse_curvature"] = inverse_curvature(out["curvature_raw"], mode=curvature_mode)
+    out["dominant_fraction"] = clamp01(out[spec.dominant_col].astype(float))
+
+    seam_proximity = None
+    if spec.seam_distance_col in out.columns:
+        out["seam_distance"] = out[spec.seam_distance_col].astype(float).clip(lower=0.0)
+        out["seam_proximity"] = 1.0 - safe_normalize(out["seam_distance"])
+        seam_proximity = out["seam_proximity"]
+    else:
+        out["seam_distance"] = np.nan
+        out["seam_proximity"] = np.nan
+
+    lazarus_score = None
+    if spec.lazarus_score_col in out.columns:
+        out["lazarus_score"] = safe_normalize(out[spec.lazarus_score_col].astype(float))
+        lazarus_score = out["lazarus_score"]
+    else:
+        out["lazarus_score"] = np.nan
+
+    if spec.lazarus_hit_col in out.columns:
+        out["lazarus_hit"] = out[spec.lazarus_hit_col].fillna(0).astype(int)
+    else:
+        out["lazarus_hit"] = 0
+
+    out["distance_to_horizon"] = distance_to_horizon(
+        out["entropy_norm"],
+        out["outcome_diversity_norm"],
+        out["mode_count_norm"],
+        out["inverse_curvature"],
+        seam_proximity=seam_proximity,
+        seam_weight=seam_weight,
+    )
+    out["horizon_pressure"] = horizon_pressure(
+        out["outcome_diversity_norm"],
+        out["curvature_raw"],
+        out["dominant_fraction"],
+        lazarus_score=lazarus_score,
+        lazarus_weight=lazarus_weight,
+    )
+    out["horizon_type"] = classify_horizon_type(
+        out["outcome_diversity_norm"],
+        out["dominant_fraction"],
+        diversity_threshold=diversity_threshold,
+        dominance_threshold=dominance_threshold,
+    )
+
+    out["horizon_activation"] = out["horizon_pressure"] * (1.0 - out["distance_to_horizon"])
+    collapse_base = (
+        0.40 * (1.0 - out["distance_to_horizon"])
+        + 0.25 * safe_normalize(out["horizon_pressure"])
+        + 0.20 * out["dominant_fraction"]
+        + 0.15 * out["seam_proximity"].fillna(0.0)
+    )
+    if spec.lazarus_score_col in out.columns:
+        collapse_base = collapse_base + 0.10 * out["lazarus_score"].fillna(0.0)
+    out["collapse_risk"] = clamp01(collapse_base)
+    out["precollapse_regime"] = (
+        (out["collapse_risk"] >= 0.6)
+        & (out["dominant_fraction"] < dominance_threshold)
+        & (out["outcome_diversity_norm"] > diversity_threshold)
+    ).astype(int)
+
+    comps = horizon_components(
+        out["entropy_norm"],
+        out["outcome_diversity_norm"],
+        out["mode_count_norm"],
+        out["inverse_curvature"],
+        seam_proximity=seam_proximity,
+    )
+    return pd.concat([out, comps], axis=1)
 
 
 def plot_trace(
@@ -280,12 +254,7 @@ def plot_trace(
     max_trajectories: int = 5,
     plot_components: bool = True,
 ) -> None:
-    """
-    Plot distance, pressure, dominance for up to `max_trajectories` trajectories.
-    If no trajectory_id is present, plot the whole dataset as one sequence.
-    """
     outdir.mkdir(parents=True, exist_ok=True)
-
     if spec.trajectory_col in df.columns:
         trajectory_ids = list(df[spec.trajectory_col].dropna().unique())[:max_trajectories]
         groups = [(tid, df[df[spec.trajectory_col] == tid].copy()) for tid in trajectory_ids]
@@ -298,149 +267,65 @@ def plot_trace(
         g = g.reset_index(drop=True)
         x = g[x_col] if x_col is not None else np.arange(len(g))
 
-        # Main trace plot
-        fig, ax = plt.subplots(figsize=(11, 5))
-        ax.plot(x, g["distance_to_horizon"], label="distance_to_horizon")
-        ax.plot(x, g["horizon_pressure"], label="horizon_pressure")
-        ax.plot(x, g["dominant_fraction"], label="dominant_fraction")
-        ax.set_title(f"Horizon trace — {name}")
-        ax.set_xlabel(x_col if x_col is not None else "index")
-        ax.set_ylabel("value")
-        ax.legend()
+        fig, axes = plt.subplots(2, 1, figsize=(11, 8), sharex=True)
+        axes[0].plot(x, g["distance_to_horizon"], label="distance_to_horizon")
+        axes[0].plot(x, g["horizon_pressure"], label="horizon_pressure")
+        axes[0].plot(x, g["collapse_risk"], label="collapse_risk")
+        axes[0].plot(x, g["dominant_fraction"], label="dominant_fraction")
+        axes[0].set_title(f"Horizon trace — {name}")
+        axes[0].set_ylabel("value")
+        axes[0].legend()
+
+        if "seam_proximity" in g.columns and g["seam_proximity"].notna().any():
+            axes[1].plot(x, g["seam_proximity"], label="seam_proximity")
+        if "lazarus_score" in g.columns and g["lazarus_score"].notna().any():
+            axes[1].plot(x, g["lazarus_score"], label="lazarus_score")
+        axes[1].plot(x, g["horizon_activation"], label="horizon_activation")
+        axes[1].plot(x, g["precollapse_regime"], label="precollapse_regime")
+        axes[1].set_title(f"Boundary-aware diagnostics — {name}")
+        axes[1].set_xlabel(x_col if x_col is not None else "index")
+        axes[1].set_ylabel("diagnostic value")
+        axes[1].legend()
+
         fig.tight_layout()
         fig.savefig(outdir / f"horizon_trace_{name}.png", dpi=160)
         plt.close(fig)
 
-        # Optional diagnostic components
         if plot_components:
-            fig, axes = plt.subplots(2, 1, figsize=(11, 8), sharex=True)
-
+            fig, axes = plt.subplots(3, 1, figsize=(11, 10), sharex=True)
             axes[0].plot(x, g["entropy_norm"], label="entropy_norm")
             axes[0].plot(x, g["outcome_diversity_norm"], label="outcome_diversity_norm")
             axes[0].plot(x, g["mode_count_norm"], label="mode_count_norm")
             axes[0].plot(x, g["inverse_curvature"], label="inverse_curvature")
-            axes[0].set_title(f"Normalized horizon factors — {name}")
-            axes[0].set_ylabel("factor value")
             axes[0].legend()
+            axes[0].set_title(f"Normalized factors — {name}")
 
             axes[1].plot(x, g["log_entropy_term"], label="log_entropy_term")
             axes[1].plot(x, g["log_diversity_term"], label="log_diversity_term")
             axes[1].plot(x, g["log_mode_term"], label="log_mode_term")
-            axes[1].plot(
-                x,
-                g["log_inverse_curvature_term"],
-                label="log_inverse_curvature_term",
-            )
-            axes[1].set_title(f"Log component contributions — {name}")
-            axes[1].set_xlabel(x_col if x_col is not None else "index")
-            axes[1].set_ylabel("log contribution")
+            axes[1].plot(x, g["log_inverse_curvature_term"], label="log_inverse_curvature_term")
+            if "log_seam_proximity_term" in g.columns:
+                axes[1].plot(x, g["log_seam_proximity_term"], label="log_seam_proximity_term")
             axes[1].legend()
+            axes[1].set_title(f"Log contributions — {name}")
+
+            axes[2].plot(x, g["curvature_raw"], label="curvature_raw")
+            axes[2].plot(x, g["curvature_transformed"], label="curvature_transformed")
+            axes[2].legend()
+            axes[2].set_title(f"Curvature transform — {name}")
+            axes[2].set_xlabel(x_col if x_col is not None else "index")
 
             fig.tight_layout()
             fig.savefig(outdir / f"horizon_components_{name}.png", dpi=160)
             plt.close(fig)
 
-            if "curvature_transformed" in g.columns:
-                fig, ax = plt.subplots(figsize=(11, 4))
-                ax.plot(x, g["curvature_raw"], label="curvature_raw")
-                ax.plot(x, g["curvature_transformed"], label="curvature_transformed")
-                ax.set_title(f"Curvature transform — {name}")
-                ax.set_xlabel(x_col if x_col is not None else "index")
-                ax.set_ylabel("curvature")
-                ax.legend()
-                fig.tight_layout()
-                fig.savefig(outdir / f"curvature_transform_{name}.png", dpi=160)
-                plt.close(fig)
-
-
-def compute_horizon_metrics(
-    df: pd.DataFrame,
-    spec: ColumnSpec,
-    *,
-    entropy_max: Optional[float] = None,
-    mode_count_max: Optional[float] = None,
-    diversity_threshold: float = 0.2,
-    dominance_threshold: float = 0.85,
-    log_scale_curvature: bool = False,
-) -> pd.DataFrame:
-    """
-    Add canonical horizon metrics to the dataframe.
-    """
-    required = [
-        spec.entropy_col,
-        spec.diversity_col,
-        spec.mode_count_col,
-        spec.curvature_col,
-        spec.dominant_col,
-    ]
-    require_columns(df, required)
-
-    out = df.copy()
-
-    # Normalize core observables.
-    out["entropy_norm"] = safe_normalize(
-        out[spec.entropy_col],
-        max_value=entropy_max,
-    )
-    out["outcome_diversity_norm"] = clamp01(out[spec.diversity_col].astype(float))
-    out["mode_count_norm"] = safe_normalize(
-        out[spec.mode_count_col],
-        max_value=mode_count_max,
-    )
-
-    out["curvature_raw"] = out[spec.curvature_col].astype(float).clip(lower=0.0)
-    out["curvature_transformed"] = transform_curvature(
-        out["curvature_raw"],
-        use_log=log_scale_curvature,
-    )
-    out["inverse_curvature"] = 1.0 / (1.0 + out["curvature_transformed"])
-
-    out["dominant_fraction"] = clamp01(out[spec.dominant_col].astype(float))
-
-    # Composite metrics.
-    out["distance_to_horizon"] = distance_to_horizon(
-        out["entropy_norm"],
-        out["outcome_diversity_norm"],
-        out["mode_count_norm"],
-        out["inverse_curvature"],
-    )
-    out["horizon_pressure"] = horizon_pressure(
-        out["outcome_diversity_norm"],
-        out["curvature_raw"],
-        out["dominant_fraction"],
-    )
-    out["horizon_type"] = classify_horizon_type(
-        out["outcome_diversity_norm"],
-        out["dominant_fraction"],
-        diversity_threshold=diversity_threshold,
-        dominance_threshold=dominance_threshold,
-    )
-
-    # Diagnostic components.
-    comps = horizon_components(
-        out["entropy_norm"],
-        out["outcome_diversity_norm"],
-        out["mode_count_norm"],
-        out["inverse_curvature"],
-    )
-    out = pd.concat([out, comps], axis=1)
-
-    return out
-
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Canonical toy horizon-trace experiment (v2).")
+    p = argparse.ArgumentParser(description="Canonical horizon-trace experiment (v3).")
+    p.add_argument("--input", type=Path, required=True)
+    p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--plot-dir", type=Path, default=None)
 
-    p.add_argument("--input", type=Path, required=True, help="Input CSV path.")
-    p.add_argument("--output", type=Path, required=True, help="Output CSV path.")
-    p.add_argument(
-        "--plot-dir",
-        type=Path,
-        default=None,
-        help="Optional directory for PNG plots.",
-    )
-
-    # Column mapping.
     p.add_argument("--id-col", default="id")
     p.add_argument("--trajectory-col", default="trajectory_id")
     p.add_argument("--step-col", default="step")
@@ -449,43 +334,24 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("--mode-count-col", default="mode_count")
     p.add_argument("--curvature-col", default="curvature_proxy")
     p.add_argument("--dominant-col", default="dominant_fraction")
+    p.add_argument("--seam-distance-col", default="seam_distance")
+    p.add_argument("--lazarus-score-col", default="lazarus_score")
+    p.add_argument("--lazarus-hit-col", default="lazarus_hit")
 
-    # Optional normalization controls.
-    p.add_argument(
-        "--entropy-max",
-        type=float,
-        default=None,
-        help="Override entropy normalization maximum.",
-    )
-    p.add_argument(
-        "--mode-count-max",
-        type=float,
-        default=None,
-        help="Override mode count normalization maximum.",
-    )
-
-    # Thresholds.
+    p.add_argument("--entropy-max", type=float, default=None)
+    p.add_argument("--mode-count-max", type=float, default=None)
     p.add_argument("--diversity-threshold", type=float, default=0.2)
     p.add_argument("--dominance-threshold", type=float, default=0.85)
 
-    # v2 additions
-    p.add_argument(
-        "--log-scale-curvature",
-        action="store_true",
-        help="Apply log1p transform to curvature before inverse mapping.",
-    )
-    p.add_argument(
-        "--no-component-plots",
-        action="store_true",
-        help="Disable diagnostic component plots.",
-    )
-
+    p.add_argument("--curvature-mode", choices=["raw", "log", "sqrt"], default="log")
+    p.add_argument("--seam-weight", type=float, default=0.0)
+    p.add_argument("--lazarus-weight", type=float, default=0.25)
+    p.add_argument("--no-component-plots", action="store_true")
     return p
 
 
 def main() -> int:
     args = build_arg_parser().parse_args()
-
     spec = ColumnSpec(
         id_col=args.id_col,
         trajectory_col=args.trajectory_col,
@@ -495,11 +361,13 @@ def main() -> int:
         mode_count_col=args.mode_count_col,
         curvature_col=args.curvature_col,
         dominant_col=args.dominant_col,
+        seam_distance_col=args.seam_distance_col,
+        lazarus_score_col=args.lazarus_score_col,
+        lazarus_hit_col=args.lazarus_hit_col,
     )
 
     df = pd.read_csv(args.input)
     df = sort_dataframe(df, spec)
-
     out = compute_horizon_metrics(
         df,
         spec,
@@ -507,7 +375,9 @@ def main() -> int:
         mode_count_max=args.mode_count_max,
         diversity_threshold=args.diversity_threshold,
         dominance_threshold=args.dominance_threshold,
-        log_scale_curvature=args.log_scale_curvature,
+        curvature_mode=args.curvature_mode,
+        seam_weight=args.seam_weight,
+        lazarus_weight=args.lazarus_weight,
     )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -522,10 +392,11 @@ def main() -> int:
         )
 
     print(f"Wrote horizon metrics to: {args.output}")
-    print(f"Curvature log-scaling: {'enabled' if args.log_scale_curvature else 'disabled'}")
+    print(f"Curvature transform: {args.curvature_mode}")
+    print(f"Seam weight: {args.seam_weight}")
+    print(f"Lazarus weight: {args.lazarus_weight}")
     if args.plot_dir is not None:
         print(f"Wrote plots to: {args.plot_dir}")
-
     return 0
 
 
