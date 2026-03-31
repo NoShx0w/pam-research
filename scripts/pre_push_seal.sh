@@ -28,9 +28,9 @@ REQUIRED_SCRIPTS=(
   "scripts/ensure_default_scales.sh"
   "scripts/pre_push_seal.sh"
   "experiments/figures/run_refresh_data_for_figures.py"
-  "experiments/figures/fim_figure_1_geometric_structure_v3.py"
+  "experiments/figures/fim_figure_1.py"
   "experiments/figures/fim_figure_2.py"
-  "experiments/figures/fim_figure_3_conditional_v2.py"
+  "experiments/figures/fim_figure_3.py"
   "experiments/figures/fim_figure_4.py"
 )
 
