@@ -225,6 +225,25 @@ These help answer questions like:
 
 ---
 
+## Identity Transport and Obstruction
+
+The observatory now resolves an identity layer on top of the manifold.
+
+This layer separates into three related parts:
+
+- **identity magnitude** — local strength of structural identity change
+- **identity transport / holonomy** — path dependence of structural identity transport around local loops
+- **identity spin** — local obstruction signal associated with that path dependence
+
+Operationally:
+- identity magnitude behaves as a local metric-adjacent field
+- identity spin is weakly explained by local metric structure
+- loop-based holonomy provides finite-path confirmation that structural identity transport is not path-independent
+
+This means the observatory now resolves not only where structure changes, but also where those changes fail to compose consistently across the manifold.
+
+---
+
 ## 8. How to Read the Observatory as a Whole
 
 A useful reading strategy is:

@@ -281,6 +281,38 @@ These outputs summarize how the manifold is structurally organized beyond raw ge
 
 ---
 
+## Identity Geometry Stack
+
+The identity layer now resolves three geometric levels:
+
+1. **Metric layer**
+   - identity distance
+   - local identity metric
+   - identity magnitude
+
+2. **Transport layer**
+   - local path composition
+   - loop-based holonomy residual
+
+3. **Obstruction layer**
+   - identity spin as a local obstruction signal
+   - loop-level confirmation via holonomy magnitude
+
+This upgrades identity from a derived field into a structured geometric subsystem of the observatory.
+
+### Identity transport artifacts
+
+Canonical outputs include:
+
+- `outputs/fim_identity/identity_field_nodes.csv`
+- `outputs/fim_identity/identity_field_edges.csv`
+- `outputs/fim_identity/identity_spin.csv`
+- `outputs/fim_identity_holonomy/identity_holonomy_cells.csv`
+- `outputs/fim_identity_holonomy/identity_holonomy_alignment.csv`
+- `outputs/fim_identity_holonomy/identity_transport_panel.png`
+
+---
+
 ## From Visualization to Structure
 
 The critical shift is:

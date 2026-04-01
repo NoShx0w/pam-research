@@ -190,6 +190,26 @@ Interpretation:
 
 ---
 
+### identity_magnitude
+Measures the local strength of structural identity change across neighboring manifold states.
+
+---
+
+### identity_spin
+A local obstruction signal over structural identity transport. Operationally, it behaves as a local measure of connection curvature: weakly coupled to local metric structure, but strongly aligned with loop-based holonomy.
+
+---
+
+### holonomy_residual
+Measures path dependence of structural identity transport around an elementary local loop.
+
+---
+
+### abs_holonomy_residual
+The magnitude of loop-based transport inconsistency. This provides loop-level confirmation of local identity obstruction.
+
+---
+
 ## Summary
 
 Observables are the empirical interface between recursive dynamics and manifold structure.
