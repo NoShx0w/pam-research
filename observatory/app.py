@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import pandas as pd
+
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.binding import Binding
 
+from observatory.loaders import load_run_data
 from observatory.modes import DEFAULT_OVERLAY_BY_MODE, MODES, OVERLAYS_BY_MODE
 from observatory.state import ObservatoryState
 from observatory.views.detail import DetailView
@@ -73,6 +76,54 @@ class ObservatoryApp(App):
     def __init__(self) -> None:
         super().__init__()
         self.state = ObservatoryState()
+        self.run_data = load_run_data(self.state.outputs_root)
+
+    def _update_grid_shape_from_run_data(self) -> None:
+        coverage = self.run_data.coverage_df
+        if coverage.empty:
+            self.state.grid_rows = 10
+            self.state.grid_cols = 10
+            self.state.clamp_selection()
+            return
+
+        r_vals = sorted(pd.to_numeric(coverage["r"], errors="coerce").dropna().unique())
+        a_vals = sorted(pd.to_numeric(coverage["alpha"], errors="coerce").dropna().unique())
+
+        self.state.grid_rows = max(1, len(r_vals))
+        self.state.grid_cols = max(1, len(a_vals))
+        self.state.clamp_selection()
+
+
+    def _selected_run_cell_summary(self) -> dict[str, object]:
+        coverage = self.run_data.coverage_df
+        if coverage.empty:
+            return {
+                "r": None,
+                "alpha": None,
+                "n_rows": 0,
+                "n_seeds": 0,
+            }
+
+        r_vals = sorted(pd.to_numeric(coverage["r"], errors="coerce").dropna().unique())
+        a_vals = sorted(pd.to_numeric(coverage["alpha"], errors="coerce").dropna().unique())
+
+        if not r_vals or not a_vals:
+            return {"r": None, "alpha": None, "n_rows": 0, "n_seeds": 0}
+
+        r = r_vals[self.state.selected_i]
+        a = a_vals[self.state.selected_j]
+
+        row = coverage[(coverage["r"] == r) & (coverage["alpha"] == a)]
+        if row.empty:
+            return {"r": r, "alpha": a, "n_rows": 0, "n_seeds": 0}
+
+        rec = row.iloc[0]
+        return {
+            "r": float(rec["r"]),
+            "alpha": float(rec["alpha"]),
+            "n_rows": int(rec["n_rows"]),
+            "n_seeds": int(rec["n_seeds"]),
+        }
 
     def compose(self) -> ComposeResult:
         yield Vertical(
@@ -86,12 +137,24 @@ class ObservatoryApp(App):
         )
 
     def on_mount(self) -> None:
+        self._update_grid_shape_from_run_data()
         self._render_all()
 
     def _render_all(self) -> None:
-        self.query_one("#inspector", InspectorView).render_from_state(self.state)
-        self.query_one("#manifold", ManifoldView).render_from_state(self.state)
-        self.query_one("#detail", DetailView).render_from_state(self.state)
+        run_summary = self._selected_run_cell_summary()
+        self.query_one("#inspector", InspectorView).render_from_state(
+            self.state,
+            run_summary=run_summary,
+            index_mtime=self.run_data.index_mtime,
+        )
+        self.query_one("#manifold", ManifoldView).render_from_state(
+            self.state,
+            run_data=self.run_data if self.state.mode == "Run" else None,
+        )
+        self.query_one("#detail", DetailView).render_from_state(
+            self.state,
+            run_summary=run_summary if self.state.mode == "Run" else None,
+        )
         self.query_one("#footer", FooterView).render_from_state(self.state)
 
     def action_set_mode(self, mode: str) -> None:
@@ -129,6 +192,8 @@ class ObservatoryApp(App):
         self._render_all()
 
     def action_refresh_state(self) -> None:
+        self.run_data = load_run_data(self.state.outputs_root)
+        self._update_grid_shape_from_run_data()
         self.state.status_message = "Refreshed"
         self._render_all()
 
