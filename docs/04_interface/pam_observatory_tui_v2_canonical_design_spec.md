@@ -85,7 +85,10 @@ Examples:
 - Lazarus
 - transition rate
 - identity magnitude
-- identity spin
+- absolute holonomy
+- unsigned local obstruction
+- signed local obstruction
+- legacy spin
 
 The interface should make it easy to switch overlays without changing the selected node.
 
@@ -200,31 +203,54 @@ Detail pane:
 ### 6. Identity
 
 Purpose:
-- inspect local structural identity and singularities
+- inspect local structural identity, transport, and obstruction
 
 Primary overlays:
 - identity magnitude
-- identity spin
-- singularity rank / mask
+- absolute holonomy
+- unsigned local obstruction
+- signed local obstruction
+- legacy spin (comparison only)
 
 Center pane:
-- identity field on grid or MDS
-- singularity overlay where relevant
+- identity/transport/obstruction fields on grid or MDS
+- singularity / high-obstruction overlays where relevant
 
 Detail pane:
 - selected node identity summary:
-  - `identity_vx`
-  - `identity_vy`
   - `identity_magnitude`
-  - `identity_spin`
-  - patch counts:
-    - `patch_n_nodes`
-    - `patch_n_edges`
-    - `patch_n_seam`
-    - `patch_n_critical`
-    - `patch_n_stable`
+  - `obstruction_mean_abs_holonomy`
+  - `obstruction_max_abs_holonomy`
+  - `obstruction_signed_sum_holonomy`
+  - `obstruction_signed_weighted_holonomy`
+  - `identity_spin` (comparison only)
 
 This mode must be first-class from the start.
+
+---
+
+## Identity geometry stack
+
+The identity layer now resolves into four ordered levels:
+
+1. **Metric layer**
+   - identity distance
+   - local identity metric
+   - identity magnitude
+
+2. **Transport layer**
+   - path composition
+   - loop-based holonomy residual
+
+3. **Local obstruction layer**
+   - unsigned local obstruction from incident holonomy
+   - signed local obstruction from oriented incident holonomy
+
+4. **Legacy proxy layer**
+   - chart-sensitive node-based spin approximation
+   - retained for comparison only
+
+The TUI should reflect this hierarchy directly.
 
 ---
 
@@ -250,12 +276,12 @@ Contains:
   - criticality
   - Lazarus
   - identity magnitude
-  - identity spin
+  - absolute holonomy / obstruction summaries
+  - signed local obstruction
+  - legacy spin (comparison only)
 - refresh status / data freshness
 
 This is the observatory spine.
-
-It replaces the legacy left stack with a mode-agnostic inspector.
 
 ### B. Center manifold pane
 
@@ -270,25 +296,20 @@ Shows:
 
 This pane is the heart of the interface.
 
-Everything else exists to interpret this pane.
-
 ### C. Right detail pane
 
 Context-sensitive.
-
-Changes with mode, but always describes the selected node or selected region.
 
 Possible content:
 
 - node metrics table
 - local patch summary
-- top singularities
+- transport / holonomy summaries
+- obstruction summaries
 - operator summary
 - selected trajectory sparkline block
 - artifact availability
 - nearest-neighbor summary
-
-This pane should avoid becoming a catch-all dump. It should be structured by mode.
 
 ### D. Footer strip
 
@@ -302,8 +323,6 @@ Contains:
 - current overlay
 - current cursor mode
 - optional event messages
-
-This preserves the legacy observatory feel.
 
 ---
 
@@ -319,8 +338,6 @@ When in MDS view:
 - selection still maps to the nearest existing node
 - cursor moves node-to-node, not pixel-to-pixel
 
-This preserves a stable discrete scientific selection model.
-
 ### Cross-view persistence
 
 Switching between Grid and MDS must preserve the same selected node.
@@ -330,8 +347,6 @@ Switching between Grid and MDS must preserve the same selected node.
 ## Overlay semantics
 
 Every overlay must be bound to one of the canonical artifact families.
-
-Examples:
 
 ### Geometry overlays
 - determinant
@@ -352,7 +367,10 @@ Examples:
 
 ### Identity overlays
 - identity magnitude
-- identity spin
+- absolute holonomy
+- unsigned local obstruction
+- signed local obstruction
+- legacy spin (comparison)
 
 The overlay switch must not change mode by itself. Mode selects the conceptual family; overlay selects the field within that family.
 
@@ -387,28 +405,28 @@ The overlay switch must not change mode by itself. Mode selects the conceptual f
 - selected operator path metadata if available
 
 ### Identity detail
-- identity field values
-- patch summary
-- singularity rank
+- identity magnitude
+- holonomy / transport summaries
+- unsigned local obstruction
+- signed local obstruction
+- legacy spin as comparison
 - local identity neighborhood composition
 
 ---
 
 ## Priority visual products for the center pane
 
-The center pane should prioritize these canonical renderings.
-
 ### Grid renderings
 - heatmap-style discrete field map
 - optional marker overlay for selected node
-- optional seam / singularity marker overlays
+- optional seam / singularity / high-obstruction marker overlays
 
 ### MDS renderings
 - scatter manifold colored by chosen field
-- optional seam / singularity overlays
+- optional seam / obstruction overlays
 - selection highlight
 
-Avoid overloading the pane with too many simultaneous visual encodings.
+Avoid overloading the pane with too many simultaneous encodings.
 
 ---
 
@@ -434,7 +452,7 @@ Avoid overloading the pane with too many simultaneous visual encodings.
 ### Detail / context
 - `d` → expand/collapse detail pane
 - `t` → trajectory/detail lens where applicable
-- `s` → singularity view / singularity table
+- `s` → singularity / obstruction table view
 - `p` → operator path / probe view where applicable
 
 ### Refresh / utility
@@ -447,8 +465,6 @@ Avoid overloading the pane with too many simultaneous visual encodings.
 
 ## Data contract expectations
 
-The TUI should consume durable artifact files, not hidden in-memory state.
-
 Canonical artifact families include:
 
 - `outputs/index.csv`
@@ -457,20 +473,14 @@ Canonical artifact families include:
 - `outputs/fim_critical/*`
 - `outputs/fim_ops*/*`
 - `outputs/fim_identity/*`
+- `outputs/fim_identity_holonomy/*`
+- `outputs/fim_identity_obstruction/*`
 
 The interface must remain file-first.
-
-This preserves:
-- reproducibility
-- inspectability
-- restart safety
-- architectural coherence
 
 ---
 
 ## Initial implementation scope for TUI v2
-
-Phase 1 should be modest and stable.
 
 ### Must-have
 - persistent selected node
@@ -484,7 +494,7 @@ Phase 1 should be modest and stable.
 
 ### Nice-to-have later
 - embedded trajectory mini-plots
-- singularity ranking table view
+- obstruction ranking table view
 - operator path overlays
 - neighborhood graph rendering
 - artifact browser
@@ -516,7 +526,7 @@ Any future GUI should inherit the same ontology:
 - same selected-node semantics
 - same Grid/MDS duality
 - same overlay model
-- same identity-first-class treatment
+- same transport-founded identity treatment
 
 The GUI should be an implementation variant, not a conceptual redesign.
 
@@ -530,9 +540,9 @@ The next canonical PAM observatory should be a manifold-centered instrument with
 - one shared manifold
 - multiple structural lenses
 - persistent local inspection
-- first-class identity support
+- first-class identity support grounded in transport and obstruction
 
 In short:
 
 > The observatory should no longer be organized around runs alone.
-> It should be organized around the manifold that the runs reveal.
+> It should be organized around the manifold that the runs reveal, with identity mode centered on holonomy and transport-derived local obstruction rather than legacy spin.

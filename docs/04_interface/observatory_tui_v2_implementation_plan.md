@@ -19,7 +19,7 @@ The TUI is not a dashboard. It is an instrument for inspecting the manifold thro
 
 > The manifold designs the interface.
 
-The implementation should proceed from shared state and shared manifold rendering outward, rather than from isolated panels inward.
+The implementation should proceed from shared state and shared manifold rendering outward.
 
 That means:
 
@@ -31,12 +31,6 @@ That means:
 ---
 
 ## Phase 0 — Freeze the data contract
-
-### Goal
-
-Define exactly which artifact files TUI v2 reads in each mode.
-
-### Deliverables
 
 Create a stable loader contract mapping:
 
@@ -59,27 +53,19 @@ Create a stable loader contract mapping:
   - `outputs/fim_ops*/*`
 - **Identity**
   - `outputs/fim_identity/*`
-  - `outputs/fim_identity_maps/*`
-  - `outputs/fim_identity_diagnostics/*`
-  - `outputs/fim_identity_singularity_overlay/*`
+  - `outputs/fim_identity_holonomy/*`
+  - `outputs/fim_identity_obstruction/*`
 
-### Why first
+The identity loader contract should now explicitly prioritize:
 
-This prevents the interface from inventing hidden state, bypassing the artifact graph, or drifting away from the repository’s architecture.
-
-### Acceptance
-
-- every mode has an explicit file contract
-- missing optional artifacts are identified in advance
-- no mode depends on hidden in-memory-only scientific state
+1. holonomy
+2. unsigned local obstruction
+3. signed local obstruction
+4. legacy spin
 
 ---
 
 ## Phase 1 — Build the shared observatory skeleton
-
-### Goal
-
-Implement the stable frame of the instrument before adding heavy scientific mode logic.
 
 ### Core pieces
 
@@ -130,43 +116,26 @@ Minimum state should include:
 - right pane shows selected-node metadata
 - footer shows controls and status
 
-This is the first true milestone.
-
 ---
 
 ## Phase 2 — Implement the manifold renderer
 
-### Goal
-
-Make the center pane reflect the shared manifold directly.
-
 ### Step 2A — Grid view first
-
-Start with the parameter lattice.
 
 Support:
 
 - scalar heatmap rendering in terminal cells
 - selected-node highlight
-- optional markers for seam / singularities later
-
-### Why grid first
-
-- it matches the native sweep structure
-- selection is discrete and robust
-- color mapping is straightforward
-- it supports Run, Geometry, Phase, Topology, Operators, and Identity immediately
+- optional markers for seam / obstruction later
 
 ### Step 2B — MDS view second
-
-Once grid rendering is stable, add the intrinsic manifold embedding.
 
 Support:
 
 - scatter-like node rendering in terminal coordinates
 - nearest-node selection
 - field coloring by overlay
-- optional seam / singularity overlays
+- optional seam / obstruction overlays
 
 ### Acceptance
 
@@ -178,153 +147,106 @@ Support:
 
 ## Phase 3 — Implement mode-specific loaders and overlays
 
-Build mode support one conceptual family at a time.
-
 ### 3.1 Run mode
 
-#### Reads
-
+Reads:
 - `outputs/index.csv`
 - manifest / integrity outputs
 - selected trajectory artifact if present
 
-#### Shows
-
+Shows:
 - coverage heatmap
 - run status summary
 - selected cell summary
 - optional mini trajectory display
 
-#### Acceptance
-
-- provides parity or improvement relative to the legacy run monitor
-
 ---
 
 ### 3.2 Geometry mode
 
-#### Reads
-
+Reads:
 - `outputs/fim/fim_surface.csv`
 - `outputs/fim_mds/mds_coords.csv`
 - `outputs/fim_curvature/curvature_surface.csv`
 
-#### Overlays
-
+Overlays:
 - determinant
 - curvature
 - condition number
-
-#### Detail pane
-
-- local metric tensor summary
-- determinant
-- curvature
-- anisotropy / condition number
 
 ---
 
 ### 3.3 Phase mode
 
-#### Reads
-
+Reads:
 - `outputs/fim_phase/signed_phase_coords.csv`
 - `outputs/fim_phase/phase_distance_to_seam.csv`
 - seam artifact
 
-#### Overlays
-
+Overlays:
 - signed phase
 - distance to seam
-
-#### Detail pane
-
-- signed phase
-- seam distance
-- seam-adjacent status
-- local phase interpretation
 
 ---
 
 ### 3.4 Topology mode
 
-#### Reads
-
+Reads:
 - `outputs/fim_critical/criticality_surface.csv`
 - future topology summaries
 
-#### Overlays
-
+Overlays:
 - criticality
 - topology summaries as they stabilize
-
-#### Detail pane
-
-- selected node local topology summary
-- neighborhood organization
-- critical / seam / stable composition
 
 ---
 
 ### 3.5 Operators mode
 
-#### Reads
-
+Reads:
 - `outputs/fim_lazarus/lazarus_scores.csv`
 - `outputs/fim_transition_rate/*`
 - operator summaries and path metadata
 
-#### Overlays
-
+Overlays:
 - Lazarus
 - transition rate
 - operator response summaries
-
-#### Detail pane
-
-- local operator metrics
-- transition likelihood
-- probe/path availability
 
 ---
 
 ### 3.6 Identity mode
 
-#### Reads
-
+Reads:
 - `outputs/fim_identity/identity_field_nodes.csv`
-- `outputs/fim_identity_maps/identity_maps_nodes.csv`
-- singularity tables / overlays where available
+- `outputs/fim_identity_holonomy/identity_holonomy_cells.csv`
+- `outputs/fim_identity_obstruction/identity_obstruction_nodes.csv`
+- `outputs/fim_identity_obstruction/identity_obstruction_signed_nodes.csv`
 
-#### Overlays
-
-- identity magnitude
-- identity spin
-
-#### Detail pane
-
-- `identity_vx`
-- `identity_vy`
+Primary overlays:
 - `identity_magnitude`
+- `abs_holonomy_residual` (cell-centered view)
+- `obstruction_mean_abs_holonomy`
+- `obstruction_max_abs_holonomy`
+- `obstruction_signed_sum_holonomy`
+
+Secondary / comparison overlays:
 - `identity_spin`
-- patch counts:
-  - `patch_n_nodes`
-  - `patch_n_edges`
-  - `patch_n_seam`
-  - `patch_n_critical`
-  - `patch_n_stable`
+- `obstruction_signed_weighted_holonomy`
+- `obstruction_mean_holonomy`
 
-#### Acceptance
+Detail pane should prioritize:
+- holonomy summaries
+- unsigned local obstruction
+- signed local obstruction
+- legacy spin only as comparison
 
-Identity must be treated as a first-class mode from the start, not bolted on later.
+Acceptance:
+Identity mode must be transport-centered, with spin clearly demoted to comparison status.
 
 ---
 
 ## Phase 4 — Add selection-aware detail lenses
-
-### Goal
-
-Make the right pane scientifically useful rather than merely descriptive.
 
 ### Per selected node, expose
 
@@ -350,50 +272,34 @@ Across all modes, maintain a compact node synopsis:
 - criticality
 - Lazarus
 - identity magnitude
-- identity spin
-
-This becomes the observatory’s persistent local chart.
-
-### Acceptance
-
-- every mode has a structured, non-chaotic detail pane
-- selected-node interpretation feels mode-specific but selection-consistent
+- unsigned local obstruction
+- signed local obstruction
+- legacy spin (comparison)
 
 ---
 
 ## Phase 5 — Add lightweight interaction upgrades
 
-### Goal
-
-Improve usability without destabilizing the observatory.
-
-### Add
+Add:
 
 - overlay cycling
-- singularity table view
+- obstruction / holonomy table view
 - optional trajectory lens for Run / Operators
 - help screen
 - manual refresh and refresh-freeze
-- optional selection jump commands later
 
-### Avoid early
+Avoid early:
 
 - mouse-dependent logic
 - overly animated transitions
 - large collections of tiny subpanels
 - web-dashboard style clutter
 
-### Acceptance
-
-- interactions remain fast and legible
-- the interface still feels like an instrument, not a dashboard
-
 ---
 
 ## Recommended implementation order
 
 ### Milestone 1
-
 - app shell
 - shared state
 - 3-pane layout
@@ -401,28 +307,26 @@ Improve usability without destabilizing the observatory.
 - grid selection
 
 ### Milestone 2
-
 - Run mode parity with legacy TUI
 
 ### Milestone 3
-
 - Geometry + Phase modes on grid view
 
 ### Milestone 4
-
 - MDS view support
 
 ### Milestone 5
-
 - Topology + Operators modes
 
 ### Milestone 6
-
-- Identity mode
+- Identity mode with transport-centered overlays:
+  - absolute holonomy
+  - unsigned local obstruction
+  - signed local obstruction
+  - legacy spin comparison
 
 ### Milestone 7
-
-- singularity overlays
+- obstruction overlays
 - richer detail pane
 - contextual tables / ranking views
 
@@ -433,11 +337,9 @@ This order gets the instrument usable early while aligning implementation with t
 ## Suggested code architecture
 
 ### State
-
 One central app state object.
 
 Responsible for:
-
 - selection
 - active mode
 - active overlay
@@ -446,59 +348,55 @@ Responsible for:
 - loader snapshots
 
 ### Loaders
-
 One loader family per artifact family.
 
 Responsible for:
-
 - file reads
 - mtime-aware refresh
 - schema normalization
 - graceful handling of missing optional outputs
 
+Identity loaders should expose both:
+- node-centered obstruction summaries
+- cell-centered holonomy summaries
+
 ### Views
-
 Pure rendering functions from:
-
 - `(state, loaded_data) -> panel content`
 
 ### Mode controllers
-
 Each mode defines:
-
 - default overlay
 - required artifact families
 - detail-pane schema
 - optional mode-specific actions
 
-This keeps the UI modular and faithful to the architecture.
+Identity mode defaults should now prefer transport-derived fields over legacy spin.
 
 ---
 
 ## Testing strategy
 
 ### 1. Loader tests
-
 Verify each loader reads current artifact files successfully.
 
 ### 2. Selection tests
-
 Verify moving selection updates all panes consistently.
 
 ### 3. Mode tests
-
 Verify each mode renders or degrades gracefully if optional files are absent.
 
 ### 4. Cross-view tests
-
 Verify Grid/MDS toggle preserves selected node.
 
 ### 5. Identity tests
-
-Verify identity overlays and singularity views work when identity artifacts exist.
+Verify:
+- holonomy overlays render
+- unsigned obstruction overlays render
+- signed obstruction overlays render
+- legacy spin comparison renders when available
 
 ### 6. Refresh tests
-
 Verify file updates appear correctly after refresh without restarting the app.
 
 ---
@@ -506,7 +404,6 @@ Verify file updates appear correctly after refresh without restarting the app.
 ## Recommended initial PR sequence
 
 ### PR A — observatory shell
-
 - app state
 - 3-pane layout
 - footer
@@ -514,26 +411,23 @@ Verify file updates appear correctly after refresh without restarting the app.
 - mode switching scaffolding
 
 ### PR B — loaders + Run mode
-
 - migrate the useful core of the legacy monitor into the new shell
 
 ### PR C — Geometry / Phase mode
-
 - first real manifold-centered scientific inspection views
 
 ### PR D — MDS support
-
 - preserve shared selection across Grid and MDS
 
 ### PR E — Topology / Operators mode
-
 - expose criticality, Lazarus, transition summaries
 
 ### PR F — Identity mode
-
 - identity magnitude
-- identity spin
-- singularity highlighting
+- absolute holonomy
+- unsigned local obstruction
+- signed local obstruction
+- legacy spin as comparison only
 
 This sequence keeps the observatory useful at every stage.
 
@@ -577,7 +471,7 @@ Any future GUI should inherit this same conceptual model:
 - same selected-node semantics
 - same Grid/MDS duality
 - same overlay logic
-- same first-class identity treatment
+- same transport-founded identity treatment
 
 The GUI should be an implementation variant, not a conceptual redesign.
 
@@ -591,8 +485,8 @@ The next canonical PAM observatory should be implemented as a manifold-centered 
 - one shared manifold
 - multiple structural lenses
 - persistent local inspection
-- first-class identity support
+- first-class identity support grounded in transport and obstruction
 
 In short:
 
-> The implementation should move from shell → manifold → modes → identity, while preserving the file-first instrument architecture at every step.
+> The implementation should move from shell → manifold → modes → transport-centered identity, while preserving the file-first instrument architecture at every step.
