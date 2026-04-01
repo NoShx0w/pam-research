@@ -6,7 +6,7 @@ from dataclasses import dataclass
 @dataclass
 class ObservatoryState:
     mode: str = "Run"
-    view_space: str = "grid"  # grid | mds
+    view_space: str = "grid"
     overlay: str = "coverage"
 
     selected_i: int = 0
@@ -16,6 +16,8 @@ class ObservatoryState:
 
     refresh_enabled: bool = True
     status_message: str = "Ready"
+
+    outputs_root: str = "outputs"
 
     def clamp_selection(self) -> None:
         self.selected_i = max(0, min(self.selected_i, self.grid_rows - 1))
