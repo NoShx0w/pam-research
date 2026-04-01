@@ -22,6 +22,11 @@ from pam.topology.identity_transport import (
     build_identity_holonomy_table,
     load_identity_transport_nodes,
 )
+from pam.topology.identity_obstruction import (
+    IdentityObstructionConfig,
+    build_identity_obstruction_table,
+    load_identity_obstruction_inputs,
+)
 
 
 def _run_identity_topology_outputs(
@@ -208,12 +213,34 @@ def _run_identity_topology_outputs(
     identity_holonomy_alignment_csv = fim_identity_holonomy_dir / "identity_holonomy_alignment.csv"
     hol_align.to_csv(identity_holonomy_alignment_csv, index=False)
 
+    # 5) Transport-derived local obstruction field
+    obstruction_nodes_df, obstruction_cells_df = load_identity_obstruction_inputs(
+        identity_nodes_csv=identity_field_nodes_csv,
+        holonomy_cells_csv=identity_holonomy_cells_csv,
+    )
+
+    obstruction_df = build_identity_obstruction_table(
+        nodes=obstruction_nodes_df,
+        cells=obstruction_cells_df,
+        config=IdentityObstructionConfig(),
+    )
+
+    fim_identity_obstruction_dir = Path(state.outputs.root) / "fim_identity_obstruction"
+    fim_identity_obstruction_dir.mkdir(parents=True, exist_ok=True)
+
+    identity_obstruction_nodes_csv = (
+        fim_identity_obstruction_dir / "identity_obstruction_nodes.csv"
+    )
+    obstruction_df.to_csv(identity_obstruction_nodes_csv, index=False)
+
+
     return {
         "identity_field_nodes_csv": str(identity_field_nodes_csv),
         "identity_field_edges_csv": str(identity_field_edges_csv),
         "identity_spin_csv": str(identity_spin_csv),
         "identity_holonomy_cells_csv": str(identity_holonomy_cells_csv),
         "identity_holonomy_alignment_csv": str(identity_holonomy_alignment_csv),
+        "identity_obstruction_nodes_csv": str(identity_obstruction_nodes_csv),
     }
 
 
