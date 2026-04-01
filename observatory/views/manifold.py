@@ -9,7 +9,39 @@ from observatory.state import ObservatoryState
 
 
 class ManifoldView(Static):
-    def _render_grid(self, state: ObservatoryState, run_data=None) -> Table:
+    def _render_scalar_grid(self, state: ObservatoryState, df, value_col: str) -> Table:
+        table = Table.grid(padding=(0, 1))
+        for _ in range(state.grid_cols):
+            table.add_column(justify="center", width=2)
+
+        lookup = {}
+        if df is not None and not df.empty and {"r", "alpha", value_col}.issubset(df.columns):
+            r_vals = sorted(df["r"].dropna().unique())
+            a_vals = sorted(df["alpha"].dropna().unique())
+            for i, r in enumerate(r_vals):
+                for j, a in enumerate(a_vals):
+                    hit = df[(df["r"] == r) & (df["alpha"] == a)]
+                    if hit.empty:
+                        lookup[(i, j)] = None
+                    else:
+                        lookup[(i, j)] = hit.iloc[0][value_col]
+
+        for i in range(state.grid_rows):
+            row = []
+            for j in range(state.grid_cols):
+                val = lookup.get((i, j), None)
+
+                if i == state.selected_i and j == state.selected_j:
+                    row.append("[black on bright_white]●[/]")
+                elif val is None or val != val:
+                    row.append("[dim]·[/]")
+                else:
+                    row.append("[green]■[/]")
+
+            table.add_row(*row)
+        return table
+
+    def _render_run_grid(self, state: ObservatoryState, run_data) -> Table:
         table = Table.grid(padding=(0, 1))
         for _ in range(state.grid_cols):
             table.add_column(justify="center", width=2)
@@ -23,10 +55,7 @@ class ManifoldView(Static):
                     hit = run_data.coverage_df[
                         (run_data.coverage_df["r"] == r) & (run_data.coverage_df["alpha"] == a)
                     ]
-                    if hit.empty:
-                        coverage_lookup[(i, j)] = 0
-                    else:
-                        coverage_lookup[(i, j)] = int(hit.iloc[0]["n_rows"])
+                    coverage_lookup[(i, j)] = 0 if hit.empty else int(hit.iloc[0]["n_rows"])
 
         for i in range(state.grid_rows):
             row = []
@@ -67,11 +96,19 @@ class ManifoldView(Static):
             table.add_row(*row)
         return table
 
-    def render_from_state(self, state: ObservatoryState, run_data=None) -> None:
-        content = (
-            self._render_grid(state, run_data=run_data)
-            if state.view_space == "grid"
-            else self._render_mds_placeholder(state)
-        )
+    def render_from_state(self, state: ObservatoryState, mode_data=None) -> None:
+        if state.view_space == "mds":
+            content = self._render_mds_placeholder(state)
+        elif state.mode == "Run":
+            content = self._render_run_grid(state, mode_data)
+        elif state.mode == "Geometry":
+            value_col = "scalar_curvature" if state.overlay == "curvature" else "fim_det"
+            content = self._render_scalar_grid(state, mode_data.geometry_df if mode_data else None, value_col)
+        elif state.mode == "Phase":
+            value_col = "signed_phase" if state.overlay == "signed_phase" else "distance_to_seam"
+            content = self._render_scalar_grid(state, mode_data.phase_df if mode_data else None, value_col)
+        else:
+            content = self._render_run_grid(state, None)
+
         title = f"Manifold — {state.mode} / {state.view_space.upper()} / {state.overlay}"
         self.update(Panel(Align.center(content, vertical="top"), title=title, border_style="green"))

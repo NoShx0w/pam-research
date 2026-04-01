@@ -7,8 +7,31 @@ from textual.widgets import Static
 from observatory.state import ObservatoryState
 
 
+def _fmt(value, digits: int = 3) -> str:
+    if value is None:
+        return "—"
+    try:
+        if value != value:
+            return "—"
+    except Exception:
+        pass
+    if isinstance(value, (int,)):
+        return str(value)
+    try:
+        return f"{float(value):.{digits}f}"
+    except Exception:
+        return str(value)
+
+
 class InspectorView(Static):
-    def render_from_state(self, state: ObservatoryState, run_summary: dict | None = None, index_mtime: float | None = None) -> None:
+    def render_from_state(
+        self,
+        state: ObservatoryState,
+        run_summary: dict | None = None,
+        geometry_summary: dict | None = None,
+        phase_summary: dict | None = None,
+        index_mtime: float | None = None,
+    ) -> None:
         table = Table.grid(padding=(0, 1))
         table.add_row("Mode", state.mode)
         table.add_row("View", state.view_space.upper())
@@ -19,10 +42,23 @@ class InspectorView(Static):
         table.add_row("Grid", f"{state.grid_rows}×{state.grid_cols}")
 
         if run_summary:
-            table.add_row("r", "—" if run_summary["r"] is None else f"{run_summary['r']:.3f}")
-            table.add_row("α", "—" if run_summary["alpha"] is None else f"{run_summary['alpha']:.6f}")
+            table.add_row("r", _fmt(run_summary["r"], 3))
+            table.add_row("α", _fmt(run_summary["alpha"], 6))
             table.add_row("Rows", str(run_summary["n_rows"]))
             table.add_row("Seeds", str(run_summary["n_seeds"]))
+
+        if geometry_summary:
+            table.add_row("r", _fmt(geometry_summary["r"], 3))
+            table.add_row("α", _fmt(geometry_summary["alpha"], 6))
+            table.add_row("Curv", _fmt(geometry_summary["scalar_curvature"], 3))
+            table.add_row("Det", _fmt(geometry_summary["fim_det"], 3))
+            table.add_row("Cond", _fmt(geometry_summary["fim_cond"], 3))
+
+        if phase_summary:
+            table.add_row("r", _fmt(phase_summary["r"], 3))
+            table.add_row("α", _fmt(phase_summary["alpha"], 6))
+            table.add_row("Phase", _fmt(phase_summary["signed_phase"], 3))
+            table.add_row("Seam d", _fmt(phase_summary["distance_to_seam"], 3))
 
         table.add_row("Refresh", "ON" if state.refresh_enabled else "OFF")
         table.add_row("Status", state.status_message)
