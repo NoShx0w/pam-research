@@ -6,7 +6,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.binding import Binding
 
-from observatory.loaders import load_run_data
+from observatory.loaders import load_geometry_data, load_phase_data, load_run_data
 from observatory.modes import DEFAULT_OVERLAY_BY_MODE, MODES, OVERLAYS_BY_MODE
 from observatory.state import ObservatoryState
 from observatory.views.detail import DetailView
@@ -77,6 +77,8 @@ class ObservatoryApp(App):
         super().__init__()
         self.state = ObservatoryState()
         self.run_data = load_run_data(self.state.outputs_root)
+        self.geometry_data = load_geometry_data(self.state.outputs_root)
+        self.phase_data = load_phase_data(self.state.outputs_root)
 
     def _update_grid_shape_from_run_data(self) -> None:
         coverage = self.run_data.coverage_df
@@ -92,7 +94,6 @@ class ObservatoryApp(App):
         self.state.grid_rows = max(1, len(r_vals))
         self.state.grid_cols = max(1, len(a_vals))
         self.state.clamp_selection()
-
 
     def _selected_run_cell_summary(self) -> dict[str, object]:
         coverage = self.run_data.coverage_df
@@ -125,6 +126,55 @@ class ObservatoryApp(App):
             "n_seeds": int(rec["n_seeds"]),
         }
 
+    def _selected_geometry_summary(self) -> dict[str, object]:
+        df = self.geometry_data.geometry_df
+        if df.empty:
+            return {"r": None, "alpha": None, "scalar_curvature": None, "fim_det": None, "fim_cond": None}
+
+        r_vals = sorted(pd.to_numeric(df["r"], errors="coerce").dropna().unique())
+        a_vals = sorted(pd.to_numeric(df["alpha"], errors="coerce").dropna().unique())
+        if not r_vals or not a_vals:
+            return {"r": None, "alpha": None, "scalar_curvature": None, "fim_det": None, "fim_cond": None}
+
+        r = r_vals[self.state.selected_i]
+        a = a_vals[self.state.selected_j]
+        row = df[(df["r"] == r) & (df["alpha"] == a)]
+        if row.empty:
+            return {"r": r, "alpha": a, "scalar_curvature": None, "fim_det": None, "fim_cond": None}
+
+        rec = row.iloc[0]
+        return {
+            "r": float(rec["r"]),
+            "alpha": float(rec["alpha"]),
+            "scalar_curvature": pd.to_numeric(rec.get("scalar_curvature"), errors="coerce"),
+            "fim_det": pd.to_numeric(rec.get("fim_det"), errors="coerce"),
+            "fim_cond": pd.to_numeric(rec.get("fim_cond"), errors="coerce"),
+        }
+
+    def _selected_phase_summary(self) -> dict[str, object]:
+        df = self.phase_data.phase_df
+        if df.empty:
+            return {"r": None, "alpha": None, "signed_phase": None, "distance_to_seam": None}
+
+        r_vals = sorted(pd.to_numeric(df["r"], errors="coerce").dropna().unique())
+        a_vals = sorted(pd.to_numeric(df["alpha"], errors="coerce").dropna().unique())
+        if not r_vals or not a_vals:
+            return {"r": None, "alpha": None, "signed_phase": None, "distance_to_seam": None}
+
+        r = r_vals[self.state.selected_i]
+        a = a_vals[self.state.selected_j]
+        row = df[(df["r"] == r) & (df["alpha"] == a)]
+        if row.empty:
+            return {"r": r, "alpha": a, "signed_phase": None, "distance_to_seam": None}
+
+        rec = row.iloc[0]
+        return {
+            "r": float(rec["r"]),
+            "alpha": float(rec["alpha"]),
+            "signed_phase": pd.to_numeric(rec.get("signed_phase"), errors="coerce"),
+            "distance_to_seam": pd.to_numeric(rec.get("distance_to_seam"), errors="coerce"),
+        }
+
     def compose(self) -> ComposeResult:
         yield Vertical(
             Horizontal(
@@ -142,19 +192,37 @@ class ObservatoryApp(App):
 
     def _render_all(self) -> None:
         run_summary = self._selected_run_cell_summary()
+        geometry_summary = self._selected_geometry_summary()
+        phase_summary = self._selected_phase_summary()
+
         self.query_one("#inspector", InspectorView).render_from_state(
             self.state,
-            run_summary=run_summary,
+            run_summary=run_summary if self.state.mode == "Run" else None,
+            geometry_summary=geometry_summary if self.state.mode == "Geometry" else None,
+            phase_summary=phase_summary if self.state.mode == "Phase" else None,
             index_mtime=self.run_data.index_mtime,
         )
+
+        mode_data = None
+        if self.state.mode == "Run":
+            mode_data = self.run_data
+        elif self.state.mode == "Geometry":
+            mode_data = self.geometry_data
+        elif self.state.mode == "Phase":
+            mode_data = self.phase_data
+
         self.query_one("#manifold", ManifoldView).render_from_state(
             self.state,
-            run_data=self.run_data if self.state.mode == "Run" else None,
+            mode_data=mode_data,
         )
+
         self.query_one("#detail", DetailView).render_from_state(
             self.state,
             run_summary=run_summary if self.state.mode == "Run" else None,
+            geometry_summary=geometry_summary if self.state.mode == "Geometry" else None,
+            phase_summary=phase_summary if self.state.mode == "Phase" else None,
         )
+
         self.query_one("#footer", FooterView).render_from_state(self.state)
 
     def action_set_mode(self, mode: str) -> None:
@@ -193,6 +261,8 @@ class ObservatoryApp(App):
 
     def action_refresh_state(self) -> None:
         self.run_data = load_run_data(self.state.outputs_root)
+        self.geometry_data = load_geometry_data(self.state.outputs_root)
+        self.phase_data = load_phase_data(self.state.outputs_root)
         self._update_grid_shape_from_run_data()
         self.state.status_message = "Refreshed"
         self._render_all()
