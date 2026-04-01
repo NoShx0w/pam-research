@@ -48,6 +48,10 @@ def _run_identity_topology_outputs(
       outputs/fim_identity_holonomy/
         - identity_holonomy_cells.csv
         - identity_holonomy_alignment.csv
+
+      outputs/fim_identity_obstruction/
+        - identity_obstruction_nodes.csv
+        - identity_obstruction_signed_nodes.csv
     """
     fim_identity_dir = Path(state.outputs.root) / "fim_identity"
     fim_identity_holonomy_dir = Path(state.outputs.root) / "fim_identity_holonomy"
@@ -213,7 +217,7 @@ def _run_identity_topology_outputs(
     identity_holonomy_alignment_csv = fim_identity_holonomy_dir / "identity_holonomy_alignment.csv"
     hol_align.to_csv(identity_holonomy_alignment_csv, index=False)
 
-    # 5) Transport-derived local obstruction field
+    # 5) Transport-derived local obstruction fields
     obstruction_nodes_df, obstruction_cells_df = load_identity_obstruction_inputs(
         identity_nodes_csv=identity_field_nodes_csv,
         holonomy_cells_csv=identity_holonomy_cells_csv,
@@ -222,7 +226,9 @@ def _run_identity_topology_outputs(
     obstruction_df = build_identity_obstruction_table(
         nodes=obstruction_nodes_df,
         cells=obstruction_cells_df,
-        config=IdentityObstructionConfig(),
+        config=IdentityObstructionConfig(
+            weight_signed_by_abs_holonomy=True,
+        ),
     )
 
     fim_identity_obstruction_dir = Path(state.outputs.root) / "fim_identity_obstruction"
@@ -231,8 +237,12 @@ def _run_identity_topology_outputs(
     identity_obstruction_nodes_csv = (
         fim_identity_obstruction_dir / "identity_obstruction_nodes.csv"
     )
-    obstruction_df.to_csv(identity_obstruction_nodes_csv, index=False)
+    identity_obstruction_signed_nodes_csv = (
+        fim_identity_obstruction_dir / "identity_obstruction_signed_nodes.csv"
+    )
 
+    obstruction_df.to_csv(identity_obstruction_nodes_csv, index=False)
+    obstruction_df.to_csv(identity_obstruction_signed_nodes_csv, index=False)
 
     return {
         "identity_field_nodes_csv": str(identity_field_nodes_csv),
@@ -241,6 +251,7 @@ def _run_identity_topology_outputs(
         "identity_holonomy_cells_csv": str(identity_holonomy_cells_csv),
         "identity_holonomy_alignment_csv": str(identity_holonomy_alignment_csv),
         "identity_obstruction_nodes_csv": str(identity_obstruction_nodes_csv),
+        "identity_obstruction_signed_nodes_csv": str(identity_obstruction_signed_nodes_csv),
     }
 
 

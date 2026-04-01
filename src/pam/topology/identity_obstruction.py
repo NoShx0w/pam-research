@@ -13,7 +13,9 @@ This module derives node-local obstruction summaries from incident cells.
 Outputs per node may include:
 - obstruction_mean_abs_holonomy
 - obstruction_max_abs_holonomy
-- obstruction_mean_signed_holonomy
+- obstruction_mean_holonomy
+- obstruction_signed_sum_holonomy
+- obstruction_signed_weighted_holonomy
 - obstruction_n_incident_cells
 """
 
@@ -27,6 +29,8 @@ import pandas as pd
 @dataclass(frozen=True)
 class IdentityObstructionConfig:
     use_absolute_primary: bool = True
+    weight_signed_by_abs_holonomy: bool = True
+    weight_eps: float = 1e-12
 
 
 def load_identity_obstruction_inputs(
@@ -104,8 +108,37 @@ def build_identity_obstruction_table(
         node_id = str(row["node_id"])
         vals = incident.get(node_id, [])
 
-        hol = np.array([v["holonomy_residual"] for v in vals], dtype=float) if vals else np.array([], dtype=float)
-        abs_hol = np.array([v["abs_holonomy_residual"] for v in vals], dtype=float) if vals else np.array([], dtype=float)
+        hol = (
+            np.array([v["holonomy_residual"] for v in vals], dtype=float)
+            if vals else np.array([], dtype=float)
+        )
+        abs_hol = (
+            np.array([v["abs_holonomy_residual"] for v in vals], dtype=float)
+            if vals else np.array([], dtype=float)
+        )
+
+        if len(hol):
+            mean_hol = float(np.mean(hol))
+            signed_sum_hol = float(np.sum(hol))
+        else:
+            mean_hol = np.nan
+            signed_sum_hol = np.nan
+
+        if len(abs_hol):
+            mean_abs_hol = float(np.mean(abs_hol))
+            max_abs_hol = float(np.max(abs_hol))
+        else:
+            mean_abs_hol = np.nan
+            max_abs_hol = np.nan
+
+        if len(hol):
+            if config.weight_signed_by_abs_holonomy:
+                weights = np.maximum(abs_hol, config.weight_eps)
+                signed_weighted_hol = float(np.sum(hol * weights) / np.sum(weights))
+            else:
+                signed_weighted_hol = mean_hol
+        else:
+            signed_weighted_hol = np.nan
 
         out = {
             "node_id": node_id,
@@ -114,9 +147,11 @@ def build_identity_obstruction_table(
             "r": float(row["r"]),
             "alpha": float(row["alpha"]),
             "obstruction_n_incident_cells": int(len(vals)),
-            "obstruction_mean_holonomy": float(np.mean(hol)) if len(hol) else np.nan,
-            "obstruction_mean_abs_holonomy": float(np.mean(abs_hol)) if len(abs_hol) else np.nan,
-            "obstruction_max_abs_holonomy": float(np.max(abs_hol)) if len(abs_hol) else np.nan,
+            "obstruction_mean_holonomy": mean_hol,
+            "obstruction_signed_sum_holonomy": signed_sum_hol,
+            "obstruction_signed_weighted_holonomy": signed_weighted_hol,
+            "obstruction_mean_abs_holonomy": mean_abs_hol,
+            "obstruction_max_abs_holonomy": max_abs_hol,
         }
         rows.append(out)
 
