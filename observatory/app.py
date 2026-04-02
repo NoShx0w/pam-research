@@ -6,7 +6,7 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.binding import Binding
 
-from observatory.loaders import load_geometry_data, load_phase_data, load_run_data
+from observatory.loaders import load_geometry_data, load_mds_data, load_phase_data, load_run_data
 from observatory.modes import DEFAULT_OVERLAY_BY_MODE, MODES, OVERLAYS_BY_MODE
 from observatory.state import ObservatoryState
 from observatory.views.detail import DetailView
@@ -79,6 +79,7 @@ class ObservatoryApp(App):
         self.run_data = load_run_data(self.state.outputs_root)
         self.geometry_data = load_geometry_data(self.state.outputs_root)
         self.phase_data = load_phase_data(self.state.outputs_root)
+        self.mds_data = load_mds_data(self.state.outputs_root)
 
     def _update_grid_shape_from_run_data(self) -> None:
         coverage = self.run_data.coverage_df
@@ -214,6 +215,7 @@ class ObservatoryApp(App):
         self.query_one("#manifold", ManifoldView).render_from_state(
             self.state,
             mode_data=mode_data,
+            mds_data=self.mds_data,
         )
 
         self.query_one("#detail", DetailView).render_from_state(
@@ -263,6 +265,7 @@ class ObservatoryApp(App):
         self.run_data = load_run_data(self.state.outputs_root)
         self.geometry_data = load_geometry_data(self.state.outputs_root)
         self.phase_data = load_phase_data(self.state.outputs_root)
+        self.mds_data = load_mds_data(self.state.outputs_root)
         self._update_grid_shape_from_run_data()
         self.state.status_message = "Refreshed"
         self._render_all()
