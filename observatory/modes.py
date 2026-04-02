@@ -23,7 +23,7 @@ OVERLAYS_BY_MODE: dict[str, list[str]] = {
     "Geometry": ["curvature", "determinant", "condition_number"],
     "Phase": ["signed_phase", "distance_to_seam"],
     "Topology": ["criticality"],
-    "Operators": ["lazarus", "transition_rate"],
+    "Operators": ["lazarus"],
     "Identity": [
         "identity_magnitude",
         "absolute_holonomy",
