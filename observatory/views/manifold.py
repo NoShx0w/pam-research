@@ -25,6 +25,12 @@ class ManifoldView(Static):
             return "distance_to_seam"
         return "signed_phase"
 
+    def _topology_value_col(self, overlay: str) -> str:
+        return "criticality"
+
+    def _operators_value_col(self, overlay: str) -> str:
+        return "lazarus_score"
+
     def _drawable_size(self) -> tuple[int, int]:
         width = max(10, self.size.width - 4)
         height = max(6, self.size.height - 2)
@@ -219,6 +225,22 @@ class ManifoldView(Static):
                 mode_data.phase_df if mode_data else None,
                 value_col,
                 signed=(state.overlay == "signed_phase"),
+            )
+        elif state.mode == "Topology":
+            value_col = self._topology_value_col(state.overlay)
+            content = self._render_scalar_grid(
+                state,
+                mode_data.topology_df if mode_data else None,
+                value_col,
+                signed=False,
+            )
+        elif state.mode == "Operators":
+            value_col = self._operators_value_col(state.overlay)
+            content = self._render_scalar_grid(
+                state,
+                mode_data.operators_df if mode_data else None,
+                value_col,
+                signed=False,
             )
         else:
             content = self._render_run_grid(state, None)

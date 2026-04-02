@@ -15,7 +15,7 @@ def _fmt(value, digits: int = 3) -> str:
             return "—"
     except Exception:
         pass
-    if isinstance(value, (int,)):
+    if isinstance(value, int):
         return str(value)
     try:
         return f"{float(value):.{digits}f}"
@@ -30,6 +30,8 @@ class InspectorView(Static):
         run_summary: dict | None = None,
         geometry_summary: dict | None = None,
         phase_summary: dict | None = None,
+        topology_summary: dict | None = None,
+        operators_summary: dict | None = None,
         index_mtime: float | None = None,
     ) -> None:
         table = Table.grid(padding=(0, 1))
@@ -59,6 +61,16 @@ class InspectorView(Static):
             table.add_row("α", _fmt(phase_summary["alpha"], 6))
             table.add_row("Phase", _fmt(phase_summary["signed_phase"], 3))
             table.add_row("Seam d", _fmt(phase_summary["distance_to_seam"], 3))
+
+        if topology_summary:
+            table.add_row("r", _fmt(topology_summary["r"], 3))
+            table.add_row("α", _fmt(topology_summary["alpha"], 6))
+            table.add_row("Crit", _fmt(topology_summary["criticality"], 3))
+
+        if operators_summary:
+            table.add_row("r", _fmt(operators_summary["r"], 3))
+            table.add_row("α", _fmt(operators_summary["alpha"], 6))
+            table.add_row("Lazarus", _fmt(operators_summary["lazarus_score"], 3))
 
         table.add_row("Refresh", "ON" if state.refresh_enabled else "OFF")
         table.add_row("Status", state.status_message)

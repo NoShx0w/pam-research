@@ -6,7 +6,14 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.binding import Binding
 
-from observatory.loaders import load_geometry_data, load_mds_data, load_phase_data, load_run_data
+from observatory.loaders import (
+    load_geometry_data,
+    load_mds_data,
+    load_operators_data,
+    load_phase_data,
+    load_run_data,
+    load_topology_data,
+)
 from observatory.modes import DEFAULT_OVERLAY_BY_MODE, MODES, OVERLAYS_BY_MODE
 from observatory.state import ObservatoryState
 from observatory.views.detail import DetailView
@@ -79,6 +86,8 @@ class ObservatoryApp(App):
         self.run_data = load_run_data(self.state.outputs_root)
         self.geometry_data = load_geometry_data(self.state.outputs_root)
         self.phase_data = load_phase_data(self.state.outputs_root)
+        self.topology_data = load_topology_data(self.state.outputs_root)
+        self.operators_data = load_operators_data(self.state.outputs_root)
         self.mds_data = load_mds_data(self.state.outputs_root)
 
     def _update_grid_shape_from_run_data(self) -> None:
@@ -176,6 +185,52 @@ class ObservatoryApp(App):
             "distance_to_seam": pd.to_numeric(rec.get("distance_to_seam"), errors="coerce"),
         }
 
+    def _selected_topology_summary(self) -> dict[str, object]:
+        df = self.topology_data.topology_df
+        if df.empty:
+            return {"r": None, "alpha": None, "criticality": None}
+
+        r_vals = sorted(pd.to_numeric(df["r"], errors="coerce").dropna().unique())
+        a_vals = sorted(pd.to_numeric(df["alpha"], errors="coerce").dropna().unique())
+        if not r_vals or not a_vals:
+            return {"r": None, "alpha": None, "criticality": None}
+
+        r = r_vals[self.state.selected_i]
+        a = a_vals[self.state.selected_j]
+        row = df[(df["r"] == r) & (df["alpha"] == a)]
+        if row.empty:
+            return {"r": r, "alpha": a, "criticality": None}
+
+        rec = row.iloc[0]
+        return {
+            "r": float(rec["r"]),
+            "alpha": float(rec["alpha"]),
+            "criticality": pd.to_numeric(rec.get("criticality"), errors="coerce"),
+        }
+
+    def _selected_operators_summary(self) -> dict[str, object]:
+        df = self.operators_data.operators_df
+        if df.empty:
+            return {"r": None, "alpha": None, "lazarus_score": None}
+
+        r_vals = sorted(pd.to_numeric(df["r"], errors="coerce").dropna().unique())
+        a_vals = sorted(pd.to_numeric(df["alpha"], errors="coerce").dropna().unique())
+        if not r_vals or not a_vals:
+            return {"r": None, "alpha": None, "lazarus_score": None}
+
+        r = r_vals[self.state.selected_i]
+        a = a_vals[self.state.selected_j]
+        row = df[(df["r"] == r) & (df["alpha"] == a)]
+        if row.empty:
+            return {"r": r, "alpha": a, "lazarus_score": None}
+
+        rec = row.iloc[0]
+        return {
+            "r": float(rec["r"]),
+            "alpha": float(rec["alpha"]),
+            "lazarus_score": pd.to_numeric(rec.get("lazarus_score"), errors="coerce"),
+        }        
+
     def compose(self) -> ComposeResult:
         yield Vertical(
             Horizontal(
@@ -195,12 +250,16 @@ class ObservatoryApp(App):
         run_summary = self._selected_run_cell_summary()
         geometry_summary = self._selected_geometry_summary()
         phase_summary = self._selected_phase_summary()
+        topology_summary = self._selected_topology_summary()
+        operators_summary = self._selected_operators_summary()
 
         self.query_one("#inspector", InspectorView).render_from_state(
             self.state,
             run_summary=run_summary if self.state.mode == "Run" else None,
             geometry_summary=geometry_summary if self.state.mode == "Geometry" else None,
             phase_summary=phase_summary if self.state.mode == "Phase" else None,
+            topology_summary=topology_summary if self.state.mode == "Topology" else None,
+            operators_summary=operators_summary if self.state.mode == "Operators" else None,
             index_mtime=self.run_data.index_mtime,
         )
 
@@ -211,6 +270,10 @@ class ObservatoryApp(App):
             mode_data = self.geometry_data
         elif self.state.mode == "Phase":
             mode_data = self.phase_data
+        elif self.state.mode == "Topology":
+            mode_data = self.topology_data
+        elif self.state.mode == "Operators":
+            mode_data = self.operators_data
 
         self.query_one("#manifold", ManifoldView).render_from_state(
             self.state,
@@ -223,6 +286,8 @@ class ObservatoryApp(App):
             run_summary=run_summary if self.state.mode == "Run" else None,
             geometry_summary=geometry_summary if self.state.mode == "Geometry" else None,
             phase_summary=phase_summary if self.state.mode == "Phase" else None,
+            topology_summary=topology_summary if self.state.mode == "Topology" else None,
+            operators_summary=operators_summary if self.state.mode == "Operators" else None,
         )
 
         self.query_one("#footer", FooterView).render_from_state(self.state)
@@ -265,6 +330,8 @@ class ObservatoryApp(App):
         self.run_data = load_run_data(self.state.outputs_root)
         self.geometry_data = load_geometry_data(self.state.outputs_root)
         self.phase_data = load_phase_data(self.state.outputs_root)
+        self.topology_data = load_topology_data(self.state.outputs_root)
+        self.operators_data = load_operators_data(self.state.outputs_root)
         self.mds_data = load_mds_data(self.state.outputs_root)
         self._update_grid_shape_from_run_data()
         self.state.status_message = "Refreshed"

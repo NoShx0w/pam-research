@@ -28,6 +28,8 @@ class DetailView(Static):
         run_summary: dict | None = None,
         geometry_summary: dict | None = None,
         phase_summary: dict | None = None,
+        topology_summary: dict | None = None,
+        operators_summary: dict | None = None,
     ) -> None:
         if state.mode == "Run":
             body = Markdown(
@@ -69,6 +71,32 @@ class DetailView(Static):
 - alpha: `{_fmt(phase_summary["alpha"], 6) if phase_summary else "—"}`
 - signed phase: `{_fmt(phase_summary["signed_phase"], 3) if phase_summary else "—"}`
 - distance to seam: `{_fmt(phase_summary["distance_to_seam"], 3) if phase_summary else "—"}`
+
+### Active overlay
+`{state.overlay}`
+"""
+            )
+        elif state.mode == "Topology":
+            body = Markdown(
+                f"""
+### Selected topology node
+- node_id: `{state.selected_node_id}`
+- r: `{_fmt(topology_summary["r"], 3) if topology_summary else "—"}`
+- alpha: `{_fmt(topology_summary["alpha"], 6) if topology_summary else "—"}`
+- criticality: `{_fmt(topology_summary["criticality"], 3) if topology_summary else "—"}`
+
+### Active overlay
+`{state.overlay}`
+"""
+            )
+        elif state.mode == "Operators":
+            body = Markdown(
+                f"""
+### Selected operator node
+- node_id: `{state.selected_node_id}`
+- r: `{_fmt(operators_summary["r"], 3) if operators_summary else "—"}`
+- alpha: `{_fmt(operators_summary["alpha"], 6) if operators_summary else "—"}`
+- lazarus: `{_fmt(operators_summary["lazarus_score"], 3) if operators_summary else "—"}`
 
 ### Active overlay
 `{state.overlay}`
