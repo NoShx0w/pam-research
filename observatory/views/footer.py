@@ -12,5 +12,5 @@ class FooterView(Static):
     def render_from_state(self, state: ObservatoryState) -> None:
         text = " • ".join(KEY_HINTS)
         meta = overlay_meta(state.overlay)
-        title = f"{mode_label(state.mode)} | {overlay_label(state.overlay)} | {meta['kind']}"
+        title = f"{mode_label(state.mode)} | {overlay_label(state.overlay)} | {meta['kind']} | markers:{state.marker_mode}"
         self.update(Panel(text, title=title, border_style="yellow"))

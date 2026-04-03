@@ -5,6 +5,7 @@ KEY_HINTS: list[str] = [
     "g grid/mds",
     "o next overlay",
     "O prev overlay",
+    "m markers",
     "←↑↓→ move",
     "s rank/detail",
     "j/k rank",

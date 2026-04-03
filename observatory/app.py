@@ -82,6 +82,7 @@ class ObservatoryApp(App):
         Binding("f", "toggle_refresh", "Freeze"),
         Binding("j", "ranking_down", "Rank down"),
         Binding("k", "ranking_up", "Rank up"),
+        Binding("m", "next_marker_mode", "Markers"),
         Binding("enter", "jump_to_ranking_node", "Jump"),
         Binding("q", "quit", "Quit"),
     ]
@@ -392,6 +393,73 @@ class ObservatoryApp(App):
             return None
         return r_map[r_key], a_map[a_key]
 
+    def _marker_dataframe(self):
+        mode = self.state.marker_mode
+
+        if mode == "seam":
+            df = self.phase_data.phase_df.copy()
+            if not df.empty and "distance_to_seam" in df.columns:
+                for col in ["r", "alpha", "distance_to_seam"]:
+                    if col in df.columns:
+                        df[col] = pd.to_numeric(df[col], errors="coerce")
+                return df, "distance_to_seam", "min"
+            return pd.DataFrame(), "distance_to_seam", "min"
+
+        if mode == "critical":
+            df = self.topology_data.topology_df.copy()
+            if not df.empty and "criticality" in df.columns:
+                for col in ["r", "alpha", "criticality"]:
+                    if col in df.columns:
+                        df[col] = pd.to_numeric(df[col], errors="coerce")
+                return df, "criticality", "max"
+            return pd.DataFrame(), "criticality", "max"
+
+        if mode == "obstruction":
+            df = self.identity_data.identity_nodes_df.copy()
+            col = "obstruction_mean_abs_holonomy"
+            if not df.empty and col in df.columns:
+                for c in ["r", "alpha", col]:
+                    if c in df.columns:
+                        df[c] = pd.to_numeric(df[c], errors="coerce")
+                return df, col, "max"
+            return pd.DataFrame(), col, "max"
+
+        if mode == "lazarus":
+            df = self.operators_data.operators_df.copy()
+            col = "lazarus_score"
+            if not df.empty and col in df.columns:
+                for c in ["r", "alpha", col]:
+                    if c in df.columns:
+                        df[c] = pd.to_numeric(df[c], errors="coerce")
+                return df, col, "max"
+            return pd.DataFrame(), col, "max"
+
+        return pd.DataFrame(), "value", "max"
+
+
+    def _marker_coords(self, top_n: int = 12) -> set[tuple[float, float]]:
+        if self.state.marker_mode == "off":
+            return set()
+
+        df, value_col, order = self._marker_dataframe()
+        if df.empty or value_col not in df.columns:
+            return set()
+
+        work = df.dropna(subset=["r", "alpha", value_col]).copy()
+        if work.empty:
+            return set()
+
+        ascending = order == "min"
+        work = work.sort_values(value_col, ascending=ascending).head(top_n)
+
+        coords = set()
+        for _, row in work.iterrows():
+            try:
+                coords.add((round(float(row["r"]), 9), round(float(row["alpha"]), 9)))
+            except Exception:
+                continue
+        return coords
+
     def compose(self) -> ComposeResult:
         yield Vertical(
             Horizontal(
@@ -424,6 +492,7 @@ class ObservatoryApp(App):
         topology_summary = self._selected_topology_summary()
         operators_summary = self._selected_operators_summary()
         identity_summary = self._selected_identity_summary()
+        marker_coords = self._marker_coords()
 
         self.query_one("#inspector", InspectorView).render_from_state(
             self.state,
@@ -456,6 +525,7 @@ class ObservatoryApp(App):
             mds_data=self.mds_data,
             grid_r_vals=self.grid_r_vals,
             grid_a_vals=self.grid_a_vals,
+            marker_coords=marker_coords,
         )
 
         self.query_one("#detail", DetailView).render_from_state(
@@ -569,6 +639,12 @@ class ObservatoryApp(App):
         self.state.status_message = f"Ranking row {self.state.ranking_index + 1}"
         self._render_all()
 
+    def action_next_marker_mode(self) -> None:
+        modes = ["off", "seam", "critical", "obstruction", "lazarus"]
+        idx = modes.index(self.state.marker_mode) if self.state.marker_mode in modes else 0
+        self.state.marker_mode = modes[(idx + 1) % len(modes)]
+        self.state.status_message = f"Markers: {self.state.marker_mode}"
+        self._render_all()
 
     def action_jump_to_ranking_node(self) -> None:
         if self.state.right_pane_mode != "ranking":
