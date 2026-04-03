@@ -19,10 +19,17 @@ class ObservatoryState:
 
     outputs_root: str = "outputs"
     right_pane_mode: str = "detail"  # detail | ranking
+    ranking_index: int = 0
 
     def clamp_selection(self) -> None:
         self.selected_i = max(0, min(self.selected_i, self.grid_rows - 1))
         self.selected_j = max(0, min(self.selected_j, self.grid_cols - 1))
+
+    def clamp_ranking_index(self, n_rows: int) -> None:
+        if n_rows <= 0:
+            self.ranking_index = 0
+        else:
+            self.ranking_index = max(0, min(self.ranking_index, n_rows - 1))
 
     @property
     def selected_node_id(self) -> str:
