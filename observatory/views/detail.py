@@ -30,6 +30,7 @@ class DetailView(Static):
         phase_summary: dict | None = None,
         topology_summary: dict | None = None,
         operators_summary: dict | None = None,
+        identity_summary: dict | None = None,
     ) -> None:
         if state.mode == "Run":
             body = Markdown(
@@ -105,21 +106,24 @@ class DetailView(Static):
         elif state.mode == "Identity":
             body = Markdown(
                 f"""
-### Selected node
+### Selected identity node
 - node_id: `{state.selected_node_id}`
-- grid: `({state.selected_i}, {state.selected_j})`
-
-### Primary identity overlays
-- identity magnitude
-- absolute holonomy
-- unsigned local obstruction
-- signed local obstruction
-
-### Comparison overlay
-- legacy spin
+- r: `{_fmt(identity_summary["r"], 3) if identity_summary else "—"}`
+- alpha: `{_fmt(identity_summary["alpha"], 6) if identity_summary else "—"}`
+- identity magnitude: `{_fmt(identity_summary["identity_magnitude"], 3) if identity_summary else "—"}`
+- absolute holonomy: `{_fmt(identity_summary["absolute_holonomy_node"], 3) if identity_summary else "—"}`
+- unsigned obstruction: `{_fmt(identity_summary["obstruction_mean_abs_holonomy"], 3) if identity_summary else "—"}`
+- max unsigned obstruction: `{_fmt(identity_summary["obstruction_max_abs_holonomy"], 3) if identity_summary else "—"}`
+- signed obstruction: `{_fmt(identity_summary["obstruction_signed_sum_holonomy"], 3) if identity_summary else "—"}`
+- weighted signed obstruction: `{_fmt(identity_summary["obstruction_signed_weighted_holonomy"], 3) if identity_summary else "—"}`
+- legacy spin: `{_fmt(identity_summary["identity_spin"], 3) if identity_summary else "—"}`
 
 ### Active overlay
 `{state.overlay}`
+
+### Identity hierarchy
+- primary: magnitude / holonomy / obstruction
+- comparison: legacy spin
 """
             )
         else:

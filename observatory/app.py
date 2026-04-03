@@ -8,6 +8,7 @@ from textual.binding import Binding
 
 from observatory.loaders import (
     load_geometry_data,
+    load_identity_data,
     load_mds_data,
     load_operators_data,
     load_phase_data,
@@ -88,11 +89,14 @@ class ObservatoryApp(App):
         self.phase_data = load_phase_data(self.state.outputs_root)
         self.topology_data = load_topology_data(self.state.outputs_root)
         self.operators_data = load_operators_data(self.state.outputs_root)
+        self.identity_data = load_identity_data(self.state.outputs_root)
         self.mds_data = load_mds_data(self.state.outputs_root)
 
     def _update_grid_shape_from_run_data(self) -> None:
         coverage = self.run_data.coverage_df
         if coverage.empty:
+            self.grid_r_vals = list(range(10))
+            self.grid_a_vals = list(range(10))
             self.state.grid_rows = 10
             self.state.grid_cols = 10
             self.state.clamp_selection()
@@ -101,6 +105,8 @@ class ObservatoryApp(App):
         r_vals = sorted(pd.to_numeric(coverage["r"], errors="coerce").dropna().unique())
         a_vals = sorted(pd.to_numeric(coverage["alpha"], errors="coerce").dropna().unique())
 
+        self.grid_r_vals = r_vals
+        self.grid_a_vals = a_vals
         self.state.grid_rows = max(1, len(r_vals))
         self.state.grid_cols = max(1, len(a_vals))
         self.state.clamp_selection()
@@ -229,7 +235,66 @@ class ObservatoryApp(App):
             "r": float(rec["r"]),
             "alpha": float(rec["alpha"]),
             "lazarus_score": pd.to_numeric(rec.get("lazarus_score"), errors="coerce"),
-        }        
+        }
+
+    def _selected_identity_summary(self) -> dict[str, object]:
+        df = self.identity_data.identity_nodes_df
+        if df.empty:
+            return {
+                "r": None,
+                "alpha": None,
+                "identity_magnitude": None,
+                "absolute_holonomy_node": None,
+                "obstruction_mean_abs_holonomy": None,
+                "obstruction_max_abs_holonomy": None,
+                "obstruction_signed_sum_holonomy": None,
+                "obstruction_signed_weighted_holonomy": None,
+                "identity_spin": None,
+            }
+
+        r_vals = sorted(pd.to_numeric(df["r"], errors="coerce").dropna().unique())
+        a_vals = sorted(pd.to_numeric(df["alpha"], errors="coerce").dropna().unique())
+        if not r_vals or not a_vals:
+            return {
+                "r": None,
+                "alpha": None,
+                "identity_magnitude": None,
+                "absolute_holonomy_node": None,
+                "obstruction_mean_abs_holonomy": None,
+                "obstruction_max_abs_holonomy": None,
+                "obstruction_signed_sum_holonomy": None,
+                "obstruction_signed_weighted_holonomy": None,
+                "identity_spin": None,
+            }
+
+        r = r_vals[self.state.selected_i]
+        a = a_vals[self.state.selected_j]
+        row = df[(df["r"] == r) & (df["alpha"] == a)]
+        if row.empty:
+            return {
+                "r": r,
+                "alpha": a,
+                "identity_magnitude": None,
+                "absolute_holonomy_node": None,
+                "obstruction_mean_abs_holonomy": None,
+                "obstruction_max_abs_holonomy": None,
+                "obstruction_signed_sum_holonomy": None,
+                "obstruction_signed_weighted_holonomy": None,
+                "identity_spin": None,
+            }
+
+        rec = row.iloc[0]
+        return {
+            "r": float(rec["r"]),
+            "alpha": float(rec["alpha"]),
+            "identity_magnitude": pd.to_numeric(rec.get("identity_magnitude"), errors="coerce"),
+            "absolute_holonomy_node": pd.to_numeric(rec.get("absolute_holonomy_node"), errors="coerce"),
+            "obstruction_mean_abs_holonomy": pd.to_numeric(rec.get("obstruction_mean_abs_holonomy"), errors="coerce"),
+            "obstruction_max_abs_holonomy": pd.to_numeric(rec.get("obstruction_max_abs_holonomy"), errors="coerce"),
+            "obstruction_signed_sum_holonomy": pd.to_numeric(rec.get("obstruction_signed_sum_holonomy"), errors="coerce"),
+            "obstruction_signed_weighted_holonomy": pd.to_numeric(rec.get("obstruction_signed_weighted_holonomy"), errors="coerce"),
+            "identity_spin": pd.to_numeric(rec.get("identity_spin"), errors="coerce"),
+        }     
 
     def compose(self) -> ComposeResult:
         yield Vertical(
@@ -245,6 +310,7 @@ class ObservatoryApp(App):
     def on_mount(self) -> None:
         self._update_grid_shape_from_run_data()
         self._render_all()
+        self.call_after_refresh(self._render_all)
 
     def _render_all(self) -> None:
         run_summary = self._selected_run_cell_summary()
@@ -252,6 +318,7 @@ class ObservatoryApp(App):
         phase_summary = self._selected_phase_summary()
         topology_summary = self._selected_topology_summary()
         operators_summary = self._selected_operators_summary()
+        identity_summary = self._selected_identity_summary()
 
         self.query_one("#inspector", InspectorView).render_from_state(
             self.state,
@@ -260,6 +327,7 @@ class ObservatoryApp(App):
             phase_summary=phase_summary if self.state.mode == "Phase" else None,
             topology_summary=topology_summary if self.state.mode == "Topology" else None,
             operators_summary=operators_summary if self.state.mode == "Operators" else None,
+            identity_summary=identity_summary if self.state.mode == "Identity" else None,
             index_mtime=self.run_data.index_mtime,
         )
 
@@ -274,11 +342,15 @@ class ObservatoryApp(App):
             mode_data = self.topology_data
         elif self.state.mode == "Operators":
             mode_data = self.operators_data
+        elif self.state.mode == "Identity":
+            mode_data = self.identity_data
 
         self.query_one("#manifold", ManifoldView).render_from_state(
             self.state,
             mode_data=mode_data,
             mds_data=self.mds_data,
+            grid_r_vals=self.grid_r_vals,
+            grid_a_vals=self.grid_a_vals,
         )
 
         self.query_one("#detail", DetailView).render_from_state(
@@ -288,6 +360,7 @@ class ObservatoryApp(App):
             phase_summary=phase_summary if self.state.mode == "Phase" else None,
             topology_summary=topology_summary if self.state.mode == "Topology" else None,
             operators_summary=operators_summary if self.state.mode == "Operators" else None,
+            identity_summary=identity_summary if self.state.mode == "Identity" else None,
         )
 
         self.query_one("#footer", FooterView).render_from_state(self.state)
@@ -325,13 +398,14 @@ class ObservatoryApp(App):
         self.state.overlay = overlays[(idx - 1) % len(overlays)]
         self.state.status_message = f"Overlay set to {self.state.overlay}"
         self._render_all()
-
+        
     def action_refresh_state(self) -> None:
         self.run_data = load_run_data(self.state.outputs_root)
         self.geometry_data = load_geometry_data(self.state.outputs_root)
         self.phase_data = load_phase_data(self.state.outputs_root)
         self.topology_data = load_topology_data(self.state.outputs_root)
         self.operators_data = load_operators_data(self.state.outputs_root)
+        self.identity_data = load_identity_data(self.state.outputs_root)
         self.mds_data = load_mds_data(self.state.outputs_root)
         self._update_grid_shape_from_run_data()
         self.state.status_message = "Refreshed"

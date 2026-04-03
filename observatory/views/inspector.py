@@ -32,6 +32,7 @@ class InspectorView(Static):
         phase_summary: dict | None = None,
         topology_summary: dict | None = None,
         operators_summary: dict | None = None,
+        identity_summary: dict | None = None,
         index_mtime: float | None = None,
     ) -> None:
         table = Table.grid(padding=(0, 1))
@@ -71,6 +72,15 @@ class InspectorView(Static):
             table.add_row("r", _fmt(operators_summary["r"], 3))
             table.add_row("α", _fmt(operators_summary["alpha"], 6))
             table.add_row("Lazarus", _fmt(operators_summary["lazarus_score"], 3))
+
+        if identity_summary:
+            table.add_row("r", _fmt(identity_summary["r"], 3))
+            table.add_row("α", _fmt(identity_summary["alpha"], 6))
+            table.add_row("Mag", _fmt(identity_summary["identity_magnitude"], 3))
+            table.add_row("Hol | |", _fmt(identity_summary["absolute_holonomy_node"], 3))
+            table.add_row("Obs | |", _fmt(identity_summary["obstruction_mean_abs_holonomy"], 3))
+            table.add_row("Obs ±", _fmt(identity_summary["obstruction_signed_sum_holonomy"], 3))
+            table.add_row("Spin*", _fmt(identity_summary["identity_spin"], 3))
 
         table.add_row("Refresh", "ON" if state.refresh_enabled else "OFF")
         table.add_row("Status", state.status_message)
