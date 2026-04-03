@@ -80,6 +80,9 @@ class ObservatoryApp(App):
         Binding("shift+o", "prev_overlay", "Prev overlay"),
         Binding("r", "refresh_state", "Refresh"),
         Binding("f", "toggle_refresh", "Freeze"),
+        Binding("j", "ranking_down", "Rank down"),
+        Binding("k", "ranking_up", "Rank up"),
+        Binding("enter", "jump_to_ranking_node", "Jump"),
         Binding("q", "quit", "Quit"),
     ]
 
@@ -347,7 +350,6 @@ class ObservatoryApp(App):
 
         return pd.DataFrame(), "value", False
 
-
     def _overlay_ranking_table(self, top_n: int = 10) -> pd.DataFrame:
         df, value_col, signed = self._active_overlay_dataframe_and_column()
         if df.empty or value_col not in df.columns:
@@ -374,7 +376,21 @@ class ObservatoryApp(App):
         keep = ["rank", "r", "alpha", "value"]
         if "node_id" in work.columns:
             keep.insert(1, "node_id")
-        return work[keep].reset_index(drop=True)    
+        return work[keep].reset_index(drop=True)
+
+    def _canonical_grid_index_from_coords(self, r, alpha) -> tuple[int, int] | None:
+        try:
+            r_key = round(float(r), 9)
+            a_key = round(float(alpha), 9)
+        except Exception:
+            return None
+
+        r_map = {round(float(v), 9): i for i, v in enumerate(self.grid_r_vals)}
+        a_map = {round(float(v), 9): j for j, v in enumerate(self.grid_a_vals)}
+
+        if r_key not in r_map or a_key not in a_map:
+            return None
+        return r_map[r_key], a_map[a_key]
 
     def compose(self) -> ComposeResult:
         yield Vertical(
@@ -455,12 +471,13 @@ class ObservatoryApp(App):
         self.query_one("#footer", FooterView).render_from_state(self.state)
 
         ranking_df = self._overlay_ranking_table()
+        self.state.clamp_ranking_index(len(ranking_df))
 
         self.query_one("#ranking", RankingView).render_from_overlay(
             self.state.overlay,
             ranking_df,
+            active_index=self.state.ranking_index,
         )
-
         detail_widget = self.query_one("#detail", DetailView)
         ranking_widget = self.query_one("#ranking", RankingView)
 
@@ -476,6 +493,7 @@ class ObservatoryApp(App):
             return
         self.state.mode = mode
         self.state.overlay = DEFAULT_OVERLAY_BY_MODE[mode]
+        self.state.ranking_index = 0
         self.state.status_message = f"Mode switched to {mode}"
         self._render_all()
 
@@ -495,6 +513,7 @@ class ObservatoryApp(App):
         self.state.right_pane_mode = (
             "ranking" if self.state.right_pane_mode == "detail" else "detail"
         )
+        self.state.ranking_index = 0
         self.state.status_message = (
             "Right pane: ranking" if self.state.right_pane_mode == "ranking" else "Right pane: detail"
         )
@@ -529,6 +548,50 @@ class ObservatoryApp(App):
     def action_toggle_refresh(self) -> None:
         self.state.refresh_enabled = not self.state.refresh_enabled
         self.state.status_message = "Refresh ON" if self.state.refresh_enabled else "Refresh OFF"
+        self._render_all()
+
+    def action_ranking_down(self) -> None:
+        if self.state.right_pane_mode != "ranking":
+            return
+        ranking_df = self._overlay_ranking_table()
+        self.state.ranking_index += 1
+        self.state.clamp_ranking_index(len(ranking_df))
+        self.state.status_message = f"Ranking row {self.state.ranking_index + 1}"
+        self._render_all()
+
+
+    def action_ranking_up(self) -> None:
+        if self.state.right_pane_mode != "ranking":
+            return
+        ranking_df = self._overlay_ranking_table()
+        self.state.ranking_index -= 1
+        self.state.clamp_ranking_index(len(ranking_df))
+        self.state.status_message = f"Ranking row {self.state.ranking_index + 1}"
+        self._render_all()
+
+
+    def action_jump_to_ranking_node(self) -> None:
+        if self.state.right_pane_mode != "ranking":
+            return
+
+        ranking_df = self._overlay_ranking_table()
+        if ranking_df.empty:
+            self.state.status_message = "No ranked node available"
+            self._render_all()
+            return
+
+        self.state.clamp_ranking_index(len(ranking_df))
+        row = ranking_df.iloc[self.state.ranking_index]
+
+        coords = self._canonical_grid_index_from_coords(row["r"], row["alpha"])
+        if coords is None:
+            self.state.status_message = "Ranked node not on canonical grid"
+            self._render_all()
+            return
+
+        self.state.selected_i, self.state.selected_j = coords
+        self.state.clamp_selection()
+        self.state.status_message = f"Jumped to ranked node {self.state.ranking_index + 1}"
         self._render_all()
 
 

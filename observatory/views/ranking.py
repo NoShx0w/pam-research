@@ -9,7 +9,12 @@ from observatory.views.formatting import fmt_value, overlay_label
 
 
 class RankingView(Static):
-    def render_from_overlay(self, overlay_name: str, ranking_df: pd.DataFrame) -> None:
+    def render_from_overlay(
+        self,
+        overlay_name: str,
+        ranking_df: pd.DataFrame,
+        active_index: int = 0,
+    ) -> None:
         table = Table(expand=True)
         table.add_column("#", justify="right", width=3)
         if "node_id" in ranking_df.columns:
@@ -19,9 +24,13 @@ class RankingView(Static):
         table.add_column("value", justify="right", width=10)
 
         if ranking_df.empty:
-            table.add_row("-", "-", "-", "-") if "node_id" in ranking_df.columns else table.add_row("-", "-", "-")
+            if "node_id" in ranking_df.columns:
+                table.add_row("-", "-", "-", "-")
+            else:
+                table.add_row("-", "-", "-")
         else:
-            for _, row in ranking_df.iterrows():
+            for idx, (_, row) in enumerate(ranking_df.iterrows()):
+                style = "black on bright_white" if idx == active_index else ""
                 cells = [str(int(row["rank"]))]
                 if "node_id" in ranking_df.columns:
                     cells.append(str(row["node_id"]))
@@ -30,7 +39,7 @@ class RankingView(Static):
                     fmt_value(row["alpha"], 6),
                     fmt_value(row["value"], 3),
                 ])
-                table.add_row(*cells)
+                table.add_row(*cells, style=style)
 
         self.update(
             Panel(
