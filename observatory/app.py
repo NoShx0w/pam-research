@@ -92,9 +92,14 @@ class ObservatoryApp(App):
         self.identity_data = load_identity_data(self.state.outputs_root)
         self.mds_data = load_mds_data(self.state.outputs_root)
 
+        self.grid_r_vals = list(range(10))
+        self.grid_a_vals = list(range(10))
+
     def _update_grid_shape_from_run_data(self) -> None:
         coverage = self.run_data.coverage_df
         if coverage.empty:
+            self.grid_r_vals = list(range(10))
+            self.grid_a_vals = list(range(10))
             self.state.grid_rows = 10
             self.state.grid_cols = 10
             self.state.clamp_selection()
@@ -103,6 +108,8 @@ class ObservatoryApp(App):
         r_vals = sorted(pd.to_numeric(coverage["r"], errors="coerce").dropna().unique())
         a_vals = sorted(pd.to_numeric(coverage["alpha"], errors="coerce").dropna().unique())
 
+        self.grid_r_vals = r_vals
+        self.grid_a_vals = a_vals
         self.state.grid_rows = max(1, len(r_vals))
         self.state.grid_cols = max(1, len(a_vals))
         self.state.clamp_selection()
@@ -306,6 +313,10 @@ class ObservatoryApp(App):
     def on_mount(self) -> None:
         self._update_grid_shape_from_run_data()
         self._render_all()
+        self.call_after_refresh(self._render_all)
+
+    def on_resize(self) -> None:
+        self._render_all()
 
     def _render_all(self) -> None:
         run_summary = self._selected_run_cell_summary()
@@ -344,6 +355,8 @@ class ObservatoryApp(App):
             self.state,
             mode_data=mode_data,
             mds_data=self.mds_data,
+            grid_r_vals=self.grid_r_vals,
+            grid_a_vals=self.grid_a_vals,
         )
 
         self.query_one("#detail", DetailView).render_from_state(

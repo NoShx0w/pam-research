@@ -5,20 +5,7 @@ from rich.panel import Panel
 from textual.widgets import Static
 
 from observatory.state import ObservatoryState
-
-
-def _fmt(value, digits: int = 3) -> str:
-    if value is None:
-        return "—"
-    try:
-        if value != value:
-            return "—"
-    except Exception:
-        pass
-    try:
-        return f"{float(value):.{digits}f}"
-    except Exception:
-        return str(value)
+from observatory.views.formatting import fmt_value, overlay_label
 
 
 class DetailView(Static):
@@ -38,14 +25,14 @@ class DetailView(Static):
 ### Selected cell
 - node_id: `{state.selected_node_id}`
 - grid: `({state.selected_i}, {state.selected_j})`
-- r: `{_fmt(run_summary["r"], 3) if run_summary else "—"}`
-- alpha: `{_fmt(run_summary["alpha"], 6) if run_summary else "—"}`
+- r: `{fmt_value(run_summary["r"], 3) if run_summary else "—"}`
+- alpha: `{fmt_value(run_summary["alpha"], 6) if run_summary else "—"}`
 - rows: `{run_summary["n_rows"] if run_summary else 0}`
 - seeds: `{run_summary["n_seeds"] if run_summary else 0}`
 
 ### Run mode
-- real coverage from `outputs/index.csv`
-- trajectory lens deferred to later PR
+- file-backed coverage from `outputs/index.csv`
+- trajectory lens deferred
 """
             )
         elif state.mode == "Geometry":
@@ -53,14 +40,14 @@ class DetailView(Static):
                 f"""
 ### Selected geometry node
 - node_id: `{state.selected_node_id}`
-- r: `{_fmt(geometry_summary["r"], 3) if geometry_summary else "—"}`
-- alpha: `{_fmt(geometry_summary["alpha"], 6) if geometry_summary else "—"}`
-- scalar curvature: `{_fmt(geometry_summary["scalar_curvature"], 3) if geometry_summary else "—"}`
-- fim det: `{_fmt(geometry_summary["fim_det"], 3) if geometry_summary else "—"}`
-- fim cond: `{_fmt(geometry_summary["fim_cond"], 3) if geometry_summary else "—"}`
+- r: `{fmt_value(geometry_summary["r"], 3) if geometry_summary else "—"}`
+- alpha: `{fmt_value(geometry_summary["alpha"], 6) if geometry_summary else "—"}`
+- scalar curvature: `{fmt_value(geometry_summary["scalar_curvature"], 3) if geometry_summary else "—"}`
+- fim determinant: `{fmt_value(geometry_summary["fim_det"], 3) if geometry_summary else "—"}`
+- fim condition #: `{fmt_value(geometry_summary["fim_cond"], 3) if geometry_summary else "—"}`
 
 ### Active overlay
-`{state.overlay}`
+`{overlay_label(state.overlay)}`
 """
             )
         elif state.mode == "Phase":
@@ -68,13 +55,13 @@ class DetailView(Static):
                 f"""
 ### Selected phase node
 - node_id: `{state.selected_node_id}`
-- r: `{_fmt(phase_summary["r"], 3) if phase_summary else "—"}`
-- alpha: `{_fmt(phase_summary["alpha"], 6) if phase_summary else "—"}`
-- signed phase: `{_fmt(phase_summary["signed_phase"], 3) if phase_summary else "—"}`
-- distance to seam: `{_fmt(phase_summary["distance_to_seam"], 3) if phase_summary else "—"}`
+- r: `{fmt_value(phase_summary["r"], 3) if phase_summary else "—"}`
+- alpha: `{fmt_value(phase_summary["alpha"], 6) if phase_summary else "—"}`
+- signed phase: `{fmt_value(phase_summary["signed_phase"], 3) if phase_summary else "—"}`
+- distance to seam: `{fmt_value(phase_summary["distance_to_seam"], 3) if phase_summary else "—"}`
 
 ### Active overlay
-`{state.overlay}`
+`{overlay_label(state.overlay)}`
 """
             )
         elif state.mode == "Topology":
@@ -82,12 +69,12 @@ class DetailView(Static):
                 f"""
 ### Selected topology node
 - node_id: `{state.selected_node_id}`
-- r: `{_fmt(topology_summary["r"], 3) if topology_summary else "—"}`
-- alpha: `{_fmt(topology_summary["alpha"], 6) if topology_summary else "—"}`
-- criticality: `{_fmt(topology_summary["criticality"], 3) if topology_summary else "—"}`
+- r: `{fmt_value(topology_summary["r"], 3) if topology_summary else "—"}`
+- alpha: `{fmt_value(topology_summary["alpha"], 6) if topology_summary else "—"}`
+- criticality: `{fmt_value(topology_summary["criticality"], 3) if topology_summary else "—"}`
 
 ### Active overlay
-`{state.overlay}`
+`{overlay_label(state.overlay)}`
 """
             )
         elif state.mode == "Operators":
@@ -95,12 +82,12 @@ class DetailView(Static):
                 f"""
 ### Selected operator node
 - node_id: `{state.selected_node_id}`
-- r: `{_fmt(operators_summary["r"], 3) if operators_summary else "—"}`
-- alpha: `{_fmt(operators_summary["alpha"], 6) if operators_summary else "—"}`
-- lazarus: `{_fmt(operators_summary["lazarus_score"], 3) if operators_summary else "—"}`
+- r: `{fmt_value(operators_summary["r"], 3) if operators_summary else "—"}`
+- alpha: `{fmt_value(operators_summary["alpha"], 6) if operators_summary else "—"}`
+- lazarus: `{fmt_value(operators_summary["lazarus_score"], 3) if operators_summary else "—"}`
 
 ### Active overlay
-`{state.overlay}`
+`{overlay_label(state.overlay)}`
 """
             )
         elif state.mode == "Identity":
@@ -108,18 +95,18 @@ class DetailView(Static):
                 f"""
 ### Selected identity node
 - node_id: `{state.selected_node_id}`
-- r: `{_fmt(identity_summary["r"], 3) if identity_summary else "—"}`
-- alpha: `{_fmt(identity_summary["alpha"], 6) if identity_summary else "—"}`
-- identity magnitude: `{_fmt(identity_summary["identity_magnitude"], 3) if identity_summary else "—"}`
-- absolute holonomy: `{_fmt(identity_summary["absolute_holonomy_node"], 3) if identity_summary else "—"}`
-- unsigned obstruction: `{_fmt(identity_summary["obstruction_mean_abs_holonomy"], 3) if identity_summary else "—"}`
-- max unsigned obstruction: `{_fmt(identity_summary["obstruction_max_abs_holonomy"], 3) if identity_summary else "—"}`
-- signed obstruction: `{_fmt(identity_summary["obstruction_signed_sum_holonomy"], 3) if identity_summary else "—"}`
-- weighted signed obstruction: `{_fmt(identity_summary["obstruction_signed_weighted_holonomy"], 3) if identity_summary else "—"}`
-- legacy spin: `{_fmt(identity_summary["identity_spin"], 3) if identity_summary else "—"}`
+- r: `{fmt_value(identity_summary["r"], 3) if identity_summary else "—"}`
+- alpha: `{fmt_value(identity_summary["alpha"], 6) if identity_summary else "—"}`
+- identity magnitude: `{fmt_value(identity_summary["identity_magnitude"], 3) if identity_summary else "—"}`
+- absolute holonomy: `{fmt_value(identity_summary["absolute_holonomy_node"], 3) if identity_summary else "—"}`
+- unsigned obstruction: `{fmt_value(identity_summary["obstruction_mean_abs_holonomy"], 3) if identity_summary else "—"}`
+- max unsigned obstruction: `{fmt_value(identity_summary["obstruction_max_abs_holonomy"], 3) if identity_summary else "—"}`
+- signed obstruction: `{fmt_value(identity_summary["obstruction_signed_sum_holonomy"], 3) if identity_summary else "—"}`
+- weighted signed obstruction: `{fmt_value(identity_summary["obstruction_signed_weighted_holonomy"], 3) if identity_summary else "—"}`
+- legacy spin: `{fmt_value(identity_summary["identity_spin"], 3) if identity_summary else "—"}`
 
 ### Active overlay
-`{state.overlay}`
+`{overlay_label(state.overlay)}`
 
 ### Identity hierarchy
 - primary: magnitude / holonomy / obstruction
@@ -137,7 +124,7 @@ class DetailView(Static):
 `{state.mode}`
 
 ### Active overlay
-`{state.overlay}`
+`{overlay_label(state.overlay)}`
 """
             )
 
