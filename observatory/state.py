@@ -20,6 +20,7 @@ class ObservatoryState:
     outputs_root: str = "outputs"
     right_pane_mode: str = "detail"  # detail | ranking
     ranking_index: int = 0
+    marker_mode: str = "off"  # off | seam | critical | obstruction | lazarus
 
     def clamp_selection(self) -> None:
         self.selected_i = max(0, min(self.selected_i, self.grid_rows - 1))

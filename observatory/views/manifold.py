@@ -71,12 +71,18 @@ class ManifoldView(Static):
 
         return lookup
 
+    def _marker_symbol(self) -> str:
+        return "[yellow]✦[/]"
+
     def _render_grid_blocks(
         self,
         state: ObservatoryState,
         lookup: dict[tuple[int, int], object],
         *,
         signed: bool,
+        grid_r_vals=None,
+        grid_a_vals=None,
+        marker_coords=None,
     ) -> Text:
         width, height = self._drawable_size()
         width = max(12, width)
@@ -120,6 +126,22 @@ class ManifoldView(Static):
                     for xx in range(x0, x1):
                         canvas[yy][xx] = cell_markup
 
+                is_marker = False
+                if (
+                    marker_coords is not None
+                    and grid_r_vals is not None
+                    and grid_a_vals is not None
+                    and i < len(grid_r_vals)
+                    and j < len(grid_a_vals)
+                ):
+                    key = (round(float(grid_r_vals[i]), 9), round(float(grid_a_vals[j]), 9))
+                    is_marker = key in marker_coords
+
+                if is_marker:
+                    cy = (y0 + y1 - 1) // 2
+                    cx = (x0 + x1 - 1) // 2
+                    canvas[cy][cx] = self._marker_symbol()
+
                 if i == state.selected_i and j == state.selected_j:
                     for yy in range(y0, y1):
                         for xx in range(x0, x1):
@@ -138,7 +160,7 @@ class ManifoldView(Static):
             out.append("\n")
         return out
 
-    def _render_run_grid(self, state: ObservatoryState, run_data) -> Text:
+    def _render_run_grid(self, state: ObservatoryState, run_data, *, grid_r_vals=None, grid_a_vals=None, marker_coords=None) -> Text:
         coverage_lookup: dict[tuple[int, int], int] = {}
 
         if run_data is not None and not run_data.coverage_df.empty:
@@ -151,7 +173,14 @@ class ManifoldView(Static):
                     ]
                     coverage_lookup[(i, j)] = 0 if hit.empty else int(hit.iloc[0]["n_rows"])
 
-        return self._render_grid_blocks(state, coverage_lookup, signed=False)
+        return self._render_grid_blocks(
+            state,
+            coverage_lookup,
+            signed=False,
+            grid_r_vals=grid_r_vals,
+            grid_a_vals=grid_a_vals,
+            marker_coords=marker_coords,
+        )
 
     def _render_scalar_grid(
         self,
@@ -162,9 +191,17 @@ class ManifoldView(Static):
         signed: bool,
         grid_r_vals=None,
         grid_a_vals=None,
+        marker_coords=None,
     ) -> Text:
         lookup = self._lookup_from_df(df, value_col, grid_r_vals, grid_a_vals)
-        return self._render_grid_blocks(state, lookup, signed=signed)
+        return self._render_grid_blocks(
+            state,
+            lookup,
+            signed=signed,
+            grid_r_vals=grid_r_vals,
+            grid_a_vals=grid_a_vals,
+            marker_coords=marker_coords,
+        )
 
     def _render_mds_real(
         self,
@@ -172,6 +209,7 @@ class ManifoldView(Static):
         mds_data,
         grid_r_vals=None,
         grid_a_vals=None,
+        marker_coords=None,
     ) -> Text:
         if mds_data is None or mds_data.mds_df.empty or not {"mds1", "mds2"}.issubset(mds_data.mds_df.columns):
             return self._render_mds_placeholder(state)
@@ -229,6 +267,15 @@ class ManifoldView(Static):
                 )
                 canvas[rr][cx] = "[black on bright_white]●[/]" if is_selected else "[cyan]•[/]"
 
+            row_key = (round(float(row["r"]), 9), round(float(row["alpha"]), 9))
+            is_marker = marker_coords is not None and row_key in marker_coords
+            if is_selected:
+                canvas[rr][cx] = "[black on bright_white]●[/]"
+            elif is_marker:
+                canvas[rr][cx] = self._marker_symbol()
+            else:
+                canvas[rr][cx] = "[cyan]•[/]"
+
         out = Text()
         for row in canvas:
             line = Text()
@@ -275,6 +322,7 @@ class ManifoldView(Static):
         mds_data=None,
         grid_r_vals=None,
         grid_a_vals=None,
+        marker_coords=None,
     ) -> None:
         if state.view_space == "mds":
             content = self._render_mds_real(
@@ -282,9 +330,16 @@ class ManifoldView(Static):
                 mds_data,
                 grid_r_vals=grid_r_vals,
                 grid_a_vals=grid_a_vals,
+                marker_coords=marker_coords,
             )
         elif state.mode == "Run":
-            content = self._render_run_grid(state, mode_data)
+            content = self._render_run_grid(
+                state,
+                mode_data,
+                grid_r_vals=grid_r_vals,
+                grid_a_vals=grid_a_vals,
+                marker_coords=marker_coords,
+            )
         elif state.mode == "Geometry":
             value_col = self._geometry_value_col(state.overlay)
             content = self._render_scalar_grid(
@@ -294,6 +349,7 @@ class ManifoldView(Static):
                 signed=False,
                 grid_r_vals=grid_r_vals,
                 grid_a_vals=grid_a_vals,
+                marker_coords=marker_coords,
             )
         elif state.mode == "Phase":
             value_col = self._phase_value_col(state.overlay)
@@ -304,6 +360,7 @@ class ManifoldView(Static):
                 signed=(state.overlay == "signed_phase"),
                 grid_r_vals=grid_r_vals,
                 grid_a_vals=grid_a_vals,
+                marker_coords=marker_coords,
             )
         elif state.mode == "Topology":
             value_col = self._topology_value_col(state.overlay)
@@ -314,6 +371,7 @@ class ManifoldView(Static):
                 signed=False,
                 grid_r_vals=grid_r_vals,
                 grid_a_vals=grid_a_vals,
+                marker_coords=marker_coords,
             )
         elif state.mode == "Operators":
             value_col = self._operators_value_col(state.overlay)
@@ -324,6 +382,7 @@ class ManifoldView(Static):
                 signed=False,
                 grid_r_vals=grid_r_vals,
                 grid_a_vals=grid_a_vals,
+                marker_coords=marker_coords,
             )
         elif state.mode == "Identity":
             value_col = self._identity_value_col(state.overlay)
@@ -334,9 +393,16 @@ class ManifoldView(Static):
                 signed=(state.overlay in {"signed_local_obstruction", "legacy_spin"}),
                 grid_r_vals=grid_r_vals,
                 grid_a_vals=grid_a_vals,
+                marker_coords=marker_coords,
             )
         else:
-            content = self._render_run_grid(state, None)
+            content = self._render_run_grid(
+                state,
+                None,
+                grid_r_vals=grid_r_vals,
+                grid_a_vals=grid_a_vals,
+                marker_coords=marker_coords,
+            )
 
         title = f"Manifold — {mode_label(state.mode)} / {state.view_space.upper()} / {overlay_label(state.overlay)}"
         self.update(Panel(content, title=title, border_style="green"))
