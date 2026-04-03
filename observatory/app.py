@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 
+from datetime import datetime
+from pathlib import Path
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.binding import Binding
@@ -17,6 +19,7 @@ from observatory.loaders import (
 )
 from observatory.modes import DEFAULT_OVERLAY_BY_MODE, MODES, OVERLAYS_BY_MODE
 from observatory.state import ObservatoryState
+from observatory.views.formatting import overlay_label
 from observatory.views.detail import DetailView
 from observatory.views.footer import FooterView
 from observatory.views.inspector import InspectorView
@@ -83,6 +86,7 @@ class ObservatoryApp(App):
         Binding("j", "ranking_down", "Rank down"),
         Binding("k", "ranking_up", "Rank up"),
         Binding("m", "next_marker_mode", "Markers"),
+        Binding("x", "export_snapshot", "Snapshot"),
         Binding("enter", "jump_to_ranking_node", "Jump"),
         Binding("q", "quit", "Quit"),
     ]
@@ -460,6 +464,73 @@ class ObservatoryApp(App):
                 continue
         return coords
 
+    def _snapshot_dir(self) -> Path:
+        outdir = Path(self.state.outputs_root) / "observatory_snapshots"
+        outdir.mkdir(parents=True, exist_ok=True)
+        return outdir
+
+
+    def _snapshot_selected_summary(self) -> dict[str, object]:
+        if self.state.mode == "Run":
+            return self._selected_run_cell_summary()
+        if self.state.mode == "Geometry":
+            return self._selected_geometry_summary()
+        if self.state.mode == "Phase":
+            return self._selected_phase_summary()
+        if self.state.mode == "Topology":
+            return self._selected_topology_summary()
+        if self.state.mode == "Operators":
+            return self._selected_operators_summary()
+        if self.state.mode == "Identity":
+            return self._selected_identity_summary()
+        return {}
+
+    def _snapshot_text(self) -> str:
+        ranking_df = self._overlay_ranking_table()
+        summary = self._snapshot_selected_summary()
+
+        lines: list[str] = []
+        lines.append("# Observatory Snapshot")
+        lines.append("")
+        lines.append("## State")
+        lines.append(f"- mode: {self.state.mode}")
+        lines.append(f"- overlay: {self.state.overlay}")
+        lines.append(f"- overlay_label: {overlay_label(self.state.overlay)}")
+        lines.append(f"- view_space: {self.state.view_space}")
+        lines.append(f"- marker_mode: {self.state.marker_mode}")
+        lines.append(f"- right_pane_mode: {self.state.right_pane_mode}")
+        lines.append(f"- selected_node_id: {self.state.selected_node_id}")
+        lines.append(f"- selected_i: {self.state.selected_i}")
+        lines.append(f"- selected_j: {self.state.selected_j}")
+        lines.append("")
+
+        lines.append("## Selected Summary")
+        if not summary:
+            lines.append("- none")
+        else:
+            for key, value in summary.items():
+                lines.append(f"- {key}: {value}")
+        lines.append("")
+
+        lines.append("## Ranking")
+        if ranking_df.empty:
+            lines.append("- none")
+        else:
+            top_n = min(len(ranking_df), 10)
+            for _, row in ranking_df.head(top_n).iterrows():
+                parts = []
+                if "rank" in row:
+                    parts.append(f"rank={row['rank']}")
+                if "node_id" in ranking_df.columns:
+                    parts.append(f"node_id={row['node_id']}")
+                parts.append(f"r={row['r']}")
+                parts.append(f"alpha={row['alpha']}")
+                parts.append(f"value={row['value']}")
+                lines.append(f"- {' | '.join(parts)}")
+        lines.append("")
+
+        return "\n".join(lines)
+
     def compose(self) -> ComposeResult:
         yield Vertical(
             Horizontal(
@@ -670,6 +741,16 @@ class ObservatoryApp(App):
         self.state.status_message = f"Jumped to ranked node {self.state.ranking_index + 1}"
         self._render_all()
 
+    def action_export_snapshot(self) -> None:
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"snapshot_{ts}_{self.state.mode.lower()}_{self.state.overlay}.md"
+        path = self._snapshot_dir() / filename
+
+        text = self._snapshot_text()
+        path.write_text(text, encoding="utf-8")
+
+        self.state.status_message = f"Snapshot written: {path.name}"
+        self._render_all()
 
 def main() -> None:
     ObservatoryApp().run()
