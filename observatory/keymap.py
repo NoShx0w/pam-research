@@ -6,6 +6,7 @@ KEY_HINTS: list[str] = [
     "o next overlay",
     "O prev overlay",
     "←↑↓→ move",
+    "s rank/detail",
     "r refresh",
     "f freeze",
     "q quit",

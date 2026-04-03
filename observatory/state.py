@@ -18,6 +18,7 @@ class ObservatoryState:
     status_message: str = "Ready"
 
     outputs_root: str = "outputs"
+    right_pane_mode: str = "detail"  # detail | ranking
 
     def clamp_selection(self) -> None:
         self.selected_i = max(0, min(self.selected_i, self.grid_rows - 1))
