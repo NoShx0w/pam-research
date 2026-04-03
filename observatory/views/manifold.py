@@ -5,14 +5,11 @@ from rich.text import Text
 from textual.widgets import Static
 
 from observatory.state import ObservatoryState
+from observatory.views.formatting import mode_label, overlay_label
 from observatory.views.scalars import render_signed_cell, render_unsigned_cell
 
 
 class ManifoldView(Static):
-    SIGNED_OVERLAYS = {
-        "signed_phase",
-    }
-
     def _geometry_value_col(self, overlay: str) -> str:
         if overlay == "curvature":
             return "scalar_curvature"
@@ -47,21 +44,32 @@ class ManifoldView(Static):
         height = max(6, self.size.height - 2)
         return width, height
 
-    def _lookup_from_df(self, df, value_col: str):
-        lookup = {}
-        r_vals = []
-        a_vals = []
+    def _coord_key(self, r, a) -> tuple[float, float]:
+        return (round(float(r), 9), round(float(a), 9))
 
-        if df is not None and not df.empty and {"r", "alpha", value_col}.issubset(df.columns):
-            r_vals = sorted(df["r"].dropna().unique())
-            a_vals = sorted(df["alpha"].dropna().unique())
+    def _lookup_from_df(self, df, value_col: str, grid_r_vals, grid_a_vals):
+        lookup: dict[tuple[int, int], object] = {}
 
-            for i, r in enumerate(r_vals):
-                for j, a in enumerate(a_vals):
-                    hit = df[(df["r"] == r) & (df["alpha"] == a)]
-                    lookup[(i, j)] = None if hit.empty else hit.iloc[0][value_col]
+        if (
+            df is not None
+            and not df.empty
+            and {"r", "alpha", value_col}.issubset(df.columns)
+            and grid_r_vals is not None
+            and grid_a_vals is not None
+        ):
+            value_map: dict[tuple[float, float], object] = {}
+            for _, row in df.iterrows():
+                try:
+                    key = self._coord_key(row["r"], row["alpha"])
+                    value_map[key] = row[value_col]
+                except Exception:
+                    continue
 
-        return lookup, r_vals, a_vals
+            for i, r in enumerate(grid_r_vals):
+                for j, a in enumerate(grid_a_vals):
+                    lookup[(i, j)] = value_map.get(self._coord_key(r, a), None)
+
+        return lookup
 
     def _render_grid_blocks(
         self,
@@ -71,9 +79,8 @@ class ManifoldView(Static):
         signed: bool,
     ) -> Text:
         width, height = self._drawable_size()
-
-        block_w = max(1, min(4, width // max(1, state.grid_cols)))
-        block_h = max(1, min(3, height // max(1, state.grid_rows)))
+        width = max(12, width)
+        height = max(8, height)
 
         values = [v for v in lookup.values() if v is not None]
         if not values:
@@ -85,30 +92,55 @@ class ManifoldView(Static):
             vmin = min(float(v) for v in values)
             vmax = max(float(v) for v in values)
 
-        out = Text()
+        canvas = [[" " for _ in range(width)] for _ in range(height)]
+
+        def x_bounds(j: int) -> tuple[int, int]:
+            x0 = int(j * width / state.grid_cols)
+            x1 = int((j + 1) * width / state.grid_cols)
+            return x0, max(x0 + 1, x1)
+
+        def y_bounds(i: int) -> tuple[int, int]:
+            y0 = int(i * height / state.grid_rows)
+            y1 = int((i + 1) * height / state.grid_rows)
+            return y0, max(y0 + 1, y1)
 
         for i in range(state.grid_rows):
-            for _ in range(block_h):
-                line = Text()
-                for j in range(state.grid_cols):
-                    val = lookup.get((i, j), None)
-                    selected = (i == state.selected_i and j == state.selected_j)
+            for j in range(state.grid_cols):
+                val = lookup.get((i, j), None)
 
-                    if signed:
-                        cell = render_signed_cell(val, vabs=vabs, selected=selected)
-                    else:
-                        cell = render_unsigned_cell(val, vmin=vmin, vmax=vmax, selected=selected)
+                if signed:
+                    cell_markup = render_signed_cell(val, vabs=vabs, selected=False)
+                else:
+                    cell_markup = render_unsigned_cell(val, vmin=vmin, vmax=vmax, selected=False)
 
-                    expanded = cell * block_w
-                    line.append_text(Text.from_markup(expanded))
+                x0, x1 = x_bounds(j)
+                y0, y1 = y_bounds(i)
 
-                out.append_text(line)
-                out.append("\n")
+                for yy in range(y0, y1):
+                    for xx in range(x0, x1):
+                        canvas[yy][xx] = cell_markup
 
+                if i == state.selected_i and j == state.selected_j:
+                    for yy in range(y0, y1):
+                        for xx in range(x0, x1):
+                            canvas[yy][xx] = "[#d7d7d7 on #444444] [/]"
+
+                    cy = (y0 + y1 - 1) // 2
+                    cx = (x0 + x1 - 1) // 2
+                    canvas[cy][cx] = "[black on bright_white]●[/]"
+
+        out = Text()
+        for row in canvas:
+            line = Text()
+            for cell in row:
+                line.append_text(Text.from_markup(cell))
+            out.append_text(line)
+            out.append("\n")
         return out
 
     def _render_run_grid(self, state: ObservatoryState, run_data) -> Text:
-        coverage_lookup = {}
+        coverage_lookup: dict[tuple[int, int], int] = {}
+
         if run_data is not None and not run_data.coverage_df.empty:
             r_vals = sorted(run_data.coverage_df["r"].dropna().unique())
             a_vals = sorted(run_data.coverage_df["alpha"].dropna().unique())
@@ -121,11 +153,26 @@ class ManifoldView(Static):
 
         return self._render_grid_blocks(state, coverage_lookup, signed=False)
 
-    def _render_scalar_grid(self, state: ObservatoryState, df, value_col: str, *, signed: bool) -> Text:
-        lookup, _, _ = self._lookup_from_df(df, value_col)
+    def _render_scalar_grid(
+        self,
+        state: ObservatoryState,
+        df,
+        value_col: str,
+        *,
+        signed: bool,
+        grid_r_vals=None,
+        grid_a_vals=None,
+    ) -> Text:
+        lookup = self._lookup_from_df(df, value_col, grid_r_vals, grid_a_vals)
         return self._render_grid_blocks(state, lookup, signed=signed)
 
-    def _render_mds_real(self, state: ObservatoryState, mds_data) -> Text:
+    def _render_mds_real(
+        self,
+        state: ObservatoryState,
+        mds_data,
+        grid_r_vals=None,
+        grid_a_vals=None,
+    ) -> Text:
         if mds_data is None or mds_data.mds_df.empty or not {"mds1", "mds2"}.issubset(mds_data.mds_df.columns):
             return self._render_mds_placeholder(state)
 
@@ -149,7 +196,7 @@ class ManifoldView(Static):
         def scale_x(x: float) -> int:
             if x_max == x_min:
                 return pad_x + inner_w // 2
-            return pad_x + int(round((x - x_min) / (x_max - x_min) * (inner_w - 1)))
+            return pad_x + int(round((x_max - x) / (x_max - x_min) * (inner_w - 1)))
 
         def scale_y(y: float) -> int:
             if y_max == y_min:
@@ -158,10 +205,17 @@ class ManifoldView(Static):
 
         canvas = [[" " for _ in range(width)] for _ in range(height)]
 
-        r_vals = sorted(df["r"].dropna().unique())
-        a_vals = sorted(df["alpha"].dropna().unique())
-        sel_r = r_vals[state.selected_i] if state.selected_i < len(r_vals) else None
-        sel_a = a_vals[state.selected_j] if state.selected_j < len(a_vals) else None
+        sel_key = None
+        if (
+            grid_r_vals is not None
+            and grid_a_vals is not None
+            and state.selected_i < len(grid_r_vals)
+            and state.selected_j < len(grid_a_vals)
+        ):
+            sel_key = self._coord_key(
+                grid_r_vals[state.selected_i],
+                grid_a_vals[state.selected_j],
+            )
 
         for _, row in df.iterrows():
             cx = scale_x(float(row["mds1"]))
@@ -170,10 +224,8 @@ class ManifoldView(Static):
 
             if 0 <= rr < height and 0 <= cx < width:
                 is_selected = (
-                    sel_r is not None
-                    and sel_a is not None
-                    and row["r"] == sel_r
-                    and row["alpha"] == sel_a
+                    sel_key is not None
+                    and self._coord_key(row["r"], row["alpha"]) == sel_key
                 )
                 canvas[rr][cx] = "[black on bright_white]●[/]" if is_selected else "[cyan]•[/]"
 
@@ -216,9 +268,21 @@ class ManifoldView(Static):
             out.append("\n")
         return out
 
-    def render_from_state(self, state: ObservatoryState, mode_data=None, mds_data=None) -> None:
+    def render_from_state(
+        self,
+        state: ObservatoryState,
+        mode_data=None,
+        mds_data=None,
+        grid_r_vals=None,
+        grid_a_vals=None,
+    ) -> None:
         if state.view_space == "mds":
-            content = self._render_mds_real(state, mds_data)
+            content = self._render_mds_real(
+                state,
+                mds_data,
+                grid_r_vals=grid_r_vals,
+                grid_a_vals=grid_a_vals,
+            )
         elif state.mode == "Run":
             content = self._render_run_grid(state, mode_data)
         elif state.mode == "Geometry":
@@ -228,6 +292,8 @@ class ManifoldView(Static):
                 mode_data.geometry_df if mode_data else None,
                 value_col,
                 signed=False,
+                grid_r_vals=grid_r_vals,
+                grid_a_vals=grid_a_vals,
             )
         elif state.mode == "Phase":
             value_col = self._phase_value_col(state.overlay)
@@ -236,6 +302,8 @@ class ManifoldView(Static):
                 mode_data.phase_df if mode_data else None,
                 value_col,
                 signed=(state.overlay == "signed_phase"),
+                grid_r_vals=grid_r_vals,
+                grid_a_vals=grid_a_vals,
             )
         elif state.mode == "Topology":
             value_col = self._topology_value_col(state.overlay)
@@ -244,6 +312,8 @@ class ManifoldView(Static):
                 mode_data.topology_df if mode_data else None,
                 value_col,
                 signed=False,
+                grid_r_vals=grid_r_vals,
+                grid_a_vals=grid_a_vals,
             )
         elif state.mode == "Operators":
             value_col = self._operators_value_col(state.overlay)
@@ -252,6 +322,8 @@ class ManifoldView(Static):
                 mode_data.operators_df if mode_data else None,
                 value_col,
                 signed=False,
+                grid_r_vals=grid_r_vals,
+                grid_a_vals=grid_a_vals,
             )
         elif state.mode == "Identity":
             value_col = self._identity_value_col(state.overlay)
@@ -260,9 +332,11 @@ class ManifoldView(Static):
                 mode_data.identity_nodes_df if mode_data else None,
                 value_col,
                 signed=(state.overlay in {"signed_local_obstruction", "legacy_spin"}),
+                grid_r_vals=grid_r_vals,
+                grid_a_vals=grid_a_vals,
             )
         else:
             content = self._render_run_grid(state, None)
 
-        title = f"Manifold — {state.mode} / {state.view_space.upper()} / {state.overlay}"
+        title = f"Manifold — {mode_label(state.mode)} / {state.view_space.upper()} / {overlay_label(state.overlay)}"
         self.update(Panel(content, title=title, border_style="green"))

@@ -5,22 +5,7 @@ from rich.table import Table
 from textual.widgets import Static
 
 from observatory.state import ObservatoryState
-
-
-def _fmt(value, digits: int = 3) -> str:
-    if value is None:
-        return "—"
-    try:
-        if value != value:
-            return "—"
-    except Exception:
-        pass
-    if isinstance(value, int):
-        return str(value)
-    try:
-        return f"{float(value):.{digits}f}"
-    except Exception:
-        return str(value)
+from observatory.views.formatting import fmt_value, mode_label, overlay_label
 
 
 class InspectorView(Static):
@@ -36,51 +21,51 @@ class InspectorView(Static):
         index_mtime: float | None = None,
     ) -> None:
         table = Table.grid(padding=(0, 1))
-        table.add_row("Mode", state.mode)
+        table.add_row("Mode", mode_label(state.mode))
         table.add_row("View", state.view_space.upper())
-        table.add_row("Overlay", state.overlay)
+        table.add_row("Overlay", overlay_label(state.overlay))
         table.add_row("Node", state.selected_node_id)
         table.add_row("i", str(state.selected_i))
         table.add_row("j", str(state.selected_j))
         table.add_row("Grid", f"{state.grid_rows}×{state.grid_cols}")
 
         if run_summary:
-            table.add_row("r", _fmt(run_summary["r"], 3))
-            table.add_row("α", _fmt(run_summary["alpha"], 6))
+            table.add_row("r", fmt_value(run_summary["r"], 3))
+            table.add_row("α", fmt_value(run_summary["alpha"], 6))
             table.add_row("Rows", str(run_summary["n_rows"]))
             table.add_row("Seeds", str(run_summary["n_seeds"]))
 
         if geometry_summary:
-            table.add_row("r", _fmt(geometry_summary["r"], 3))
-            table.add_row("α", _fmt(geometry_summary["alpha"], 6))
-            table.add_row("Curv", _fmt(geometry_summary["scalar_curvature"], 3))
-            table.add_row("Det", _fmt(geometry_summary["fim_det"], 3))
-            table.add_row("Cond", _fmt(geometry_summary["fim_cond"], 3))
+            table.add_row("r", fmt_value(geometry_summary["r"], 3))
+            table.add_row("α", fmt_value(geometry_summary["alpha"], 6))
+            table.add_row("Curv", fmt_value(geometry_summary["scalar_curvature"], 3))
+            table.add_row("Det", fmt_value(geometry_summary["fim_det"], 3))
+            table.add_row("Cond", fmt_value(geometry_summary["fim_cond"], 3))
 
         if phase_summary:
-            table.add_row("r", _fmt(phase_summary["r"], 3))
-            table.add_row("α", _fmt(phase_summary["alpha"], 6))
-            table.add_row("Phase", _fmt(phase_summary["signed_phase"], 3))
-            table.add_row("Seam d", _fmt(phase_summary["distance_to_seam"], 3))
+            table.add_row("r", fmt_value(phase_summary["r"], 3))
+            table.add_row("α", fmt_value(phase_summary["alpha"], 6))
+            table.add_row("Phase", fmt_value(phase_summary["signed_phase"], 3))
+            table.add_row("Seam d", fmt_value(phase_summary["distance_to_seam"], 3))
 
         if topology_summary:
-            table.add_row("r", _fmt(topology_summary["r"], 3))
-            table.add_row("α", _fmt(topology_summary["alpha"], 6))
-            table.add_row("Crit", _fmt(topology_summary["criticality"], 3))
+            table.add_row("r", fmt_value(topology_summary["r"], 3))
+            table.add_row("α", fmt_value(topology_summary["alpha"], 6))
+            table.add_row("Crit", fmt_value(topology_summary["criticality"], 3))
 
         if operators_summary:
-            table.add_row("r", _fmt(operators_summary["r"], 3))
-            table.add_row("α", _fmt(operators_summary["alpha"], 6))
-            table.add_row("Lazarus", _fmt(operators_summary["lazarus_score"], 3))
+            table.add_row("r", fmt_value(operators_summary["r"], 3))
+            table.add_row("α", fmt_value(operators_summary["alpha"], 6))
+            table.add_row("Lazarus", fmt_value(operators_summary["lazarus_score"], 3))
 
         if identity_summary:
-            table.add_row("r", _fmt(identity_summary["r"], 3))
-            table.add_row("α", _fmt(identity_summary["alpha"], 6))
-            table.add_row("Mag", _fmt(identity_summary["identity_magnitude"], 3))
-            table.add_row("Hol | |", _fmt(identity_summary["absolute_holonomy_node"], 3))
-            table.add_row("Obs | |", _fmt(identity_summary["obstruction_mean_abs_holonomy"], 3))
-            table.add_row("Obs ±", _fmt(identity_summary["obstruction_signed_sum_holonomy"], 3))
-            table.add_row("Spin*", _fmt(identity_summary["identity_spin"], 3))
+            table.add_row("r", fmt_value(identity_summary["r"], 3))
+            table.add_row("α", fmt_value(identity_summary["alpha"], 6))
+            table.add_row("Mag", fmt_value(identity_summary["identity_magnitude"], 3))
+            table.add_row("Hol | |", fmt_value(identity_summary["absolute_holonomy_node"], 3))
+            table.add_row("Obs | |", fmt_value(identity_summary["obstruction_mean_abs_holonomy"], 3))
+            table.add_row("Obs ±", fmt_value(identity_summary["obstruction_signed_sum_holonomy"], 3))
+            table.add_row("Spin*", fmt_value(identity_summary["identity_spin"], 3))
 
         table.add_row("Refresh", "ON" if state.refresh_enabled else "OFF")
         table.add_row("Status", state.status_message)
