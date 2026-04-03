@@ -6,6 +6,7 @@ from textual.widgets import Static
 
 from observatory.state import ObservatoryState
 from observatory.views.formatting import fmt_value, overlay_label
+from observatory.views.formatting import fmt_value, overlay_label, overlay_meta
 
 
 class DetailView(Static):
@@ -19,6 +20,14 @@ class DetailView(Static):
         operators_summary: dict | None = None,
         identity_summary: dict | None = None,
     ) -> None:
+        meta = overlay_meta(state.overlay)
+        cue_block = f"""
+### Field cue
+- overlay: `{overlay_label(state.overlay)}`
+- type: `{meta["kind"]}`
+- encoding: `{meta["encoding"]}`
+- meaning: {meta["meaning"]}
+"""
         if state.mode == "Run":
             body = Markdown(
                 f"""
@@ -33,6 +42,7 @@ class DetailView(Static):
 ### Run mode
 - file-backed coverage from `outputs/index.csv`
 - trajectory lens deferred
+{cue_block}
 """
             )
         elif state.mode == "Geometry":
@@ -48,6 +58,7 @@ class DetailView(Static):
 
 ### Active overlay
 `{overlay_label(state.overlay)}`
+{cue_block}
 """
             )
         elif state.mode == "Phase":
@@ -62,6 +73,7 @@ class DetailView(Static):
 
 ### Active overlay
 `{overlay_label(state.overlay)}`
+{cue_block}
 """
             )
         elif state.mode == "Topology":
@@ -75,6 +87,7 @@ class DetailView(Static):
 
 ### Active overlay
 `{overlay_label(state.overlay)}`
+{cue_block}
 """
             )
         elif state.mode == "Operators":
@@ -88,6 +101,7 @@ class DetailView(Static):
 
 ### Active overlay
 `{overlay_label(state.overlay)}`
+{cue_block}
 """
             )
         elif state.mode == "Identity":
@@ -107,6 +121,7 @@ class DetailView(Static):
 
 ### Active overlay
 `{overlay_label(state.overlay)}`
+{cue_block}
 
 ### Identity hierarchy
 - primary: magnitude / holonomy / obstruction
