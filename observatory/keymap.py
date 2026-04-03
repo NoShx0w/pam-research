@@ -10,6 +10,7 @@ KEY_HINTS: list[str] = [
     "s rank/detail",
     "j/k rank",
     "enter jump",
+    "x snapshot",
     "r refresh",
     "f freeze",
     "q quit",
