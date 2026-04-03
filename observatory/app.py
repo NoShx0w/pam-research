@@ -21,6 +21,7 @@ from observatory.views.detail import DetailView
 from observatory.views.footer import FooterView
 from observatory.views.inspector import InspectorView
 from observatory.views.manifold import ManifoldView
+from observatory.views.ranking import RankingView
 
 
 class ObservatoryApp(App):
@@ -74,6 +75,7 @@ class ObservatoryApp(App):
         Binding("up", "move_selection(0, -1)", "Up"),
         Binding("down", "move_selection(0, 1)", "Down"),
         Binding("g", "toggle_view", "Grid/MDS"),
+        Binding("s", "toggle_right_pane_mode", "Rank/detail"),
         Binding("o", "next_overlay", "Next overlay"),
         Binding("shift+o", "prev_overlay", "Prev overlay"),
         Binding("r", "refresh_state", "Refresh"),
@@ -297,14 +299,95 @@ class ObservatoryApp(App):
             "obstruction_signed_sum_holonomy": pd.to_numeric(rec.get("obstruction_signed_sum_holonomy"), errors="coerce"),
             "obstruction_signed_weighted_holonomy": pd.to_numeric(rec.get("obstruction_signed_weighted_holonomy"), errors="coerce"),
             "identity_spin": pd.to_numeric(rec.get("identity_spin"), errors="coerce"),
-        }     
+        }
+
+    def _active_overlay_dataframe_and_column(self):
+        mode = self.state.mode
+        overlay = self.state.overlay
+
+        if mode == "Run":
+            df = self.run_data.coverage_df.copy()
+            if not df.empty:
+                df = df.rename(columns={"n_rows": "value"})
+            return df, "value", False
+
+        if mode == "Geometry":
+            df = self.geometry_data.geometry_df.copy()
+            if overlay == "curvature":
+                return df, "scalar_curvature", False
+            if overlay == "condition_number":
+                return df, "fim_cond", False
+            return df, "fim_det", False
+
+        if mode == "Phase":
+            df = self.phase_data.phase_df.copy()
+            if overlay == "distance_to_seam":
+                return df, "distance_to_seam", False
+            return df, "signed_phase", True
+
+        if mode == "Topology":
+            df = self.topology_data.topology_df.copy()
+            return df, "criticality", False
+
+        if mode == "Operators":
+            df = self.operators_data.operators_df.copy()
+            return df, "lazarus_score", False
+
+        if mode == "Identity":
+            df = self.identity_data.identity_nodes_df.copy()
+            if overlay == "identity_magnitude":
+                return df, "identity_magnitude", False
+            if overlay == "absolute_holonomy":
+                return df, "absolute_holonomy_node", False
+            if overlay == "unsigned_local_obstruction":
+                return df, "obstruction_mean_abs_holonomy", False
+            if overlay == "signed_local_obstruction":
+                return df, "obstruction_signed_sum_holonomy", True
+            return df, "identity_spin", True
+
+        return pd.DataFrame(), "value", False
+
+
+    def _overlay_ranking_table(self, top_n: int = 10) -> pd.DataFrame:
+        df, value_col, signed = self._active_overlay_dataframe_and_column()
+        if df.empty or value_col not in df.columns:
+            return pd.DataFrame(columns=["rank", "r", "alpha", "value"])
+
+        work = df.copy()
+        for col in ["r", "alpha", value_col]:
+            if col in work.columns:
+                work[col] = pd.to_numeric(work[col], errors="coerce")
+
+        work = work.dropna(subset=["r", "alpha", value_col]).copy()
+        if work.empty:
+            return pd.DataFrame(columns=["rank", "r", "alpha", "value"])
+
+        if signed:
+            work["_sort_value"] = work[value_col].abs()
+        else:
+            work["_sort_value"] = work[value_col]
+
+        work = work.sort_values("_sort_value", ascending=False).head(top_n).copy()
+        work["rank"] = range(1, len(work) + 1)
+        work = work.rename(columns={value_col: "value"})
+
+        keep = ["rank", "r", "alpha", "value"]
+        if "node_id" in work.columns:
+            keep.insert(1, "node_id")
+        return work[keep].reset_index(drop=True)    
 
     def compose(self) -> ComposeResult:
         yield Vertical(
             Horizontal(
                 Container(InspectorView(id="inspector"), id="left-pane"),
                 Container(ManifoldView(id="manifold"), id="center-pane"),
-                Container(DetailView(id="detail"), id="right-pane"),
+                Container(
+                    Vertical(
+                        DetailView(id="detail"),
+                        RankingView(id="ranking"),
+                    ),
+                    id="right-pane",
+                ),
                 id="main",
             ),
             Container(FooterView(id="footer"), id="footer-pane"),
@@ -371,6 +454,23 @@ class ObservatoryApp(App):
 
         self.query_one("#footer", FooterView).render_from_state(self.state)
 
+        ranking_df = self._overlay_ranking_table()
+
+        self.query_one("#ranking", RankingView).render_from_overlay(
+            self.state.overlay,
+            ranking_df,
+        )
+
+        detail_widget = self.query_one("#detail", DetailView)
+        ranking_widget = self.query_one("#ranking", RankingView)
+
+        if self.state.right_pane_mode == "detail":
+            detail_widget.display = True
+            ranking_widget.display = False
+        else:
+            detail_widget.display = False
+            ranking_widget.display = True
+        
     def action_set_mode(self, mode: str) -> None:
         if mode not in MODES:
             return
@@ -389,6 +489,15 @@ class ObservatoryApp(App):
     def action_toggle_view(self) -> None:
         self.state.view_space = "mds" if self.state.view_space == "grid" else "grid"
         self.state.status_message = f"View set to {self.state.view_space.upper()}"
+        self._render_all()
+
+    def action_toggle_right_pane_mode(self) -> None:
+        self.state.right_pane_mode = (
+            "ranking" if self.state.right_pane_mode == "detail" else "detail"
+        )
+        self.state.status_message = (
+            "Right pane: ranking" if self.state.right_pane_mode == "ranking" else "Right pane: detail"
+        )
         self._render_all()
 
     def action_next_overlay(self) -> None:
