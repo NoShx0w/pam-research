@@ -6,9 +6,7 @@ This documentation describes the canonical architecture, runtime flow, and resea
 
 The repository is now organized as a **layered computational instrument** for studying phase structure in recursive language systems across the control manifold
 
-\[
-\theta = (r, \alpha)
-\]
+$\theta = (r, \alpha)$
 
 through:
 
@@ -46,7 +44,7 @@ bash scripts/run_full_pipeline.sh
   Geometry pipeline from observables to Fisher manifold structure
 
 - [`02_geometry/parameter_sweep_geometry.md`](02_geometry/parameter_sweep_geometry.md)  
-  Parameter-space coverage and geometric interpretation of the \((r, \alpha)\) sweep
+  Parameter-space coverage and geometric interpretation of the $(r, \alpha)$ sweep
 
 ---
 
