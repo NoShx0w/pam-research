@@ -142,7 +142,7 @@ and is exposed through:
 ## Conceptual Layers
 
 ### Engine
-Recursive corpus dynamics over the control parameters \((r, \alpha)\).
+Recursive corpus dynamics over the control parameters $(r, \alpha)$.
 
 ### Measurement
 TIP and TIM instruments for scoring invariant and time/scale-stable structure.
