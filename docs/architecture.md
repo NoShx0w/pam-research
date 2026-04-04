@@ -81,7 +81,7 @@ src/pam/engine/
 
 Primary responsibilities:
 
-- corpus evolution over \((r, \alpha)\)
+- corpus evolution over $(r, \alpha)$
 - mixture/quench execution
 - injector composition
 - runtime dynamics wrappers
