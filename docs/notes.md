@@ -71,8 +71,8 @@ Each iteration:
 
 This produced a simple but expressive control system defined by two parameters:
 
-- \(r\) = replacement fraction
-- \(\alpha\) = anchor injection probability
+- $r$ = replacement fraction
+- $\alpha$ = anchor injection probability
 
 The evolving corpus therefore became a **discrete-time dynamical system**.
 
@@ -91,7 +91,7 @@ Instead it organized itself into regions of:
 
 These regions appeared and disappeared over time.
 
-This led to the concept of **freeze occupancy** \((\pi_F)\):
+This led to the concept of **freeze occupancy** $(\pi_F)$:
 
 the fraction of windows exhibiting structural convergence.
 
@@ -106,7 +106,7 @@ Freeze detection relied on microstructure analysis using quantities such as:
 
 To track diversity of semantic signatures, a second observable was introduced:
 
-**signature entropy** \((H)\)
+**signature entropy** $(H)$
 
 Entropy measures the diversity of invariant signatures within the mutable corpus.
 
@@ -123,9 +123,7 @@ The joint entropy proved to capture structural regime shifts more clearly.
 
 Once freeze occupancy and entropy were tracked together, a strong empirical relationship emerged:
 
-\[
-\mathrm{corr}(\pi_F, H) \approx -0.90 \text{ to } -0.97
-\]
+$\mathrm{corr}(\pi_F, H) \approx -0.90 \text{ to } -0.97$
 
 Across many runs and smoothing scales, freeze and entropy exhibited strong anticorrelation.
 
@@ -143,20 +141,16 @@ To test causal interaction, minimal autoregressive models were constructed.
 
 Two coupled equations were fit:
 
-\[
-F_{t+1} = a + bF_t + cH_t
-\]
+$F_{t+1} = a + bF_t + cH_t$
 
-\[
-H_{t+1} = d + eH_t + fF_t
-\]
+$H_{t+1} = d + eH_t + fF_t$
 
 The key test was whether adding the cross-variable significantly improved prediction.
 
 Results consistently showed:
 
-- \(\Delta R^2_{\text{freeze}} \approx 0.08\)–\(0.12\)
-- \(\Delta R^2_{\text{entropy}} \approx 0.002\)–\(0.005\)
+- $\Delta R^2_{\text{freeze}} \approx 0.08–0.12$
+- $\Delta R^2_{\text{entropy}} \approx 0.002–0.005$
 
 Despite strong correlations, direct one-step causal coupling appeared weak.
 
@@ -186,7 +180,7 @@ Sweeps over parameter space revealed distinct behavioral regimes:
 | Mixed | intermittent freeze and mutation |
 | Freeze | stable invariant structure |
 
-These regimes formed an early **phase diagram in \((r, \alpha)\) parameter space**.
+These regimes formed an early **phase diagram in $(r, \alpha)$ parameter space**.
 
 This phase-oriented interpretation later developed into the full geometry → phase → operators → topology observatory stack.
 
