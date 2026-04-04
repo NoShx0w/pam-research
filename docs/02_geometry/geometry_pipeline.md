@@ -44,8 +44,8 @@ The PAM Observatory studies a parameter manifold:
 
 where:
 
-- \(r\) controls recursion / coupling strength
-- \(\alpha\) controls update / mixing dynamics
+- $r$ controls recursion / coupling strength
+- $\alpha$ controls update / mixing dynamics
 
 Each parameter point is associated with observable summaries derived from recursive experiments.
 
@@ -81,8 +81,8 @@ G_{ij}(\theta) = \partial_i m(\theta)^T \Sigma^{-1} \partial_j m(\theta)
 
 where:
 
-- \(m(\theta)\) is the observable vector
-- \(\Sigma\) is the empirical covariance of observable noise
+- $m(\theta)$ is the observable vector
+- $\Sigma$ is the empirical covariance of observable noise
 
 Interpretation:
 
