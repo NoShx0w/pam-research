@@ -29,8 +29,8 @@ The system is defined over:
 
 with a canonical sweep such as:
 
-- \(r \in \{0.10, 0.15, 0.20, 0.25, 0.30\}\)
-- \(\alpha \in \mathrm{linspace}(0.03, 0.15, 15)\)
+- $r \in \{0.10, 0.15, 0.20, 0.25, 0.30\}$
+- $\alpha \in \mathrm{linspace}(0.03, 0.15, 15)$
 - seeds = 10
 
 Total runs:
@@ -47,7 +47,7 @@ Each run corresponds to a specific experimental configuration in parameter space
 
 The sweep produces a lattice over the control manifold:
 
-- nodes = parameter pairs \((r, \alpha)\)
+- nodes = parameter pairs $(r, \alpha)$
 - repeated trials over seeds reduce stochastic noise
 - each run contributes summary observables and optional trajectory artifacts
 
@@ -92,9 +92,9 @@ f(\theta)
 
 Examples include:
 
-- `piF_tail(\theta)`
-- `H_joint_mean(\theta)`
-- `K_max(\theta)`
+- $`piF_tail(\theta)`$
+- $`H_joint_mean(\theta)`$
+- $`K_max(\theta)`$
 
 These observables form layered surfaces over parameter space and become the empirical basis for geometry construction.
 
