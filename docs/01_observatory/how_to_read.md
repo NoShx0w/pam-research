@@ -36,8 +36,8 @@ This file records run-level experiment summaries.
 In practice, rows typically correspond to specific run configurations, often including:
 
 - corpus
-- \(r\)
-- \(\alpha\)
+- $(r)$
+- $(\alpha)$
 - seed
 - summary observables derived from the run
 
