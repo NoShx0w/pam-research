@@ -23,8 +23,7 @@ In the canonical PAM Observatory, the operators layer sits downstream of geometr
 
 ## From Geometry to Operators
 
-Operators do not begin from raw experiment logs alone.
-
+Operators do not begin from raw experiment logs alone.e
 They begin from the geometric and phase structure already extracted by the observatory:
 
 - intrinsic manifold distances
@@ -33,7 +32,7 @@ They begin from the geometric and phase structure already extracted by the obser
 - seam-relative distance
 - signed phase organization
 
-So the conceptual flow is:
+So the conceptual flow ie:
 
 ```text
 observables
@@ -63,9 +62,9 @@ Conceptually:
 
 where:
 
-- \( \theta(t) \) is a path through the manifold
-- \( \mathcal{O} \) is an operator or probe procedure
-- \( \tilde{\theta}(t) \) is the resulting constrained or extracted path
+- $\theta(t)$ is a path through the manifold
+- $\mathcal{O}$ is an operator or probe procedure
+- $\tilde{\theta}(t)$ is the resulting constrained or extracted path
 
 Operators do not redefine the manifold itself.
 
@@ -162,7 +161,7 @@ Its role is to:
 
 ### Role
 
-\(S\) is the first active probe of the manifold.
+$(S)$ is the first active probe of the manifold.
 
 It transforms the observatory from:
 
