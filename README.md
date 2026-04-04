@@ -43,7 +43,7 @@ This executes the canonical file-first pipeline over the current `outputs/` arti
 
 ![Phase Flow on the PAM Manifold](docs/figures/phase_flow_on_manifold.png)
 
-Each point represents a parameter configuration \((r, \alpha)\), embedded using Fisher-geodesic distances.  
+Each point represents a parameter configuration $(r, \alpha)$, embedded using Fisher-geodesic distances.  
 Color encodes a **signed phase coordinate**, revealing two distinct regimes separated by an emergent phase boundary.  
 Critical points concentrate near that boundary, indicating regions of maximal structural change.
 
