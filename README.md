@@ -88,7 +88,7 @@ Two runs are considered structurally equivalent if they preserve:
 - seam relationships
 - basin and transition structure
 
-—not if they merely look similar in raw coordinates.
+not if they merely look similar in raw coordinates.
 
 ---
 
