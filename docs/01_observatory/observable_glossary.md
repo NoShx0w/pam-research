@@ -174,7 +174,7 @@ The observables define a feature vector over the control manifold:
 m(\theta)
 ```
 
-where \(\theta = (r, \alpha)\).
+where $\theta = (r, \alpha)$.
 
 From this vector, the observatory constructs a Fisher-type metric:
 
