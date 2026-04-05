@@ -21,6 +21,15 @@ def run_pipeline(
     geometry_anchor_r: float | None = None,
     geometry_anchor_alpha: float | None = None,
     geometry_color_by: str = "fim_det",
+    geometry_run_single_geodesic: bool = False,
+    geometry_geodesic_start_r: float | None = None,
+    geometry_geodesic_start_alpha: float | None = None,
+    geometry_geodesic_end_r: float | None = None,
+    geometry_geodesic_end_alpha: float | None = None,
+    geometry_run_geodesic_fan: bool = False,
+    geometry_fan_start_r: float | None = None,
+    geometry_fan_start_alpha: float | None = None,
+    geometry_fan_target_r: float | None = None,
     phase_seam_threshold: float = 10.0,
     phase_seam_samples: int = 100,
     operators_lazarus_threshold_quantile: float = 0.85,
@@ -42,6 +51,7 @@ def run_pipeline(
     Notes
     -----
     - File-first orchestration over the existing outputs root.
+    - Optional geodesics are treated as geometry probes, not mandatory geometry artifacts.
     - Returns the final PipelineState with accumulated metadata.
     """
 
@@ -60,6 +70,15 @@ def run_pipeline(
         anchor_r=geometry_anchor_r,
         anchor_alpha=geometry_anchor_alpha,
         color_by=geometry_color_by,
+        run_single_geodesic=geometry_run_single_geodesic,
+        geodesic_start_r=geometry_geodesic_start_r,
+        geodesic_start_alpha=geometry_geodesic_start_alpha,
+        geodesic_end_r=geometry_geodesic_end_r,
+        geodesic_end_alpha=geometry_geodesic_end_alpha,
+        run_geodesic_fan_stage=geometry_run_geodesic_fan,
+        fan_start_r=geometry_fan_start_r,
+        fan_start_alpha=geometry_fan_start_alpha,
+        fan_target_r=geometry_fan_target_r,
     )
 
     state = run_phase_stage(
