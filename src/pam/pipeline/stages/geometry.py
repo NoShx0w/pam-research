@@ -4,6 +4,7 @@ from pam.geometry.curvature import run_curvature
 from pam.geometry.distance_graph import run_distance_graph
 from pam.geometry.embedding import run_embedding
 from pam.geometry.fisher_metric import run_fisher_metric
+from pam.geometry.geodesics import run_geodesic, run_geodesic_fan
 from pam.pipeline.state import PipelineState
 
 
@@ -18,6 +19,15 @@ def run_geometry_stage(
     anchor_r: float | None = None,
     anchor_alpha: float | None = None,
     color_by: str = "fim_det",
+    run_single_geodesic: bool = False,
+    geodesic_start_r: float | None = None,
+    geodesic_start_alpha: float | None = None,
+    geodesic_end_r: float | None = None,
+    geodesic_end_alpha: float | None = None,
+    run_geodesic_fan_stage: bool = False,
+    fan_start_r: float | None = None,
+    fan_start_alpha: float | None = None,
+    fan_target_r: float | None = None,
 ) -> PipelineState:
     """
     Canonical geometry stage.
@@ -63,6 +73,52 @@ def run_geometry_stage(
         color_by=color_by,
     )
 
+    nodes_csv = state.outputs.fim_distance_dir / "fisher_nodes.csv"
+    edges_csv = state.outputs.fim_distance_dir / "fisher_edges.csv"
+    coords_csv = state.outputs.fim_mds_dir / "mds_coords.csv"
+
+    if run_single_geodesic:
+        if None in (
+            geodesic_start_r,
+            geodesic_start_alpha,
+            geodesic_end_r,
+            geodesic_end_alpha,
+        ):
+            raise ValueError(
+                "Single geodesic requested, but geodesic_start/end parameters were not fully specified."
+            )
+
+        run_geodesic(
+            nodes_csv=nodes_csv,
+            edges_csv=edges_csv,
+            coords_csv=coords_csv,
+            r0=geodesic_start_r,
+            a0=geodesic_start_alpha,
+            r1=geodesic_end_r,
+            a1=geodesic_end_alpha,
+            outdir=state.outputs.fim_geodesic_dir,
+        )
+
+    if run_geodesic_fan_stage:
+        if None in (
+            fan_start_r,
+            fan_start_alpha,
+            fan_target_r,
+        ):
+            raise ValueError(
+                "Geodesic fan requested, but fan_start/fan_target parameters were not fully specified."
+            )
+
+        run_geodesic_fan(
+            nodes_csv=nodes_csv,
+            edges_csv=edges_csv,
+            coords_csv=coords_csv,
+            r0=fan_start_r,
+            a0=fan_start_alpha,
+            r1=fan_target_r,
+            outdir=state.outputs.fim_geodesic_fan_dir,
+        )
+        
     run_curvature(
         fim_csv=state.outputs.fim_dir / "fim_surface.csv",
         outdir=state.outputs.fim_curvature_dir,
@@ -76,5 +132,14 @@ def run_geometry_stage(
             "neighbor_mode": neighbor_mode,
             "cost_mode": cost_mode,
             "color_by": color_by,
+            "run_single_geodesic": run_single_geodesic,
+            "geodesic_start_r": geodesic_start_r,
+            "geodesic_start_alpha": geodesic_start_alpha,
+            "geodesic_end_r": geodesic_end_r,
+            "geodesic_end_alpha": geodesic_end_alpha,
+            "run_geodesic_fan_stage": run_geodesic_fan_stage,
+            "fan_start_r": fan_start_r,
+            "fan_start_alpha": fan_start_alpha,
+            "fan_target_r": fan_target_r,
         }
     )

@@ -39,6 +39,14 @@ class OutputPaths:
         return self.root / "fim_curvature"
 
     @property
+    def fim_geodesic_dir(self) -> Path:
+        return self.root / "fim_geodesic"
+
+    @property
+    def fim_geodesic_fan_dir(self) -> Path:
+        return self.root / "fim_geodesic_fan"
+
+    @property
     def fim_phase_dir(self) -> Path:
         return self.root / "fim_phase"
 
