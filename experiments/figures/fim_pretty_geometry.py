@@ -111,15 +111,69 @@ def render_pretty_geometry(nodes: pd.DataFrame, seam: pd.DataFrame, critical: pd
     if not critical.empty:
         axes[1, 1].scatter(critical["mds1"], critical["mds2"], marker="*", s=120, linewidths=0.5, edgecolors="black")
 
+    # Panel D: probe flow over Lazarus
+    sc4 = axes[1, 1].scatter(
+        nodes["mds1"], nodes["mds2"], c=nodes["lazarus_score"], cmap="plasma", s=28, alpha=0.20
+    )
+    if not seam.empty:
+        seam_ord = seam.sort_values("mds1")
+        axes[1, 1].plot(seam_ord["mds1"], seam_ord["mds2"], color="black", linewidth=2.2, alpha=0.9)
+    if not critical.empty:
+        axes[1, 1].scatter(
+            critical["mds1"], critical["mds2"],
+            marker="*", s=120, linewidths=0.5, edgecolors="black", zorder=6
+        )
+
     if not paths.empty and {"probe_id", "step", "mds1", "mds2"}.issubset(paths.columns):
+        # Normalize path-vertex coloring to path Lazarus if available
+        path_has_laz = "lazarus_score" in paths.columns
+
+        marks = []
+        seam_marks_x = []
+        seam_marks_y = []
+
         for probe_id, grp in paths.groupby("probe_id"):
-            grp = grp.sort_values("step")
-            axes[1, 1].plot(grp["mds1"], grp["mds2"], linewidth=1.4, alpha=0.75)
-        # mark likely transition points if available
-        if "signed_phase" in paths.columns:
-            marks = []
-            for probe_id, grp in paths.groupby("probe_id"):
-                grp = grp.sort_values("step").reset_index(drop=True)
+            grp = grp.sort_values("step").reset_index(drop=True)
+
+            # 1) connecting edges
+            axes[1, 1].plot(
+                grp["mds1"], grp["mds2"],
+                linewidth=1.6,
+                alpha=0.75,
+                zorder=3,
+            )
+
+            # 2) explicit vertices
+            if path_has_laz:
+                axes[1, 1].scatter(
+                    grp["mds1"], grp["mds2"],
+                    c=grp["lazarus_score"],
+                    cmap="plasma",
+                    s=54,
+                    alpha=0.95,
+                    edgecolors="white",
+                    linewidths=0.35,
+                    zorder=4,
+                )
+            else:
+                axes[1, 1].scatter(
+                    grp["mds1"], grp["mds2"],
+                    s=54,
+                    alpha=0.95,
+                    edgecolors="white",
+                    linewidths=0.35,
+                    zorder=4,
+                )
+
+            # 3) seam-contact vertex rings, if seam distance is available
+            if "distance_to_seam" in grp.columns:
+                seam_hit = pd.to_numeric(grp["distance_to_seam"], errors="coerce") <= 0.15
+                if seam_hit.any():
+                    seam_marks_x.extend(grp.loc[seam_hit, "mds1"].tolist())
+                    seam_marks_y.extend(grp.loc[seam_hit, "mds2"].tolist())
+
+            # 4) first sign-flip / transition marker
+            if "signed_phase" in grp.columns:
                 prev = 0
                 for _, row in grp.iterrows():
                     val = float(row["signed_phase"])
@@ -130,9 +184,30 @@ def render_pretty_geometry(nodes: pd.DataFrame, seam: pd.DataFrame, critical: pd
                         marks.append((row["mds1"], row["mds2"]))
                         break
                     prev = sign
-            if marks:
-                mx, my = zip(*marks)
-                axes[1, 1].scatter(mx, my, marker="X", s=70)
+
+        # seam-contact rings
+        if seam_marks_x:
+            axes[1, 1].scatter(
+                seam_marks_x, seam_marks_y,
+                s=95,
+                facecolors="none",
+                edgecolors="black",
+                linewidths=1.0,
+                alpha=0.9,
+                zorder=5,
+            )
+
+        # transition X marks
+        if marks:
+            mx, my = zip(*marks)
+            axes[1, 1].scatter(
+                mx, my,
+                marker="X",
+                s=90,
+                linewidths=0.8,
+                edgecolors="black",
+                zorder=6,
+            )
 
     axes[1, 1].set_title("D. Probe flow and transition geometry")
     axes[1, 1].set_xlabel("MDS 1")
