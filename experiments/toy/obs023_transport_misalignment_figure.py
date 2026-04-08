@@ -16,7 +16,10 @@ import numpy as np
 import pandas as pd
 
 from pam.geometry.directional_field import DirectionalField
-from pam.geometry.transport import edge_transport_table, node_transport_summary
+from pam.geometry.parallel_transport import (
+    edge_parallel_transport_table,
+    node_parallel_transport_summary,
+)
 
 
 @dataclass(frozen=True)
@@ -54,7 +57,7 @@ def load_inputs(cfg: Config) -> tuple[DirectionalField, pd.DataFrame]:
 
 def build_node_table(field: DirectionalField) -> pd.DataFrame:
     nodes = field.nodes.copy()
-    transport_nodes = node_transport_summary(field)
+    transport_nodes = node_parallel_transport_summary(field)
     nodes = nodes.merge(transport_nodes, on="node_id", how="left")
     return nodes
 
