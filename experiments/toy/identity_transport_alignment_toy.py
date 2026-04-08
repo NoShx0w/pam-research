@@ -2,59 +2,20 @@
 """
 identity_transport_alignment_toy.py
 
-Toy experiment: transport-aware alignment of the response principal-direction field
-on the PAM manifold.
+Canonical toy experiment for transport-aware directional mismatch on the PAM manifold.
 
-Core idea
----------
-Compare local response directions across neighboring nodes *after transporting*
-one direction to the other's tangent frame using an identity-angle connection proxy.
+Uses:
+- pam.geometry.directional_field.DirectionalField
+- pam.geometry.transport.edge_transport_table
+- pam.geometry.transport.node_transport_summary
 
-This script computes:
-  1. principal response direction at each node
-  2. identity-angle transport across graph edges
-  3. axial transport misalignment per edge and per node
-  4. simple correlations with seam distance / holonomy proxy columns if present
-  5. a compact diagnostic plate and CSV exports
-
-Definitions
------------
-Given neighboring nodes i -> j:
-  transport(v_i, i->j) = R(theta_j - theta_i) @ v_i
-
-where theta_* is an identity-angle / connection proxy.
-By default this is taken from:
-  - fim_theta
-  - identity_theta
-  - theta_identity
-  - rsp_theta
-  - phase_tangent_theta
-
-in that order of preference.
-
-Because eigenvectors are axial rather than directed, misalignment uses the
-smaller of angle(u, v) and angle(u, -v), giving values in [0, pi/2].
-
-Expected outputs
-----------------
-<outdir>/
+Outputs
+-------
+outputs/toy_identity_transport_alignment/
   node_transport_alignment.csv
   edge_transport_alignment.csv
   identity_transport_alignment_summary.txt
-  identity_transport_alignment_plate.png
-
-Usage
------
-PYTHONPATH=src .venv/bin/python experiments/toy/identity_transport_alignment_toy.py
-
-Optional bundle-driven usage:
-PYTHONPATH=src .venv/bin/python experiments/toy/identity_transport_alignment_toy.py \
-  --bundle-dir outputs/obs022_scene_bundle
-
-Notes
------
-- This is intentionally a toy / observatory diagnostic, not a final canonical module.
-- It works from either the scene bundle or directly from base CSV inputs.
+  identity_transport_alignment_panel.png
 """
 
 from __future__ import annotations
@@ -62,155 +23,23 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-
-# ---------------------------------------------------------------------
-# config
-# ---------------------------------------------------------------------
+from pam.geometry.directional_field import DirectionalField
+from pam.geometry.transport import edge_transport_table, node_transport_summary
 
 
 @dataclass(frozen=True)
 class Config:
-    # bundle mode
-    bundle_dir: str | None = "outputs/obs022_scene_bundle"
-
-    # direct-input mode
-    phase_csv: str = "outputs/fim_phase/signed_phase_coords.csv"
-    edges_csv: str = "outputs/fim_distance/fisher_edges.csv"
-    seam_csv: str = "outputs/fim_phase/phase_boundary_mds_backprojected.csv"
-    response_csv: str = "outputs/fim_response_operator/response_operator_nodes.csv"
-    lazarus_csv: str = "outputs/fim_lazarus/lazarus_scores.csv"
-
+    nodes_csv: str = "outputs/obs022_scene_bundle/scene_nodes.csv"
+    edges_csv: str = "outputs/obs022_scene_bundle/scene_edges.csv"
+    seam_csv: str = "outputs/obs022_scene_bundle/scene_seam.csv"
     outdir: str = "outputs/toy_identity_transport_alignment"
     seam_threshold: float = 0.15
-    use_axial_comparison: bool = True
-
-
-THETA_CANDIDATES = [
-    "fim_theta",
-    "identity_theta",
-    "theta_identity",
-    "rsp_theta",
-    "phase_tangent_theta",
-]
-
-EDGE_HOLONOMY_CANDIDATES = [
-    "edge_holonomy",
-    "holonomy",
-    "absolute_holonomy",
-    "unsigned_obstruction",
-    "edge_unsigned_obstruction",
-]
-
-NODE_HOLONOMY_CANDIDATES = [
-    "node_holonomy_proxy",
-    "obstruction_mean_abs_holonomy",
-    "obstruction_max_abs_holonomy",
-    "obstruction_mean_holonomy",
-    "obstruction_signed_weighted_holonomy",
-    "obstruction_signed_sum_holonomy",
-    "absolute_holonomy",
-    "unsigned_obstruction",
-    "node_holonomy",
-    "holonomy",
-    "spin",
-]
-
-SRC_CANDIDATES = ["src_id", "src", "u"]
-DST_CANDIDATES = ["dst_id", "dst", "v"]
-
-
-# ---------------------------------------------------------------------
-# basic helpers
-# ---------------------------------------------------------------------
-
-
-def first_existing(columns: Iterable[str], candidates: list[str]) -> str | None:
-    cols = set(columns)
-    return next((c for c in candidates if c in cols), None)
-
-
-def read_csv_required(path: str | Path) -> pd.DataFrame:
-    p = Path(path)
-    if not p.exists():
-        raise FileNotFoundError(p)
-    return pd.read_csv(p)
-
-
-def to_numeric_inplace(df: pd.DataFrame, cols: Iterable[str]) -> None:
-    for c in cols:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors="coerce")
-
-
-def wrap_angle(theta: np.ndarray | float) -> np.ndarray | float:
-    return (theta + np.pi) % (2 * np.pi) - np.pi
-
-
-def rotation_matrix(theta: float) -> np.ndarray:
-    c = float(np.cos(theta))
-    s = float(np.sin(theta))
-    return np.array([[c, -s], [s, c]], dtype=float)
-
-
-def angle_from_theta(theta: float) -> np.ndarray:
-    return np.array([np.cos(theta), np.sin(theta)], dtype=float)
-
-
-def angle_between_vectors(u: np.ndarray, v: np.ndarray, axial: bool = True) -> float:
-    nu = np.linalg.norm(u)
-    nv = np.linalg.norm(v)
-    if not np.isfinite([nu, nv]).all() or nu <= 1e-12 or nv <= 1e-12:
-        return np.nan
-
-    uu = u / nu
-    vv = v / nv
-    dot = float(np.clip(np.dot(uu, vv), -1.0, 1.0))
-    ang = float(np.arccos(dot))
-
-    if axial:
-        # identify v and -v
-        ang = min(ang, np.pi - ang)
-
-    return ang
-
-
-def principal_response_eig(
-    t_xx: np.ndarray,
-    t_xy: np.ndarray,
-    t_yx: np.ndarray,
-    t_yy: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Returns:
-      eig_major, eig_minor, theta_major
-    """
-    n = len(t_xx)
-    eig_major = np.full(n, np.nan)
-    eig_minor = np.full(n, np.nan)
-    theta_major = np.full(n, np.nan)
-
-    for i in range(n):
-        M = np.array([[t_xx[i], t_xy[i]], [t_yx[i], t_yy[i]]], dtype=float)
-        if not np.isfinite(M).all():
-            continue
-
-        vals, vecs = np.linalg.eig(M)
-        order = np.argsort(np.abs(vals))[::-1]
-        vals = np.real(vals[order])
-        vecs = np.real(vecs[:, order])
-        v = vecs[:, 0]
-
-        eig_major[i] = float(vals[0])
-        eig_minor[i] = float(vals[1])
-        theta_major[i] = float(np.arctan2(v[1], v[0]))
-
-    return eig_major, eig_minor, theta_major
+    top_k_labels: int = 10
 
 
 def safe_corr(a: pd.Series, b: pd.Series) -> float:
@@ -222,569 +51,256 @@ def safe_corr(a: pd.Series, b: pd.Series) -> float:
     return float(np.corrcoef(aa[mask], bb[mask])[0, 1])
 
 
-# ---------------------------------------------------------------------
-# loading
-# ---------------------------------------------------------------------
-
-
-def load_from_bundle(bundle_dir: str | Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    bundle_dir = Path(bundle_dir)
-    nodes = read_csv_required(bundle_dir / "scene_nodes.csv").copy()
-    edges = read_csv_required(bundle_dir / "scene_edges.csv").copy()
-    seam = read_csv_required(bundle_dir / "scene_seam.csv").copy()
-
-    # standardize edge endpoint names if needed
-    src_col = first_existing(edges.columns, SRC_CANDIDATES)
-    dst_col = first_existing(edges.columns, DST_CANDIDATES)
-    if src_col is None or dst_col is None:
-        raise ValueError(f"Could not identify edge endpoint columns in bundle edges: {list(edges.columns)}")
-    if src_col != "src_id" or dst_col != "dst_id":
-        edges = edges.rename(columns={src_col: "src_id", dst_col: "dst_id"})
-
-    return nodes, edges, seam
-
-
-def load_direct(
-    phase_csv: str,
-    edges_csv: str,
-    seam_csv: str,
-    response_csv: str,
-    lazarus_csv: str,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    phase = read_csv_required(phase_csv).copy()
-    edges = read_csv_required(edges_csv).copy()
-    seam = read_csv_required(seam_csv).copy()
-    rsp = read_csv_required(response_csv).copy()
-    laz = read_csv_required(lazarus_csv).copy()
-
-    # nodes
-    keep_phase = [c for c in ["node_id", "r", "alpha", "mds1", "mds2", "signed_phase", "distance_to_seam", "fim_theta"] if c in phase.columns]
-    nodes = phase[keep_phase].copy()
-    if "node_id" not in nodes.columns:
-        nodes = nodes.reset_index(drop=True)
-        nodes["node_id"] = nodes.index.astype(int)
-
-    # response enrich
-    keep_rsp = [c for c in ["node_id", "r", "alpha", "response_strength", "T_xx", "T_xy", "T_yx", "T_yy", "rsp_theta"] if c in rsp.columns]
-    join_cols = [c for c in ["node_id", "r", "alpha"] if c in nodes.columns and c in rsp.columns]
-    if not join_cols:
-        join_cols = ["r", "alpha"]
-    nodes = nodes.merge(rsp[keep_rsp], on=join_cols, how="left")
-
-    # lazarus enrich
-    keep_laz = [c for c in ["node_id", "r", "alpha", "lazarus_score"] if c in laz.columns]
-    join_cols = [c for c in ["node_id", "r", "alpha"] if c in nodes.columns and c in laz.columns]
-    if not join_cols:
-        join_cols = ["r", "alpha"]
-    nodes = nodes.merge(laz[keep_laz], on=join_cols, how="left")
-
-    # derive response theta if needed
-    if "rsp_theta" not in nodes.columns and {"T_xx", "T_xy", "T_yx", "T_yy"}.issubset(nodes.columns):
-        eig1, eig2, theta = principal_response_eig(
-            pd.to_numeric(nodes["T_xx"], errors="coerce").to_numpy(dtype=float),
-            pd.to_numeric(nodes["T_xy"], errors="coerce").to_numpy(dtype=float),
-            pd.to_numeric(nodes["T_yx"], errors="coerce").to_numpy(dtype=float),
-            pd.to_numeric(nodes["T_yy"], errors="coerce").to_numpy(dtype=float),
-        )
-        nodes["rsp_eig_major"] = eig1
-        nodes["rsp_eig_minor"] = eig2
-        nodes["rsp_theta"] = theta
-
-    # standardize edge endpoints
-    src_col = first_existing(edges.columns, SRC_CANDIDATES)
-    dst_col = first_existing(edges.columns, DST_CANDIDATES)
-    if src_col is None or dst_col is None:
-        raise ValueError(f"Could not identify edge endpoint columns: {list(edges.columns)}")
-    if src_col != "src_id" or dst_col != "dst_id":
-        edges = edges.rename(columns={src_col: "src_id", dst_col: "dst_id"})
-
-    return nodes, edges, seam
-
-
-def load_data(cfg: Config) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    if cfg.bundle_dir:
-        bundle_path = Path(cfg.bundle_dir)
-        if bundle_path.exists():
-            return load_from_bundle(bundle_path)
-
-    return load_direct(
-        phase_csv=cfg.phase_csv,
-        edges_csv=cfg.edges_csv,
-        seam_csv=cfg.seam_csv,
-        response_csv=cfg.response_csv,
-        lazarus_csv=cfg.lazarus_csv,
+def load_field(cfg: Config) -> DirectionalField:
+    return DirectionalField.from_csv(
+        cfg.nodes_csv,
+        cfg.edges_csv,
+        connection_theta_col="fim_theta",
+        response_theta_col="rsp_theta",
     )
 
 
-# ---------------------------------------------------------------------
-# alignment computation
-# ---------------------------------------------------------------------
+def build_edge_table(field: DirectionalField) -> pd.DataFrame:
+    edge_base = edge_transport_table(field)
+    edges = field.edges.copy()
+    nodes = field.nodes.copy()
+    lookup = nodes.set_index(field.node_id_col, drop=False)
 
+    rows = []
+    for _, row in edge_base.iterrows():
+        src_id = int(row["src_id"])
+        dst_id = int(row["dst_id"])
+        src = lookup.loc[src_id]
+        dst = lookup.loc[dst_id]
 
-def ensure_response_theta(nodes: pd.DataFrame) -> pd.DataFrame:
-    nodes = nodes.copy()
+        out = dict(row)
+        out["src_mds1"] = float(src["mds1"])
+        out["src_mds2"] = float(src["mds2"])
+        out["dst_mds1"] = float(dst["mds1"])
+        out["dst_mds2"] = float(dst["mds2"])
 
-    if "rsp_theta" in nodes.columns and pd.to_numeric(nodes["rsp_theta"], errors="coerce").notna().any():
-        nodes["rsp_theta"] = pd.to_numeric(nodes["rsp_theta"], errors="coerce")
-        return nodes
+        out["src_signed_phase"] = float(src["signed_phase"]) if pd.notna(src["signed_phase"]) else np.nan
+        out["dst_signed_phase"] = float(dst["signed_phase"]) if pd.notna(dst["signed_phase"]) else np.nan
+        out["src_distance_to_seam"] = float(src["distance_to_seam"]) if pd.notna(src["distance_to_seam"]) else np.nan
+        out["dst_distance_to_seam"] = float(dst["distance_to_seam"]) if pd.notna(dst["distance_to_seam"]) else np.nan
 
-    if {"T_xx", "T_xy", "T_yx", "T_yy"}.issubset(nodes.columns):
-        eig1, eig2, theta = principal_response_eig(
-            pd.to_numeric(nodes["T_xx"], errors="coerce").to_numpy(dtype=float),
-            pd.to_numeric(nodes["T_xy"], errors="coerce").to_numpy(dtype=float),
-            pd.to_numeric(nodes["T_yx"], errors="coerce").to_numpy(dtype=float),
-            pd.to_numeric(nodes["T_yy"], errors="coerce").to_numpy(dtype=float),
-        )
-        nodes["rsp_eig_major"] = eig1
-        nodes["rsp_eig_minor"] = eig2
-        nodes["rsp_theta"] = theta
-        return nodes
+        out["src_theta_transport"] = float(src["fim_theta"])
+        out["dst_theta_transport"] = float(dst["fim_theta"])
+        out["src_rsp_theta"] = float(src["rsp_theta"])
+        out["dst_rsp_theta"] = float(dst["rsp_theta"])
 
-    raise ValueError("Could not determine response principal direction. Need rsp_theta or T_xx/T_xy/T_yx/T_yy.")
-
-
-def choose_transport_theta_column(nodes: pd.DataFrame) -> str:
-    col = first_existing(nodes.columns, THETA_CANDIDATES)
-    if col is None:
-        raise ValueError(
-            "Could not identify a transport-angle column. "
-            f"Tried: {THETA_CANDIDATES}. Available columns: {list(nodes.columns)}"
-        )
-    return col
-
-
-def compute_edge_alignment(
-    nodes: pd.DataFrame,
-    edges: pd.DataFrame,
-    theta_col: str,
-    use_axial_comparison: bool,
-) -> pd.DataFrame:
-    lookup = nodes.set_index("node_id")
-
-    rows: list[dict] = []
-    for _, row in edges.iterrows():
-        i = int(row["src_id"])
-        j = int(row["dst_id"])
-        if i not in lookup.index or j not in lookup.index:
-            continue
-
-        ni = lookup.loc[i]
-        nj = lookup.loc[j]
-
-        theta_i = pd.to_numeric(ni[theta_col], errors="coerce")
-        theta_j = pd.to_numeric(nj[theta_col], errors="coerce")
-        rsp_i = pd.to_numeric(ni["rsp_theta"], errors="coerce")
-        rsp_j = pd.to_numeric(nj["rsp_theta"], errors="coerce")
-
-        if not np.isfinite([theta_i, theta_j, rsp_i, rsp_j]).all():
-            continue
-
-        dtheta = float(wrap_angle(theta_j - theta_i))
-        v_i = angle_from_theta(float(rsp_i))
-        v_j = angle_from_theta(float(rsp_j))
-        v_i_trans = rotation_matrix(dtheta) @ v_i
-
-        misalignment_rad = angle_between_vectors(v_i_trans, v_j, axial=use_axial_comparison)
-        misalignment_deg = float(np.degrees(misalignment_rad)) if np.isfinite(misalignment_rad) else np.nan
-
-        out = {
-            "src_id": i,
-            "dst_id": j,
-            "src_mds1": float(pd.to_numeric(ni["mds1"], errors="coerce")) if "mds1" in ni.index else np.nan,
-            "src_mds2": float(pd.to_numeric(ni["mds2"], errors="coerce")) if "mds2" in ni.index else np.nan,
-            "dst_mds1": float(pd.to_numeric(nj["mds1"], errors="coerce")) if "mds1" in nj.index else np.nan,
-            "dst_mds2": float(pd.to_numeric(nj["mds2"], errors="coerce")) if "mds2" in nj.index else np.nan,
-            "src_theta_transport": float(theta_i),
-            "dst_theta_transport": float(theta_j),
-            "src_rsp_theta": float(rsp_i),
-            "dst_rsp_theta": float(rsp_j),
-            "transport_delta_theta": dtheta,
-            "transport_delta_theta_deg": float(np.degrees(dtheta)),
-            "misalignment_rad": misalignment_rad,
-            "misalignment_deg": misalignment_deg,
-        }
-
-        # optional scalar enrichments
-        for col in [
-            "signed_phase",
-            "distance_to_seam",
-            "lazarus_score",
-            "response_strength",
-        ]:
-            if col in ni.index:
-                out[f"src_{col}"] = float(pd.to_numeric(ni[col], errors="coerce"))
-            if col in nj.index:
-                out[f"dst_{col}"] = float(pd.to_numeric(nj[col], errors="coerce"))
-
-        out["edge_distance_to_seam_mid"] = np.nanmean(
-            [out.get("src_distance_to_seam", np.nan), out.get("dst_distance_to_seam", np.nan)]
-        )
-        out["edge_signed_phase_mid"] = np.nanmean(
-            [out.get("src_signed_phase", np.nan), out.get("dst_signed_phase", np.nan)]
-        )
-        out["edge_response_strength_mid"] = np.nanmean(
-            [out.get("src_response_strength", np.nan), out.get("dst_response_strength", np.nan)]
-        )
-        out["edge_lazarus_mid"] = np.nanmean(
-            [out.get("src_lazarus_score", np.nan), out.get("dst_lazarus_score", np.nan)]
-        )
-
-        hol_col = first_existing(edges.columns, EDGE_HOLONOMY_CANDIDATES)
-        if hol_col is not None and hol_col in row.index:
-            out["edge_holonomy_proxy"] = float(pd.to_numeric(row[hol_col], errors="coerce"))
-        else:
-            out["edge_holonomy_proxy"] = np.nan
+        out["edge_signed_phase_mid"] = 0.5 * (out["src_signed_phase"] + out["dst_signed_phase"])
+        out["edge_distance_to_seam_mid"] = 0.5 * (out["src_distance_to_seam"] + out["dst_distance_to_seam"])
 
         rows.append(out)
 
-        # symmetric comparison j -> i for node-level averaging fairness
-        dtheta_rev = float(wrap_angle(theta_i - theta_j))
-        v_j_trans = rotation_matrix(dtheta_rev) @ v_j
-        mis_rev = angle_between_vectors(v_j_trans, v_i, axial=use_axial_comparison)
-        mis_rev_deg = float(np.degrees(mis_rev)) if np.isfinite(mis_rev) else np.nan
+    edge_df = pd.DataFrame(rows)
 
-        out_rev = {
-            "src_id": j,
-            "dst_id": i,
-            "src_mds1": out["dst_mds1"],
-            "src_mds2": out["dst_mds2"],
-            "dst_mds1": out["src_mds1"],
-            "dst_mds2": out["src_mds2"],
-            "src_theta_transport": float(theta_j),
-            "dst_theta_transport": float(theta_i),
-            "src_rsp_theta": float(rsp_j),
-            "dst_rsp_theta": float(rsp_i),
-            "transport_delta_theta": dtheta_rev,
-            "transport_delta_theta_deg": float(np.degrees(dtheta_rev)),
-            "misalignment_rad": mis_rev,
-            "misalignment_deg": mis_rev_deg,
-            "src_signed_phase": out.get("dst_signed_phase", np.nan),
-            "dst_signed_phase": out.get("src_signed_phase", np.nan),
-            "src_distance_to_seam": out.get("dst_distance_to_seam", np.nan),
-            "dst_distance_to_seam": out.get("src_distance_to_seam", np.nan),
-            "src_lazarus_score": out.get("dst_lazarus_score", np.nan),
-            "dst_lazarus_score": out.get("src_lazarus_score", np.nan),
-            "src_response_strength": out.get("dst_response_strength", np.nan),
-            "dst_response_strength": out.get("src_response_strength", np.nan),
-            "edge_distance_to_seam_mid": out["edge_distance_to_seam_mid"],
-            "edge_signed_phase_mid": out["edge_signed_phase_mid"],
-            "edge_response_strength_mid": out["edge_response_strength_mid"],
-            "edge_lazarus_mid": out["edge_lazarus_mid"],
-            "edge_holonomy_proxy": out["edge_holonomy_proxy"],
-        }
-        rows.append(out_rev)
+    # merge any existing edge proxy from bundle edges if present
+    if {"src_id", "dst_id"}.issubset(edges.columns):
+        keep = [c for c in ["src_id", "dst_id", "edge_holonomy_proxy"] if c in edges.columns]
+        if len(keep) >= 2:
+            edge_df = edge_df.merge(edges[keep], on=["src_id", "dst_id"], how="left")
 
-    return pd.DataFrame(rows)
+    return edge_df
 
 
-def compute_node_alignment(nodes: pd.DataFrame, edge_alignment: pd.DataFrame) -> pd.DataFrame:
-    if len(edge_alignment) == 0:
-        out = nodes.copy()
-        out["transport_align_mean_deg"] = np.nan
-        out["transport_align_max_deg"] = np.nan
-        out["transport_align_std_deg"] = np.nan
-        out["transport_align_n_neighbors"] = 0
+def build_node_table(field: DirectionalField, edge_df: pd.DataFrame) -> pd.DataFrame:
+    local_df = field.local_direction_mismatch(degrees=True).rename(
+        columns={"local_direction_mismatch": "local_direction_mismatch_deg"}
+    )
+    neighbor_df = field.node_neighbor_mismatch(degrees=True)
+    transport_df = node_transport_summary(field)
 
-        if "node_holonomy_proxy" in out.columns:
-            out["node_holonomy_proxy"] = pd.to_numeric(out["node_holonomy_proxy"], errors="coerce")
-        else:
-            out["node_holonomy_proxy"] = np.nan
+    nodes = field.attach_node_metrics(local_df, neighbor_df, transport_df)
 
-        return out
-
-    agg = (
-        edge_alignment.groupby("src_id", as_index=False)
+    # edge-based summaries back to nodes
+    extra = (
+        edge_df.groupby("src_id", as_index=False)
         .agg(
-            transport_align_mean_deg=("misalignment_deg", "mean"),
-            transport_align_max_deg=("misalignment_deg", "max"),
-            transport_align_std_deg=("misalignment_deg", "std"),
-            transport_align_n_neighbors=("dst_id", "count"),
-            transport_holonomy_edge_mean=("edge_holonomy_proxy", "mean"),
+            transport_holonomy_edge_mean=("edge_holonomy_proxy", "mean") if "edge_holonomy_proxy" in edge_df.columns else ("misalignment_deg", "size"),
             transport_edge_seam_mid_mean=("edge_distance_to_seam_mid", "mean"),
         )
         .rename(columns={"src_id": "node_id"})
     )
 
-    out = nodes.merge(agg, on="node_id", how="left")
+    if "edge_holonomy_proxy" not in edge_df.columns:
+        extra["transport_holonomy_edge_mean"] = np.nan
 
-    if "node_holonomy_proxy" in out.columns:
-        out["node_holonomy_proxy"] = pd.to_numeric(out["node_holonomy_proxy"], errors="coerce")
-    else:
-        hol_col = first_existing(out.columns, NODE_HOLONOMY_CANDIDATES)
-        if hol_col is not None:
-            out["node_holonomy_proxy"] = pd.to_numeric(out[hol_col], errors="coerce")
-        else:
-            out["node_holonomy_proxy"] = np.nan
-
-    return out
-
-# ---------------------------------------------------------------------
-# outputs
-# ---------------------------------------------------------------------
+    nodes = nodes.merge(extra, on="node_id", how="left")
+    return nodes
 
 
-def write_summary(
-    outpath: Path,
-    theta_col: str,
-    nodes: pd.DataFrame,
-    edges: pd.DataFrame,
-    seam_threshold: float,
-) -> None:
-    n_nodes = len(nodes)
-    n_edges = len(edges) // 2 if len(edges) else 0  # undirected original count
-    corr_node_seam = safe_corr(nodes["transport_align_mean_deg"], nodes["distance_to_seam"]) if "distance_to_seam" in nodes.columns else np.nan
-    corr_node_hol = safe_corr(nodes["transport_align_mean_deg"], nodes["node_holonomy_proxy"])
-    corr_edge_seam = safe_corr(edges["misalignment_deg"], edges["edge_distance_to_seam_mid"]) if len(edges) else np.nan
-    corr_edge_hol = safe_corr(edges["misalignment_deg"], edges["edge_holonomy_proxy"]) if len(edges) else np.nan
-
-    seam_mask = (
-        pd.to_numeric(nodes["distance_to_seam"], errors="coerce") <= seam_threshold
-        if "distance_to_seam" in nodes.columns
-        else pd.Series(False, index=nodes.index)
-    )
-    seam_mean = float(pd.to_numeric(nodes.loc[seam_mask, "transport_align_mean_deg"], errors="coerce").mean()) if seam_mask.any() else np.nan
-    off_mean = float(pd.to_numeric(nodes.loc[~seam_mask, "transport_align_mean_deg"], errors="coerce").mean()) if (~seam_mask).any() else np.nan
-
+def build_summary(nodes: pd.DataFrame, edge_df: pd.DataFrame, seam_threshold: float) -> str:
+    seam_mask = pd.to_numeric(nodes["distance_to_seam"], errors="coerce") <= seam_threshold
     lines = [
         "=== Identity Transport Alignment Toy Summary ===",
         "",
-        f"transport_theta_column = {theta_col}",
-        f"n_nodes = {n_nodes}",
-        f"n_edges_undirected = {n_edges}",
+        "transport_theta_column = fim_theta",
+        f"n_nodes = {len(nodes)}",
+        f"n_edges_undirected = {len(edge_df)}",
         f"seam_threshold = {seam_threshold:.4f}",
         "",
         "Node-level means",
         f"  mean transport_align_mean_deg = {float(pd.to_numeric(nodes['transport_align_mean_deg'], errors='coerce').mean()):.4f}",
         f"  mean transport_align_max_deg  = {float(pd.to_numeric(nodes['transport_align_max_deg'], errors='coerce').mean()):.4f}",
-        f"  seam-band mean misalignment   = {seam_mean:.4f}",
-        f"  off-seam mean misalignment    = {off_mean:.4f}",
+        f"  seam-band mean misalignment   = {float(pd.to_numeric(nodes.loc[seam_mask, 'transport_align_mean_deg'], errors='coerce').mean()):.4f}",
+        f"  off-seam mean misalignment    = {float(pd.to_numeric(nodes.loc[~seam_mask, 'transport_align_mean_deg'], errors='coerce').mean()):.4f}",
         "",
         "Correlations",
-        f"  corr(node misalignment, distance_to_seam) = {corr_node_seam:.4f}",
-        f"  corr(node misalignment, node holonomy)    = {corr_node_hol:.4f}",
-        f"  corr(edge misalignment, edge seam mid)    = {corr_edge_seam:.4f}",
-        f"  corr(edge misalignment, edge holonomy)    = {corr_edge_hol:.4f}",
+        f"  corr(node misalignment, distance_to_seam) = {safe_corr(nodes['transport_align_mean_deg'], nodes['distance_to_seam']):.4f}",
+        f"  corr(node misalignment, node holonomy)    = {safe_corr(nodes['transport_align_mean_deg'], nodes['node_holonomy_proxy']):.4f}",
+        f"  corr(edge misalignment, edge seam mid)    = {safe_corr(edge_df['misalignment_deg'], edge_df['edge_distance_to_seam_mid']):.4f}",
+        f"  corr(edge misalignment, edge holonomy)    = {safe_corr(edge_df['misalignment_deg'], edge_df['edge_holonomy_proxy']) if 'edge_holonomy_proxy' in edge_df.columns else float('nan'):.4f}",
         "",
         "Highest-misalignment nodes",
     ]
 
     top = nodes.sort_values("transport_align_mean_deg", ascending=False).head(10)
-    keep_cols = [c for c in ["node_id", "r", "alpha", "transport_align_mean_deg", "distance_to_seam", "node_holonomy_proxy"] if c in top.columns]
-    for _, row in top[keep_cols].iterrows():
+    for _, row in top.iterrows():
         lines.append(
-            "  "
-            + ", ".join(
-                f"{col}={float(row[col]):.4f}" if col not in {"node_id"} else f"{col}={int(row[col])}"
-                for col in keep_cols
-            )
+            f"  node_id={int(row['node_id'])}, "
+            f"r={float(row['r']):.4f}, alpha={float(row['alpha']):.4f}, "
+            f"transport_align_mean_deg={float(row['transport_align_mean_deg']):.4f}, "
+            f"distance_to_seam={float(row['distance_to_seam']):.4f}, "
+            f"node_holonomy_proxy={float(row['node_holonomy_proxy']) if pd.notna(row['node_holonomy_proxy']) else float('nan'):.4f}"
         )
 
-    outpath.write_text("\n".join(lines), encoding="utf-8")
+    return "\n".join(lines)
 
 
-def render_plate(
-    outpath: Path,
-    nodes: pd.DataFrame,
-    edges: pd.DataFrame,
-    seam: pd.DataFrame,
-    theta_col: str,
-    seam_threshold: float,
-) -> None:
-    fig = plt.figure(figsize=(14, 9), constrained_layout=True)
-    gs = fig.add_gridspec(2, 2, width_ratios=[3.0, 1.4], height_ratios=[1.0, 1.0])
+def render_panel(cfg: Config, nodes: pd.DataFrame, seam: pd.DataFrame, outpath: Path) -> None:
+    seam_mask = pd.to_numeric(nodes["distance_to_seam"], errors="coerce") <= cfg.seam_threshold
+    top = nodes.sort_values("transport_align_mean_deg", ascending=False).head(cfg.top_k_labels)
+
+    fig = plt.figure(figsize=(15.5, 9), constrained_layout=True)
+    gs = fig.add_gridspec(2, 2, width_ratios=[3.2, 1.5], height_ratios=[1.0, 1.0])
 
     ax_main = fig.add_subplot(gs[:, 0])
-    ax_sc1 = fig.add_subplot(gs[0, 1])
-    ax_sc2 = fig.add_subplot(gs[1, 1])
+    ax_bar = fig.add_subplot(gs[0, 1])
+    ax_sc = fig.add_subplot(gs[1, 1])
 
-    # edge web
-    for _, row in edges.iterrows():
-        if int(row["src_id"]) > int(row["dst_id"]):
-            continue  # avoid drawing both symmetric copies
-        arr = [
-            row["src_mds1"], row["src_mds2"], row["dst_mds1"], row["dst_mds2"], row["edge_signed_phase_mid"]
-        ]
-        if not np.isfinite(arr).all():
-            continue
-        ax_main.plot(
-            [row["src_mds1"], row["dst_mds1"]],
-            [row["src_mds2"], row["dst_mds2"]],
-            color=plt.cm.coolwarm((float(row["edge_signed_phase_mid"]) + 1.0) / 2.0),
-            alpha=0.28,
-            linewidth=1.0,
-            zorder=1,
-        )
-
-    # seam
     seam_draw = seam.dropna(subset=["mds1", "mds2"]).sort_values("mds1")
     if len(seam_draw):
-        ax_main.plot(seam_draw["mds1"], seam_draw["mds2"], color="white", linewidth=5.2, alpha=0.65, zorder=2)
-        ax_main.plot(seam_draw["mds1"], seam_draw["mds2"], color="black", linewidth=2.5, alpha=0.95, zorder=3)
+        ax_main.plot(seam_draw["mds1"], seam_draw["mds2"], color="white", linewidth=6.0, alpha=0.65, zorder=1)
+        ax_main.plot(seam_draw["mds1"], seam_draw["mds2"], color="black", linewidth=2.8, alpha=0.96, zorder=2)
 
-    # nodes colored by transport misalignment
     sc = ax_main.scatter(
         nodes["mds1"],
         nodes["mds2"],
         c=pd.to_numeric(nodes["transport_align_mean_deg"], errors="coerce"),
-        s=82,
         cmap="viridis",
+        s=95,
         alpha=0.95,
-        linewidths=0.4,
+        linewidths=0.35,
         edgecolors="white",
-        zorder=4,
+        zorder=3,
     )
-    cbar = fig.colorbar(sc, ax=ax_main, fraction=0.045, pad=0.03)
+
+    seam_nodes = nodes[seam_mask]
+    if len(seam_nodes):
+        ax_main.scatter(
+            seam_nodes["mds1"], seam_nodes["mds2"],
+            s=175, facecolors="none", edgecolors="black", linewidths=1.4, zorder=4
+        )
+
+    for _, row in top.iterrows():
+        ax_main.scatter([row["mds1"]], [row["mds2"]], s=145, facecolors="none", edgecolors="#FFD166", linewidths=1.8, zorder=5)
+        ax_main.text(
+            float(row["mds1"]) + 0.05,
+            float(row["mds2"]) + 0.05,
+            f"{int(row['node_id'])}",
+            fontsize=9,
+            color="black",
+            bbox=dict(boxstyle="round,pad=0.18", fc="white", ec="0.8", alpha=0.9),
+            zorder=6,
+        )
+
+    cbar = fig.colorbar(sc, ax=ax_main, fraction=0.038, pad=0.02)
     cbar.set_label("mean transport misalignment (deg)")
 
-    # seam-band ring
-    if "distance_to_seam" in nodes.columns:
-        seam_mask = pd.to_numeric(nodes["distance_to_seam"], errors="coerce") <= seam_threshold
-        seam_nodes = nodes[seam_mask].copy()
-        if len(seam_nodes):
-            ax_main.scatter(
-                seam_nodes["mds1"],
-                seam_nodes["mds2"],
-                s=170,
-                facecolors="none",
-                edgecolors="black",
-                linewidths=1.4,
-                zorder=5,
-            )
-
-    ax_main.set_title("Transport-aware response-field misalignment")
+    ax_main.set_title("Transport-aware response-field misalignment", fontsize=15, pad=10)
     ax_main.set_xlabel("MDS 1")
     ax_main.set_ylabel("MDS 2")
     ax_main.grid(alpha=0.08)
-    ax_main.text(
-        0.02,
-        0.97,
-        f"transport angle = {theta_col}\nblack rings = seam neighborhood",
-        transform=ax_main.transAxes,
-        va="top",
-        ha="left",
-        fontsize=9,
-        bbox=dict(boxstyle="round,pad=0.25", fc="white", ec="0.8", alpha=0.9),
+    ax_main.set_aspect("equal", adjustable="box")
+
+    vals = [
+        float(pd.to_numeric(nodes.loc[seam_mask, "transport_align_mean_deg"], errors="coerce").mean()),
+        float(pd.to_numeric(nodes.loc[~seam_mask, "transport_align_mean_deg"], errors="coerce").mean()),
+    ]
+    ax_bar.bar(["seam-band", "off-seam"], vals, alpha=0.9)
+    ax_bar.set_ylabel("mean misalignment (deg)")
+    ax_bar.set_title("Misalignment vs seam band", fontsize=14, pad=8)
+    ax_bar.grid(alpha=0.15, axis="y")
+
+    x = pd.to_numeric(nodes["distance_to_seam"], errors="coerce")
+    y = pd.to_numeric(nodes["transport_align_mean_deg"], errors="coerce")
+    mask = x.notna() & y.notna()
+    ax_sc.scatter(x[mask], y[mask], s=38, alpha=0.88)
+    ax_sc.set_xlabel("distance to seam")
+    ax_sc.set_ylabel("mean misalignment (deg)")
+    ax_sc.set_title("Misalignment vs seam distance", fontsize=14, pad=8)
+    ax_sc.grid(alpha=0.15)
+    ax_sc.text(
+        0.98, 0.05,
+        f"corr = {safe_corr(y, x):.3f}",
+        transform=ax_sc.transAxes,
+        ha="right", va="bottom",
+        fontsize=10,
+        bbox=dict(boxstyle="round,pad=0.22", fc="white", ec="0.82", alpha=0.9),
     )
 
-    # scatter 1: seam
-    if "distance_to_seam" in nodes.columns:
-        x = pd.to_numeric(nodes["distance_to_seam"], errors="coerce")
-        y = pd.to_numeric(nodes["transport_align_mean_deg"], errors="coerce")
-        ax_sc1.scatter(x, y, s=34, alpha=0.85)
-        ax_sc1.set_xlabel("distance to seam")
-        ax_sc1.set_ylabel("mean misalignment (deg)")
-        ax_sc1.set_title("Misalignment vs seam distance")
-        ax_sc1.grid(alpha=0.15)
-
-    # scatter 2: holonomy proxy if present
-    hol = pd.to_numeric(nodes["node_holonomy_proxy"], errors="coerce")
-    mis = pd.to_numeric(nodes["transport_align_mean_deg"], errors="coerce")
-    mask = hol.notna() & mis.notna()
-    if int(mask.sum()) >= 3:
-        ax_sc2.scatter(hol[mask], mis[mask], s=34, alpha=0.85)
-        ax_sc2.set_xlabel("node holonomy proxy")
-        ax_sc2.set_ylabel("mean misalignment (deg)")
-        ax_sc2.set_title("Misalignment vs holonomy proxy")
-    else:
-        ax_sc2.text(
-            0.5, 0.5, "No node holonomy proxy available",
-            ha="center", va="center", fontsize=11,
-        )
-        ax_sc2.set_title("Misalignment vs holonomy proxy")
-        ax_sc2.set_xticks([])
-        ax_sc2.set_yticks([])
-    ax_sc2.grid(alpha=0.15)
-
-    fig.suptitle("Identity Transport Alignment Toy", fontsize=18)
+    fig.suptitle("Identity Transport Alignment Toy", fontsize=19)
     fig.savefig(outpath, dpi=220)
     plt.close(fig)
 
 
-# ---------------------------------------------------------------------
-# main
-# ---------------------------------------------------------------------
-
-
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Toy transport-aware alignment on the PAM manifold.")
-    parser.add_argument("--bundle-dir", default=Config.bundle_dir)
-    parser.add_argument("--phase-csv", default=Config.phase_csv)
+    parser = argparse.ArgumentParser(description="Transport-aware alignment toy built on canonical geometry modules.")
+    parser.add_argument("--nodes-csv", default=Config.nodes_csv)
     parser.add_argument("--edges-csv", default=Config.edges_csv)
     parser.add_argument("--seam-csv", default=Config.seam_csv)
-    parser.add_argument("--response-csv", default=Config.response_csv)
-    parser.add_argument("--lazarus-csv", default=Config.lazarus_csv)
     parser.add_argument("--outdir", default=Config.outdir)
     parser.add_argument("--seam-threshold", type=float, default=Config.seam_threshold)
-    parser.add_argument("--no-axial", action="store_true", help="Use directed instead of axial vector comparison.")
+    parser.add_argument("--top-k-labels", type=int, default=Config.top_k_labels)
     args = parser.parse_args()
 
     cfg = Config(
-        bundle_dir=args.bundle_dir,
-        phase_csv=args.phase_csv,
+        nodes_csv=args.nodes_csv,
         edges_csv=args.edges_csv,
         seam_csv=args.seam_csv,
-        response_csv=args.response_csv,
-        lazarus_csv=args.lazarus_csv,
         outdir=args.outdir,
         seam_threshold=args.seam_threshold,
-        use_axial_comparison=not args.no_axial,
+        top_k_labels=args.top_k_labels,
     )
 
     outdir = Path(cfg.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    nodes, edges, seam = load_data(cfg)
-    nodes = ensure_response_theta(nodes)
-    theta_col = choose_transport_theta_column(nodes)
+    seam = pd.read_csv(cfg.seam_csv)
+    for col in ["mds1", "mds2", "signed_phase", "distance_to_seam"]:
+        if col in seam.columns:
+            seam[col] = pd.to_numeric(seam[col], errors="coerce")
 
-    # normalize key columns
-    to_numeric_inplace(
-        nodes,
-        [
-            "node_id", "r", "alpha", "mds1", "mds2", "signed_phase",
-            "distance_to_seam", "lazarus_score", "response_strength",
-            "rsp_theta", theta_col,
-        ],
-    )
-    to_numeric_inplace(edges, ["src_id", "dst_id"])
-    if "src_id" not in edges.columns or "dst_id" not in edges.columns:
-        raise ValueError("Edges must contain src_id and dst_id after normalization.")
-
-    edge_alignment = compute_edge_alignment(
-        nodes=nodes,
-        edges=edges,
-        theta_col=theta_col,
-        use_axial_comparison=cfg.use_axial_comparison,
-    )
-    node_alignment = compute_node_alignment(nodes, edge_alignment)
+    field = load_field(cfg)
+    edge_df = build_edge_table(field)
+    node_df = build_node_table(field, edge_df)
 
     node_csv = outdir / "node_transport_alignment.csv"
     edge_csv = outdir / "edge_transport_alignment.csv"
-    txt_out = outdir / "identity_transport_alignment_summary.txt"
-    png_out = outdir / "identity_transport_alignment_plate.png"
+    txt_path = outdir / "identity_transport_alignment_summary.txt"
+    png_path = outdir / "identity_transport_alignment_panel.png"
 
-    node_alignment.to_csv(node_csv, index=False)
-    edge_alignment.to_csv(edge_csv, index=False)
-    write_summary(
-        outpath=txt_out,
-        theta_col=theta_col,
-        nodes=node_alignment,
-        edges=edge_alignment,
-        seam_threshold=cfg.seam_threshold,
-    )
-    render_plate(
-        outpath=png_out,
-        nodes=node_alignment,
-        edges=edge_alignment,
-        seam=seam,
-        theta_col=theta_col,
-        seam_threshold=cfg.seam_threshold,
-    )
+    node_df.to_csv(node_csv, index=False)
+    edge_df.to_csv(edge_csv, index=False)
+    txt_path.write_text(build_summary(node_df, edge_df, cfg.seam_threshold), encoding="utf-8")
+    render_panel(cfg, node_df, seam, png_path)
 
     print(node_csv)
     print(edge_csv)
-    print(txt_out)
-    print(png_out)
+    print(txt_path)
+    print(png_path)
 
 
 if __name__ == "__main__":
