@@ -29,7 +29,10 @@ import numpy as np
 import pandas as pd
 
 from pam.geometry.directional_field import DirectionalField
-from pam.geometry.transport import edge_transport_table, node_transport_summary
+from pam.geometry.parallel_transport import (
+    edge_parallel_transport_table,
+    node_parallel_transport_summary,
+)
 
 
 @dataclass(frozen=True)
@@ -96,6 +99,9 @@ def build_edge_table(field: DirectionalField) -> pd.DataFrame:
 
     edge_df = pd.DataFrame(rows)
 
+    if "response_misalignment_deg" in edge_df.columns and "misalignment_deg" not in edge_df.columns:
+        edge_df["misalignment_deg"] = edge_df["response_misalignment_deg"]
+
     # merge any existing edge proxy from bundle edges if present
     if {"src_id", "dst_id"}.issubset(edges.columns):
         keep = [c for c in ["src_id", "dst_id", "edge_holonomy_proxy"] if c in edges.columns]
@@ -110,29 +116,66 @@ def build_node_table(field: DirectionalField, edge_df: pd.DataFrame) -> pd.DataF
         columns={"local_direction_mismatch": "local_direction_mismatch_deg"}
     )
     neighbor_df = field.node_neighbor_mismatch(degrees=True)
-    transport_df = node_transport_summary(field)
+    transport_df = node_parallel_transport_summary(field)
 
     nodes = field.attach_node_metrics(local_df, neighbor_df, transport_df)
 
-    # edge-based summaries back to nodes
-    extra = (
-        edge_df.groupby("src_id", as_index=False)
-        .agg(
-            transport_holonomy_edge_mean=("edge_holonomy_proxy", "mean") if "edge_holonomy_proxy" in edge_df.columns else ("misalignment_deg", "size"),
-            transport_edge_seam_mid_mean=("edge_distance_to_seam_mid", "mean"),
+    agg_spec = {}
+    if "edge_holonomy_proxy" in edge_df.columns:
+        agg_spec["transport_holonomy_edge_mean"] = ("edge_holonomy_proxy", "mean")
+    if "edge_distance_to_seam_mid" in edge_df.columns:
+        agg_spec["transport_edge_seam_mid_mean"] = ("edge_distance_to_seam_mid", "mean")
+    if "response_misalignment_deg" in edge_df.columns:
+        agg_spec["transport_edge_misalignment_mean"] = ("response_misalignment_deg", "mean")
+
+    if agg_spec:
+        extra = (
+            edge_df.groupby("src_id", as_index=False)
+            .agg(**agg_spec)
+            .rename(columns={"src_id": "node_id"})
         )
-        .rename(columns={"src_id": "node_id"})
-    )
+        nodes = nodes.merge(extra, on="node_id", how="left")
 
-    if "edge_holonomy_proxy" not in edge_df.columns:
-        extra["transport_holonomy_edge_mean"] = np.nan
+    if "transport_holonomy_edge_mean" not in nodes.columns:
+        nodes["transport_holonomy_edge_mean"] = np.nan
+    if "transport_edge_seam_mid_mean" not in nodes.columns:
+        nodes["transport_edge_seam_mid_mean"] = np.nan
+    if "transport_edge_misalignment_mean" not in nodes.columns:
+        nodes["transport_edge_misalignment_mean"] = np.nan
 
-    nodes = nodes.merge(extra, on="node_id", how="left")
     return nodes
 
 
 def build_summary(nodes: pd.DataFrame, edge_df: pd.DataFrame, seam_threshold: float) -> str:
     seam_mask = pd.to_numeric(nodes["distance_to_seam"], errors="coerce") <= seam_threshold
+
+    edge_mis_col = (
+        "misalignment_deg"
+        if "misalignment_deg" in edge_df.columns
+        else "response_misalignment_deg"
+        if "response_misalignment_deg" in edge_df.columns
+        else None
+    )
+
+    edge_seam_col = (
+        "edge_distance_to_seam_mid"
+        if "edge_distance_to_seam_mid" in edge_df.columns
+        else None
+    )
+
+    edge_hol_col = "edge_holonomy_proxy" if "edge_holonomy_proxy" in edge_df.columns else None
+
+    edge_seam_corr = (
+        safe_corr(edge_df[edge_mis_col], edge_df[edge_seam_col])
+        if edge_mis_col is not None and edge_seam_col is not None
+        else float("nan")
+    )
+    edge_hol_corr = (
+        safe_corr(edge_df[edge_mis_col], edge_df[edge_hol_col])
+        if edge_mis_col is not None and edge_hol_col is not None
+        else float("nan")
+    )
+
     lines = [
         "=== Identity Transport Alignment Toy Summary ===",
         "",
@@ -150,8 +193,8 @@ def build_summary(nodes: pd.DataFrame, edge_df: pd.DataFrame, seam_threshold: fl
         "Correlations",
         f"  corr(node misalignment, distance_to_seam) = {safe_corr(nodes['transport_align_mean_deg'], nodes['distance_to_seam']):.4f}",
         f"  corr(node misalignment, node holonomy)    = {safe_corr(nodes['transport_align_mean_deg'], nodes['node_holonomy_proxy']):.4f}",
-        f"  corr(edge misalignment, edge seam mid)    = {safe_corr(edge_df['misalignment_deg'], edge_df['edge_distance_to_seam_mid']):.4f}",
-        f"  corr(edge misalignment, edge holonomy)    = {safe_corr(edge_df['misalignment_deg'], edge_df['edge_holonomy_proxy']) if 'edge_holonomy_proxy' in edge_df.columns else float('nan'):.4f}",
+        f"  corr(edge misalignment, edge seam mid)    = {edge_seam_corr:.4f}",
+        f"  corr(edge misalignment, edge holonomy)    = {edge_hol_corr:.4f}",
         "",
         "Highest-misalignment nodes",
     ]
@@ -284,7 +327,7 @@ def main() -> None:
             seam[col] = pd.to_numeric(seam[col], errors="coerce")
 
     field = load_field(cfg)
-    edge_df = build_edge_table(field)
+    edge_df = edge_parallel_transport_table(field)
     node_df = build_node_table(field, edge_df)
 
     node_csv = outdir / "node_transport_alignment.csv"

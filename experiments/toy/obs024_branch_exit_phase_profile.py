@@ -7,13 +7,18 @@ Segment branch-exit paths into:
 - seam_contact
 - post_exit
 
-and test whether relational mismatch spikes at seam contact and relaxes after exit.
+and summarize:
+- relational mismatch
+- local mismatch
+- distance to seam
+- pathwise parallel-transport residuals
 
 Inputs
 ------
 outputs/obs023_local_direction_mismatch/local_direction_mismatch_nodes.csv
 outputs/obs022_scene_bundle/scene_routes.csv
-outputs/obs022_scene_bundle/scene_seam.csv
+outputs/obs022_scene_bundle/scene_nodes.csv
+outputs/obs022_scene_bundle/scene_edges.csv
 
 Outputs
 -------
@@ -34,11 +39,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from pam.geometry.directional_field import DirectionalField
+from pam.geometry.parallel_transport import parallel_transport_along_path
+
 
 @dataclass(frozen=True)
 class Config:
-    nodes_csv: str = "outputs/obs023_local_direction_mismatch/local_direction_mismatch_nodes.csv"
+    mismatch_nodes_csv: str = "outputs/obs023_local_direction_mismatch/local_direction_mismatch_nodes.csv"
     routes_csv: str = "outputs/obs022_scene_bundle/scene_routes.csv"
+    scene_nodes_csv: str = "outputs/obs022_scene_bundle/scene_nodes.csv"
+    scene_edges_csv: str = "outputs/obs022_scene_bundle/scene_edges.csv"
     outdir: str = "outputs/obs024_branch_exit_phase_profile"
     seam_threshold: float = 0.15
     min_post_exit_steps: int = 2
@@ -57,41 +67,40 @@ def safe_sem(s: pd.Series) -> float:
     return float(s.std(ddof=1) / np.sqrt(n))
 
 
-def load_inputs(cfg: Config) -> tuple[pd.DataFrame, pd.DataFrame]:
-    nodes = pd.read_csv(cfg.nodes_csv)
+def load_inputs(cfg: Config) -> tuple[pd.DataFrame, pd.DataFrame, DirectionalField]:
+    nodes = pd.read_csv(cfg.mismatch_nodes_csv)
     routes = pd.read_csv(cfg.routes_csv)
 
-    node_cols = [
+    for c in [
         "node_id",
-        "neighbor_direction_mismatch_deg",
+        "neighbor_direction_mismatch_mean",
         "local_direction_mismatch_deg",
         "transport_align_mean_deg",
-    ]
-    route_cols = [
-        "path_id", "path_family", "step", "node_id", "r", "alpha", "mds1", "mds2",
-        "distance_to_seam", "is_branch_away", "is_representative",
-    ]
-
-    for c in node_cols:
+    ]:
         if c in nodes.columns:
             nodes[c] = pd.to_numeric(nodes[c], errors="coerce")
-    for c in route_cols:
-        if c in routes.columns and c not in {"path_id", "path_family"}:
+
+    for c in [
+        "step", "node_id", "r", "alpha", "mds1", "mds2",
+        "distance_to_seam", "is_branch_away", "is_representative",
+    ]:
+        if c in routes.columns:
             routes[c] = pd.to_numeric(routes[c], errors="coerce")
 
-    if "is_branch_away" not in routes.columns:
-        raise ValueError("scene_routes.csv must contain is_branch_away")
-    if "neighbor_direction_mismatch_deg" not in nodes.columns:
-        raise ValueError("nodes csv must contain neighbor_direction_mismatch_deg")
-
-    return nodes, routes
+    field = DirectionalField.from_csv(
+        cfg.scene_nodes_csv,
+        cfg.scene_edges_csv,
+        connection_theta_col="fim_theta",
+        response_theta_col="rsp_theta",
+    )
+    return nodes, routes, field
 
 
 def prepare_routes(nodes: pd.DataFrame, routes: pd.DataFrame) -> pd.DataFrame:
     enrich_cols = [
         c for c in [
             "node_id",
-            "neighbor_direction_mismatch_deg",
+            "neighbor_direction_mismatch_mean",
             "local_direction_mismatch_deg",
             "transport_align_mean_deg",
         ] if c in nodes.columns
@@ -102,10 +111,6 @@ def prepare_routes(nodes: pd.DataFrame, routes: pd.DataFrame) -> pd.DataFrame:
 
 
 def find_post_exit_start(seam_mask: np.ndarray, min_post_exit_steps: int) -> int | None:
-    """
-    Return the first index after seam contact where we have a sustained off-seam run
-    of length >= min_post_exit_steps.
-    """
     n = len(seam_mask)
     for i in range(n):
         if seam_mask[i]:
@@ -118,7 +123,32 @@ def find_post_exit_start(seam_mask: np.ndarray, min_post_exit_steps: int) -> int
     return None
 
 
-def segment_branch_exit_paths(routes: pd.DataFrame, seam_threshold: float, min_post_exit_steps: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+def path_transport_metrics(field: DirectionalField, node_ids: list[int]) -> dict[str, float]:
+    if len(node_ids) < 2:
+        return {
+            "path_transport_total_misalignment_deg": np.nan,
+            "path_transport_mean_misalignment_deg": np.nan,
+            "path_transport_max_misalignment_deg": np.nan,
+            "path_transport_n_edges": 0,
+            "endpoint_residual_deg": np.nan,
+        }
+
+    res = parallel_transport_along_path(field, node_ids)
+    return {
+        "path_transport_total_misalignment_deg": res.path_transport_total_misalignment_deg,
+        "path_transport_mean_misalignment_deg": res.path_transport_mean_misalignment_deg,
+        "path_transport_max_misalignment_deg": res.path_transport_max_misalignment_deg,
+        "path_transport_n_edges": res.path_transport_n_edges,
+        "endpoint_residual_deg": res.endpoint_residual_deg,
+    }
+
+
+def segment_branch_exit_paths(
+    routes: pd.DataFrame,
+    field: DirectionalField,
+    seam_threshold: float,
+    min_post_exit_steps: int,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     work = routes[routes["is_branch_away"] == 1].copy()
     if len(work) == 0:
         return pd.DataFrame(), pd.DataFrame()
@@ -146,7 +176,6 @@ def segment_branch_exit_paths(routes: pd.DataFrame, seam_threshold: float, min_p
             phase[post_exit_start:] = "post_exit"
 
         grp["phase"] = phase
-        grp["seam_contact"] = seam_mask.astype(int)
 
         for _, row in grp.iterrows():
             row_records.append(
@@ -160,7 +189,7 @@ def segment_branch_exit_paths(routes: pd.DataFrame, seam_threshold: float, min_p
                     "mds1": row.get("mds1", np.nan),
                     "mds2": row.get("mds2", np.nan),
                     "distance_to_seam": row.get("distance_to_seam", np.nan),
-                    "neighbor_direction_mismatch_deg": row.get("neighbor_direction_mismatch_deg", np.nan),
+                    "neighbor_direction_mismatch_mean": row.get("neighbor_direction_mismatch_mean", np.nan),
                     "local_direction_mismatch_deg": row.get("local_direction_mismatch_deg", np.nan),
                     "transport_align_mean_deg": row.get("transport_align_mean_deg", np.nan),
                     "phase": row["phase"],
@@ -179,11 +208,17 @@ def segment_branch_exit_paths(routes: pd.DataFrame, seam_threshold: float, min_p
 
         for ph in ["pre_contact", "seam_contact", "post_exit"]:
             sub = grp[grp["phase"] == ph]
+            node_ids = [int(x) for x in pd.to_numeric(sub["node_id"], errors="coerce").dropna().tolist()]
+            tm = path_transport_metrics(field, node_ids)
+
             rec[f"{ph}_n_rows"] = len(sub)
-            rec[f"{ph}_mean_relational_mismatch"] = safe_mean(sub["neighbor_direction_mismatch_deg"])
-            rec[f"{ph}_max_relational_mismatch"] = float(pd.to_numeric(sub["neighbor_direction_mismatch_deg"], errors="coerce").max()) if len(sub) else np.nan
+            rec[f"{ph}_mean_relational_mismatch"] = safe_mean(sub["neighbor_direction_mismatch_mean"])
+            rec[f"{ph}_max_relational_mismatch"] = float(pd.to_numeric(sub["neighbor_direction_mismatch_mean"], errors="coerce").max()) if len(sub) else np.nan
             rec[f"{ph}_mean_local_mismatch"] = safe_mean(sub["local_direction_mismatch_deg"])
             rec[f"{ph}_mean_distance_to_seam"] = safe_mean(sub["distance_to_seam"])
+            rec[f"{ph}_path_transport_mean_misalignment_deg"] = tm["path_transport_mean_misalignment_deg"]
+            rec[f"{ph}_path_transport_max_misalignment_deg"] = tm["path_transport_max_misalignment_deg"]
+            rec[f"{ph}_endpoint_residual_deg"] = tm["endpoint_residual_deg"]
 
         path_records.append(rec)
 
@@ -207,15 +242,16 @@ def build_summary(path_df: pd.DataFrame, seam_threshold: float) -> str:
         lines.extend(
             [
                 f"{ph}",
-                f"  mean relational mismatch = {safe_mean(path_df[f'{ph}_mean_relational_mismatch']):.4f}",
-                f"  mean local mismatch      = {safe_mean(path_df[f'{ph}_mean_local_mismatch']):.4f}",
-                f"  mean distance to seam    = {safe_mean(path_df[f'{ph}_mean_distance_to_seam']):.4f}",
-                f"  mean rows per path       = {safe_mean(path_df[f'{ph}_n_rows']):.4f}",
+                f"  mean relational mismatch      = {safe_mean(path_df[f'{ph}_mean_relational_mismatch']):.4f}",
+                f"  mean local mismatch           = {safe_mean(path_df[f'{ph}_mean_local_mismatch']):.4f}",
+                f"  mean distance to seam         = {safe_mean(path_df[f'{ph}_mean_distance_to_seam']):.4f}",
+                f"  mean path-transport mismatch  = {safe_mean(path_df[f'{ph}_path_transport_mean_misalignment_deg']):.4f}",
+                f"  mean endpoint residual        = {safe_mean(path_df[f'{ph}_endpoint_residual_deg']):.4f}",
+                f"  mean rows per path            = {safe_mean(path_df[f'{ph}_n_rows']):.4f}",
                 "",
             ]
         )
 
-    # paired deltas
     pre = pd.to_numeric(path_df["pre_contact_mean_relational_mismatch"], errors="coerce")
     con = pd.to_numeric(path_df["seam_contact_mean_relational_mismatch"], errors="coerce")
     post = pd.to_numeric(path_df["post_exit_mean_relational_mismatch"], errors="coerce")
@@ -228,22 +264,21 @@ def build_summary(path_df: pd.DataFrame, seam_threshold: float) -> str:
             f"  mean(post_exit - pre_contact)    = {safe_mean(post - pre):.4f}",
             "",
             "Interpretive summary",
-            "- compare whether branch-exit paths spike in relational mismatch at seam contact",
-            "- compare whether relational mismatch relaxes after sustained exit",
+            "- compare whether branch-exit paths sustain relational stress before and during seam contact",
+            "- compare whether both relational mismatch and pathwise transport mismatch relax after sustained exit",
         ]
     )
-
     return "\n".join(lines)
 
 
 def render_figure(path_df: pd.DataFrame, outpath: Path) -> None:
-    fig = plt.figure(figsize=(12, 8), constrained_layout=True)
+    fig = plt.figure(figsize=(12.5, 8.5), constrained_layout=True)
     gs = fig.add_gridspec(2, 2, width_ratios=[1.2, 1.0], height_ratios=[1.0, 1.0])
 
     ax_bar = fig.add_subplot(gs[0, 0])
     ax_box = fig.add_subplot(gs[1, 0])
     ax_dist = fig.add_subplot(gs[0, 1])
-    ax_local = fig.add_subplot(gs[1, 1])
+    ax_trn = fig.add_subplot(gs[1, 1])
 
     phases = ["pre_contact", "seam_contact", "post_exit"]
     labels = ["pre-contact", "seam-contact", "post-exit"]
@@ -253,7 +288,7 @@ def render_figure(path_df: pd.DataFrame, outpath: Path) -> None:
 
     ax_bar.bar(labels, rel_means, yerr=rel_sems, alpha=0.9)
     ax_bar.set_ylabel("mean relational mismatch (deg)")
-    ax_bar.set_title("Branch-exit phase profile", fontsize=14, pad=8)
+    ax_bar.set_title("Branch-exit relational profile", fontsize=14, pad=8)
     ax_bar.grid(alpha=0.15, axis="y")
 
     box_vals = [
@@ -266,7 +301,7 @@ def render_figure(path_df: pd.DataFrame, outpath: Path) -> None:
             x = np.full(len(vals), i, dtype=float) + np.random.normal(0, 0.04, size=len(vals))
             ax_box.scatter(x, vals, s=18, alpha=0.55)
     ax_box.set_ylabel("path mean relational mismatch (deg)")
-    ax_box.set_title("Path-level distribution", fontsize=14, pad=8)
+    ax_box.set_title("Path-level relational distribution", fontsize=14, pad=8)
     ax_box.grid(alpha=0.15, axis="y")
 
     dist_means = [safe_mean(path_df[f"{ph}_mean_distance_to_seam"]) for ph in phases]
@@ -275,11 +310,11 @@ def render_figure(path_df: pd.DataFrame, outpath: Path) -> None:
     ax_dist.set_title("Distance-to-seam profile", fontsize=14, pad=8)
     ax_dist.grid(alpha=0.15, axis="y")
 
-    local_means = [safe_mean(path_df[f"{ph}_mean_local_mismatch"]) for ph in phases]
-    ax_local.bar(labels, local_means, alpha=0.9)
-    ax_local.set_ylabel("mean local mismatch (deg)")
-    ax_local.set_title("Pointwise control profile", fontsize=14, pad=8)
-    ax_local.grid(alpha=0.15, axis="y")
+    trn_means = [safe_mean(path_df[f"{ph}_path_transport_mean_misalignment_deg"]) for ph in phases]
+    ax_trn.bar(labels, trn_means, alpha=0.9)
+    ax_trn.set_ylabel("mean path transport mismatch (deg)")
+    ax_trn.set_title("Pathwise transport profile", fontsize=14, pad=8)
+    ax_trn.grid(alpha=0.15, axis="y")
 
     fig.suptitle("PAM Observatory — OBS-024 branch-exit phase profile", fontsize=18)
     fig.savefig(outpath, dpi=220)
@@ -288,16 +323,20 @@ def render_figure(path_df: pd.DataFrame, outpath: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build OBS-024 branch-exit phase profile.")
-    parser.add_argument("--nodes-csv", default=Config.nodes_csv)
+    parser.add_argument("--mismatch-nodes-csv", default=Config.mismatch_nodes_csv)
     parser.add_argument("--routes-csv", default=Config.routes_csv)
+    parser.add_argument("--scene-nodes-csv", default=Config.scene_nodes_csv)
+    parser.add_argument("--scene-edges-csv", default=Config.scene_edges_csv)
     parser.add_argument("--outdir", default=Config.outdir)
     parser.add_argument("--seam-threshold", type=float, default=Config.seam_threshold)
     parser.add_argument("--min-post-exit-steps", type=int, default=Config.min_post_exit_steps)
     args = parser.parse_args()
 
     cfg = Config(
-        nodes_csv=args.nodes_csv,
+        mismatch_nodes_csv=args.mismatch_nodes_csv,
         routes_csv=args.routes_csv,
+        scene_nodes_csv=args.scene_nodes_csv,
+        scene_edges_csv=args.scene_edges_csv,
         outdir=args.outdir,
         seam_threshold=args.seam_threshold,
         min_post_exit_steps=args.min_post_exit_steps,
@@ -306,9 +345,9 @@ def main() -> None:
     outdir = Path(cfg.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    nodes, routes = load_inputs(cfg)
+    nodes, routes, field = load_inputs(cfg)
     routes = prepare_routes(nodes, routes)
-    row_df, path_df = segment_branch_exit_paths(routes, cfg.seam_threshold, cfg.min_post_exit_steps)
+    row_df, path_df = segment_branch_exit_paths(routes, field, cfg.seam_threshold, cfg.min_post_exit_steps)
 
     rows_csv = outdir / "branch_exit_phase_profile_rows.csv"
     paths_csv = outdir / "branch_exit_phase_profile_paths.csv"

@@ -2,23 +2,12 @@
 """
 OBS-024 — Family phase-profile comparison.
 
-Compare phase-segmented relational mismatch across:
+Canonical comparison across:
 - branch_exit
 - stable_seam_corridor
 - reorganization_heavy
 
-Inputs
-------
-outputs/obs023_local_direction_mismatch/local_direction_mismatch_nodes.csv
-outputs/obs022_scene_bundle/scene_routes.csv
-
-Outputs
--------
-outputs/obs024_family_phase_profile_comparison/
-  family_phase_profile_rows.csv
-  family_phase_profile_paths.csv
-  obs024_family_phase_profile_comparison_summary.txt
-  obs024_family_phase_profile_comparison_figure.png
+Includes phasewise path-transport diagnostics from pam.geometry.parallel_transport.
 """
 
 from __future__ import annotations
@@ -31,15 +20,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from pam.geometry.directional_field import DirectionalField
+from pam.geometry.parallel_transport import parallel_transport_along_path
+
 
 @dataclass(frozen=True)
 class Config:
-    nodes_csv: str = "outputs/obs023_local_direction_mismatch/local_direction_mismatch_nodes.csv"
+    mismatch_nodes_csv: str = "outputs/obs023_local_direction_mismatch/local_direction_mismatch_nodes.csv"
     routes_csv: str = "outputs/obs022_scene_bundle/scene_routes.csv"
+    scene_nodes_csv: str = "outputs/obs022_scene_bundle/scene_nodes.csv"
+    scene_edges_csv: str = "outputs/obs022_scene_bundle/scene_edges.csv"
     outdir: str = "outputs/obs024_family_phase_profile_comparison"
     seam_threshold: float = 0.15
     min_post_exit_steps: int = 2
-    max_paths_per_class: int = 200
 
 
 CLASS_ORDER = [
@@ -62,13 +55,13 @@ def safe_sem(s: pd.Series) -> float:
     return float(s.std(ddof=1) / np.sqrt(n))
 
 
-def load_inputs(cfg: Config) -> tuple[pd.DataFrame, pd.DataFrame]:
-    nodes = pd.read_csv(cfg.nodes_csv)
+def load_inputs(cfg: Config) -> tuple[pd.DataFrame, pd.DataFrame, DirectionalField]:
+    nodes = pd.read_csv(cfg.mismatch_nodes_csv)
     routes = pd.read_csv(cfg.routes_csv)
 
     for c in [
         "node_id",
-        "neighbor_direction_mismatch_deg",
+        "neighbor_direction_mismatch_mean",
         "local_direction_mismatch_deg",
         "transport_align_mean_deg",
     ]:
@@ -82,14 +75,20 @@ def load_inputs(cfg: Config) -> tuple[pd.DataFrame, pd.DataFrame]:
         if c in routes.columns:
             routes[c] = pd.to_numeric(routes[c], errors="coerce")
 
-    return nodes, routes
+    field = DirectionalField.from_csv(
+        cfg.scene_nodes_csv,
+        cfg.scene_edges_csv,
+        connection_theta_col="fim_theta",
+        response_theta_col="rsp_theta",
+    )
+    return nodes, routes, field
 
 
 def prepare_routes(nodes: pd.DataFrame, routes: pd.DataFrame) -> pd.DataFrame:
     enrich_cols = [
         c for c in [
             "node_id",
-            "neighbor_direction_mismatch_deg",
+            "neighbor_direction_mismatch_mean",
             "local_direction_mismatch_deg",
             "transport_align_mean_deg",
         ] if c in nodes.columns
@@ -134,7 +133,27 @@ def find_post_exit_start(seam_mask: np.ndarray, min_post_exit_steps: int) -> int
     return None
 
 
-def segment_paths(routes: pd.DataFrame, seam_threshold: float, min_post_exit_steps: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+def path_transport_metrics(field: DirectionalField, node_ids: list[int]) -> dict[str, float]:
+    if len(node_ids) < 2:
+        return {
+            "path_transport_mean_misalignment_deg": np.nan,
+            "path_transport_max_misalignment_deg": np.nan,
+            "endpoint_residual_deg": np.nan,
+        }
+    res = parallel_transport_along_path(field, node_ids)
+    return {
+        "path_transport_mean_misalignment_deg": res.path_transport_mean_misalignment_deg,
+        "path_transport_max_misalignment_deg": res.path_transport_max_misalignment_deg,
+        "endpoint_residual_deg": res.endpoint_residual_deg,
+    }
+
+
+def segment_paths(
+    routes: pd.DataFrame,
+    field: DirectionalField,
+    seam_threshold: float,
+    min_post_exit_steps: int,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     work = routes[routes["route_class"].isin(CLASS_ORDER)].copy()
     row_records = []
     path_records = []
@@ -151,7 +170,6 @@ def segment_paths(routes: pd.DataFrame, seam_threshold: float, min_post_exit_ste
 
         first_contact = int(np.argmax(seam_mask))
         last_contact = int(len(seam_mask) - 1 - np.argmax(seam_mask[::-1]))
-
         tail = seam_mask[last_contact + 1 :]
         post_exit_start = find_post_exit_start(tail, min_post_exit_steps)
         if post_exit_start is not None:
@@ -173,7 +191,7 @@ def segment_paths(routes: pd.DataFrame, seam_threshold: float, min_post_exit_ste
                     "step": row["step"],
                     "node_id": row.get("node_id", np.nan),
                     "distance_to_seam": row.get("distance_to_seam", np.nan),
-                    "neighbor_direction_mismatch_deg": row.get("neighbor_direction_mismatch_deg", np.nan),
+                    "neighbor_direction_mismatch_mean": row.get("neighbor_direction_mismatch_mean", np.nan),
                     "local_direction_mismatch_deg": row.get("local_direction_mismatch_deg", np.nan),
                     "phase": row["phase"],
                 }
@@ -190,10 +208,16 @@ def segment_paths(routes: pd.DataFrame, seam_threshold: float, min_post_exit_ste
 
         for ph in ["pre_contact", "seam_contact", "post_exit"]:
             sub = grp[grp["phase"] == ph]
+            node_ids = [int(x) for x in pd.to_numeric(sub["node_id"], errors="coerce").dropna().tolist()]
+            tm = path_transport_metrics(field, node_ids)
+
             rec[f"{ph}_n_rows"] = len(sub)
-            rec[f"{ph}_mean_relational_mismatch"] = safe_mean(sub["neighbor_direction_mismatch_deg"])
+            rec[f"{ph}_mean_relational_mismatch"] = safe_mean(sub["neighbor_direction_mismatch_mean"])
             rec[f"{ph}_mean_local_mismatch"] = safe_mean(sub["local_direction_mismatch_deg"])
             rec[f"{ph}_mean_distance_to_seam"] = safe_mean(sub["distance_to_seam"])
+            rec[f"{ph}_path_transport_mean_misalignment_deg"] = tm["path_transport_mean_misalignment_deg"]
+            rec[f"{ph}_path_transport_max_misalignment_deg"] = tm["path_transport_max_misalignment_deg"]
+            rec[f"{ph}_endpoint_residual_deg"] = tm["endpoint_residual_deg"]
 
         path_records.append(rec)
 
@@ -209,6 +233,8 @@ def summarize_paths(path_df: pd.DataFrame) -> pd.DataFrame:
             row[f"{ph}_sem_relational_mismatch"] = safe_sem(grp[f"{ph}_mean_relational_mismatch"])
             row[f"{ph}_mean_local_mismatch"] = safe_mean(grp[f"{ph}_mean_local_mismatch"])
             row[f"{ph}_mean_distance_to_seam"] = safe_mean(grp[f"{ph}_mean_distance_to_seam"])
+            row[f"{ph}_mean_transport_misalignment"] = safe_mean(grp[f"{ph}_path_transport_mean_misalignment_deg"])
+            row[f"{ph}_mean_endpoint_residual"] = safe_mean(grp[f"{ph}_endpoint_residual_deg"])
             row[f"{ph}_mean_rows"] = safe_mean(grp[f"{ph}_n_rows"])
         rows.append(row)
     out = pd.DataFrame(rows)
@@ -217,10 +243,7 @@ def summarize_paths(path_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_summary(summary_df: pd.DataFrame) -> str:
-    lines = [
-        "=== OBS-024 Family Phase Profile Comparison ===",
-        "",
-    ]
+    lines = ["=== OBS-024 Family Phase Profile Comparison ===", ""]
     for _, row in summary_df.iterrows():
         lines.append(f"{row['route_class']} (n_paths={int(row['n_paths'])})")
         for ph in ["pre_contact", "seam_contact", "post_exit"]:
@@ -229,6 +252,8 @@ def build_summary(summary_df: pd.DataFrame) -> str:
                 f"rel={float(row[f'{ph}_mean_relational_mismatch']):.4f}, "
                 f"local={float(row[f'{ph}_mean_local_mismatch']):.4f}, "
                 f"d2s={float(row[f'{ph}_mean_distance_to_seam']):.4f}, "
+                f"transport={float(row[f'{ph}_mean_transport_misalignment']):.4f}, "
+                f"residual={float(row[f'{ph}_mean_endpoint_residual']):.4f}, "
                 f"rows={float(row[f'{ph}_mean_rows']):.4f}"
             )
         lines.append("")
@@ -244,7 +269,7 @@ def build_summary(summary_df: pd.DataFrame) -> str:
 
 
 def render_figure(summary_df: pd.DataFrame, outpath: Path) -> None:
-    fig, axes = plt.subplots(2, 2, figsize=(14, 9), constrained_layout=True)
+    fig, axes = plt.subplots(2, 2, figsize=(14.5, 9.5), constrained_layout=True)
 
     phases = ["pre_contact", "seam_contact", "post_exit"]
     phase_labels = ["pre-contact", "seam-contact", "post-exit"]
@@ -252,7 +277,6 @@ def render_figure(summary_df: pd.DataFrame, outpath: Path) -> None:
     x = np.arange(len(phases))
     width = 0.22
 
-    # relational mismatch
     ax = axes[0, 0]
     for i, cls in enumerate(classes):
         row = summary_df[summary_df["route_class"] == cls].iloc[0]
@@ -266,8 +290,18 @@ def render_figure(summary_df: pd.DataFrame, outpath: Path) -> None:
     ax.grid(alpha=0.15, axis="y")
     ax.legend()
 
-    # local mismatch
     ax = axes[0, 1]
+    for i, cls in enumerate(classes):
+        row = summary_df[summary_df["route_class"] == cls].iloc[0]
+        vals = [row[f"{ph}_mean_transport_misalignment"] for ph in phases]
+        ax.bar(x + (i - 1) * width, vals, width, label=cls, alpha=0.9)
+    ax.set_xticks(x)
+    ax.set_xticklabels(phase_labels)
+    ax.set_ylabel("mean transport mismatch (deg)")
+    ax.set_title("Pathwise transport profile")
+    ax.grid(alpha=0.15, axis="y")
+
+    ax = axes[1, 0]
     for i, cls in enumerate(classes):
         row = summary_df[summary_df["route_class"] == cls].iloc[0]
         vals = [row[f"{ph}_mean_local_mismatch"] for ph in phases]
@@ -278,8 +312,7 @@ def render_figure(summary_df: pd.DataFrame, outpath: Path) -> None:
     ax.set_title("Pointwise control profile")
     ax.grid(alpha=0.15, axis="y")
 
-    # distance to seam
-    ax = axes[1, 0]
+    ax = axes[1, 1]
     for i, cls in enumerate(classes):
         row = summary_df[summary_df["route_class"] == cls].iloc[0]
         vals = [row[f"{ph}_mean_distance_to_seam"] for ph in phases]
@@ -290,18 +323,6 @@ def render_figure(summary_df: pd.DataFrame, outpath: Path) -> None:
     ax.set_title("Distance-to-seam profile")
     ax.grid(alpha=0.15, axis="y")
 
-    # rows per path
-    ax = axes[1, 1]
-    for i, cls in enumerate(classes):
-        row = summary_df[summary_df["route_class"] == cls].iloc[0]
-        vals = [row[f"{ph}_mean_rows"] for ph in phases]
-        ax.bar(x + (i - 1) * width, vals, width, label=cls, alpha=0.9)
-    ax.set_xticks(x)
-    ax.set_xticklabels(phase_labels)
-    ax.set_ylabel("mean rows per path")
-    ax.set_title("Phase occupancy")
-    ax.grid(alpha=0.15, axis="y")
-
     fig.suptitle("PAM Observatory — OBS-024 family phase-profile comparison", fontsize=18)
     fig.savefig(outpath, dpi=220)
     plt.close(fig)
@@ -309,16 +330,20 @@ def render_figure(summary_df: pd.DataFrame, outpath: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build OBS-024 family phase-profile comparison.")
-    parser.add_argument("--nodes-csv", default=Config.nodes_csv)
+    parser.add_argument("--mismatch-nodes-csv", default=Config.mismatch_nodes_csv)
     parser.add_argument("--routes-csv", default=Config.routes_csv)
+    parser.add_argument("--scene-nodes-csv", default=Config.scene_nodes_csv)
+    parser.add_argument("--scene-edges-csv", default=Config.scene_edges_csv)
     parser.add_argument("--outdir", default=Config.outdir)
     parser.add_argument("--seam-threshold", type=float, default=Config.seam_threshold)
     parser.add_argument("--min-post-exit-steps", type=int, default=Config.min_post_exit_steps)
     args = parser.parse_args()
 
     cfg = Config(
-        nodes_csv=args.nodes_csv,
+        mismatch_nodes_csv=args.mismatch_nodes_csv,
         routes_csv=args.routes_csv,
+        scene_nodes_csv=args.scene_nodes_csv,
+        scene_edges_csv=args.scene_edges_csv,
         outdir=args.outdir,
         seam_threshold=args.seam_threshold,
         min_post_exit_steps=args.min_post_exit_steps,
@@ -327,9 +352,9 @@ def main() -> None:
     outdir = Path(cfg.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    nodes, routes = load_inputs(cfg)
+    nodes, routes, field = load_inputs(cfg)
     routes = classify_routes(prepare_routes(nodes, routes))
-    row_df, path_df = segment_paths(routes, cfg.seam_threshold, cfg.min_post_exit_steps)
+    row_df, path_df = segment_paths(routes, field, cfg.seam_threshold, cfg.min_post_exit_steps)
     summary_df = summarize_paths(path_df)
 
     rows_csv = outdir / "family_phase_profile_rows.csv"
