@@ -1,12 +1,12 @@
 import numpy as np
 from pathlib import Path
 
-
+from pam.measurement.tip import InvariantPerceptron, InvariantSpec
 from pam.measurement.builders import build_injector, build_tip, macro_fn_factory
 from pam.observables.core import sliding_piF
 from pam.corpora import texts_C, texts_Cp, texts_Cp2, texts_Cp3, texts_Cp4
 from pam.types import RunParams
-from pam.engine import run_quench
+from pam.engine.core import run_quench
 from pam.metrics.entropy import compute_entropy_series
 from pam.metrics.macrostate import sliding_piF, macrostate_from_microstructure
 from pam.metrics.lag import smooth, lag_corr
