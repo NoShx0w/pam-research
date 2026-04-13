@@ -1,9 +1,6 @@
 import numpy as np
 from pathlib import Path
 
-from pam.measurement.tip import InvariantPerceptron, InvariantSpec
-from pam.measurement.builders import build_injector, build_tip, macro_fn_factory
-from pam.observables.core import sliding_piF
 from pam.corpora import texts_C, texts_Cp, texts_Cp2, texts_Cp3, texts_Cp4
 from pam.types import RunParams
 from pam.engine.core import run_quench
@@ -11,6 +8,7 @@ from pam.metrics.entropy import compute_entropy_series
 from pam.metrics.macrostate import sliding_piF, macrostate_from_microstructure
 from pam.metrics.lag import smooth, lag_corr
 from pam.metrics.regression import granger_delta_r2, fit_minimal_models
+from pam.measurement.builders import build_injector, build_tip, macro_fn_factory
 
 
 CORPORA = {
@@ -20,30 +18,6 @@ CORPORA = {
     "Cp3": texts_Cp3,
     "Cp4": texts_Cp4,
 }
-
-
-def build_tip():
-    invariants = [
-        InvariantSpec("reflective", threshold=0.6),
-        InvariantSpec("coherent", threshold=0.6),
-        InvariantSpec("playful_serious", threshold=0.6),
-        InvariantSpec("geometric", threshold=0.6),
-    ]
-    return InvariantPerceptron(invariants=invariants, mode="heuristic")
-
-
-def build_injector(tip, texts0, k=2, attempts_per_sample=12):
-    targets = top_k_signatures(tip, texts0, k=k)
-    anchor_inj = mutation_injector_multi_sig_factory(tip, targets, attempts_per_sample=attempts_per_sample)
-    return mixture_injector_factory(anchor_inj, self_resample_generator)
-
-
-def macro_fn_factory(bd_thresh=0.05, mg_thresh=15.0):
-    return lambda corp_snaps, tip_, p: macrostate_from_microstructure(
-        corp_snaps, tip_, p,
-        window=6, step=1, sample_every=1,
-        bd_thresh=bd_thresh, mg_thresh=mg_thresh
-    )
 
 
 def run_one_seed(*, seed: int, texts0, tip, mix_inj, params: RunParams, alpha: float, W: int):
