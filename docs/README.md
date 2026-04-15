@@ -87,6 +87,23 @@ bash scripts/run_full_pipeline.sh
 
 ---
 
+### Canonical family layer
+
+- [`05_project/README.md`](05_project/README.md)  
+  Project-level canonicalization, stabilization, and implementation notes
+
+- [`05_project/canonical_family_layer_status.md`](05_project/canonical_family_layer_status.md)  
+  Current status of the implemented canonical family/gateway layer
+
+This section covers the downstream canonical family/gateway layer now implemented in:
+
+- `scripts/canonical/`
+- `outputs/canonical/`
+
+It records what is implemented, what is validated, and what remains provisional.
+
+---
+
 ## Canonical Runtime
 
 The repository now has a single canonical full-pipeline entrypoint:
@@ -154,6 +171,7 @@ experiments/
 
 outputs/
   active file-first artifact store
+  including downstream canonical artifacts under outputs/canonical/
 ```
 
 ---
@@ -171,16 +189,24 @@ Those materials remain useful historically, but the canonical repository archite
 
 - [`architecture.md`](architecture.md)
 
+The repository also now includes a downstream canonical family/gateway layer that should be read as:
+
+- implemented
+- validated
+- still architecturally downstream for now
+
+For current status of that layer, prefer:
+
+- [`05_project/canonical_family_layer_status.md`](05_project/canonical_family_layer_status.md)
+
 ---
 
 ## Summary
 
 The PAM Observatory documentation now supports a repository that is no longer just a script collection or visualization workflow.
 
-It documents a canonical layered instrument for:
+It documents:
 
-- evolving recursive systems
-- measuring invariant structure
-- extracting geometry and phase
-- probing the manifold with operators
-- analyzing topological organization
+- a canonical layered instrument for evolving recursive systems
+- a downstream canonical family/gateway layer for consolidating and validating family-level observatory structure
+- an architecture that distinguishes core runtime production from downstream canonicalization
