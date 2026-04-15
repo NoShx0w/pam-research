@@ -139,6 +139,35 @@ and is exposed through:
 
 ---
 
+## Canonical Family Layer
+
+In addition to the canonical runtime pipeline, the repository now includes a downstream canonical family/gateway layer.
+
+This layer currently lives in:
+
+- `scripts/canonical/`
+- `outputs/canonical/`
+- `docs/05_project/`
+
+It provides:
+
+- canonical family-level gateway summaries
+- canonical temporal-depth summaries
+- canonical memory-compression summaries
+- event-level family normalization
+- event-level family assignment
+- assignment-derived family aggregation
+- integrated cross-table validation
+
+This layer is implemented and validated, but remains architecturally downstream for now. It has not yet been promoted into `src/pam/`, because parts of the layer remain provisional in provenance depth, assignment maturity, and trajectory linkage.
+
+For details, see:
+
+- [`docs/05_project/README.md`](docs/05_project/README.md)
+- [`docs/05_project/canonical_family_layer_status.md`](docs/05_project/canonical_family_layer_status.md)
+
+---
+
 ## Conceptual Layers
 
 ### Engine
@@ -192,10 +221,10 @@ experiments/
   archive/        # legacy and superseded material
 
 scripts/
-  canonical entrypoints and repository guards
+  canonical entrypoints, repository guards, and downstream canonicalization scripts
 
 outputs/
-  active file-first artifact store
+  active file-first artifact store, including downstream canonical artifacts
 ```
 
 ---
@@ -227,6 +256,7 @@ Useful repository anchors:
 - `src/pam/pipeline/runner.py`
 - `scripts/run_full_pipeline.sh`
 - `observatory/corpora/README.md`
+- `docs/05_project/canonical_family_layer_status.md`
 
 ---
 
@@ -239,13 +269,14 @@ Useful repository anchors:
 - canonical operators layer implemented
 - canonical topology layer implemented
 - canonical pipeline stages and runner implemented
+- downstream canonical family/gateway layer implemented and validated
 - corpora externalized into observatory data storage
 
 ---
 
 ## One-Line Summary
 
-> The PAM Observatory is a layered instrument for extracting geometric, phase, topological, and operator structure from recursive language dynamics.
+> The PAM Observatory is a layered instrument for extracting geometric, phase, topological, operator, and canonical family structure from recursive language dynamics.
 
 ---
 
