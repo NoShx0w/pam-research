@@ -13,10 +13,11 @@ It is the home for:
 
 ## Current role
 
-The repository has:
+The repository now has:
 
 - a canonical implemented runtime for the downstream observatory pipeline
 - a downstream canonical family/gateway layer implemented in `scripts/canonical/`
+- a first repository-facing canonical dynamical-layer object for OBS-043
 - validated canonical artifacts under `outputs/canonical/`
 
 Primary runtime entrypoints:
@@ -69,6 +70,27 @@ These documents are intended to:
 - improve public-facing transparency as the repository catches up to the science
 - mark what is implemented, what is validated, and what remains provisional
 
+## Canonical dynamical layer
+
+The repository now also includes a first canonical dynamical-layer object:
+
+- [`canonical_response_guided_flow.md`](./canonical_response_guided_flow.md)
+
+This document formalizes the response-guided flow construction introduced in OBS-043:
+- dominant response-eigenvector direction field
+- embedded discrete flow paths
+- seam engagement
+- phase crossing
+- seam-bundle scalar modulation
+- current route-family refinement
+
+Related study scripts include:
+
+- `experiments/studies/obs043_response_flow.py`
+- `experiments/studies/obs043b_response_flow_path_families.py`
+
+This dynamical layer is now scientifically established at first pass, but remains methodologically discretized and is not yet promoted into `src/pam/`.
+
 ## Current architectural status
 
 The canonical family/gateway layer is now:
@@ -110,6 +132,8 @@ Canonical family-layer documents include:
 - `canonicalization_implementation_plan.md`
 
 A current status note for the implemented canonical layer should also live in this section.
+
+- [`canonical_response_guided_flow.md`](./canonical_response_guided_flow.md)
 
 ## Guidance
 

@@ -104,6 +104,15 @@ It records what is implemented, what is validated, and what remains provisional.
 
 ---
 
+### Canonical dynamical layer
+
+- [`05_project/canonical_response_guided_flow.md`](05_project/canonical_response_guided_flow.md)  
+  Formal definition and current stabilized status of response-guided flow as the first observatory dynamical-layer object
+
+This document records the OBS-043 extension from static seam/response structure into seam-engaged response-guided flow, including the current first-pass route-family refinement.
+
+---
+
 ## Canonical Runtime
 
 The repository now has a single canonical full-pipeline entrypoint:
