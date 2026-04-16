@@ -168,6 +168,26 @@ For details, see:
 
 ---
 
+## Response-Guided Dynamical Layer
+
+The repository now also includes a first response-guided dynamical layer derived from the response tensor field.
+
+This layer currently includes:
+
+- `experiments/studies/obs043_response_flow.py`
+- `experiments/studies/obs043b_response_flow_path_families.py`
+- `docs/05_project/canonical_response_guided_flow.md`
+
+At current observatory status, this layer supports:
+- seam-engaged embedded flow paths
+- relaxed vs strict flow-regime comparison
+- seam-bundle scalar modulation tests
+- first-pass route-family decomposition
+
+This layer is established at first pass, but remains methodologically discretized and is not yet promoted into the canonical runtime package.
+
+---
+
 ## Conceptual Layers
 
 ### Engine
@@ -271,6 +291,7 @@ Useful repository anchors:
 - canonical pipeline stages and runner implemented
 - downstream canonical family/gateway layer implemented and validated
 - corpora externalized into observatory data storage
+- first response-guided dynamical flow layer implemented and documented
 
 ---
 

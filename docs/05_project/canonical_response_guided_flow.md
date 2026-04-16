@@ -463,3 +463,54 @@ This object directly supports later observatory directions such as:
 - attractor / basin / cycle analysis
 
 It should therefore be treated as a stable canonical object for the current observatory phase, even though its present implementation remains first-pass and discretized.
+
+## 15. OBS-043 Current Route-Family Refinement
+
+Follow-on analysis of the OBS-043 flow outputs resolves response-guided flow into a first-pass route-family taxonomy.
+
+Current route families are:
+- `seam_hugging`
+- `release_directed`
+- `short_trapped`
+- `mixed`
+
+A key refinement is that:
+- **cross-phase is not treated as a route family**
+- it is treated as a **path attribute**
+
+This correction matters because early classification attempts over-assigned seam-hugging paths into a separate `cross_phase` class, obscuring the actual route structure.
+
+### Current empirical reading
+
+The current first-pass reading is:
+- `short_trapped` is the largest single route family under the present discretized integrator
+- `release_directed` is a stable minority family
+- `seam_hugging` is also a stable family once cross-phase is treated as an attribute rather than an overriding class
+
+### Scalar modulation refinement
+
+Neighborhood directional mismatch produces the clearest route-family-level modulation currently observed.
+
+Its most important effect is:
+- preservation of seam-engaged route families
+- reduction of cross-phase release behavior
+- modest shortening of path extent
+
+This supports the current interpretation that neighborhood directional mismatch behaves more like a routing cost than a seam-repulsion barrier.
+
+### Current limitation
+
+The route-family picture remains conditioned by the current discrete node-hopping integrator.
+
+In particular:
+- all tested regimes still terminate by forward-neighbor exhaustion
+- the current taxonomy should therefore be read as a first-pass discretized routing classification rather than a final continuous-flow decomposition
+
+### Current stabilized reading
+
+Response-guided flow now has:
+- a canonical object definition
+- a first dynamical observatory interpretation
+- and a first route-family decomposition
+
+This is the current repository-facing stabilized state of OBS-043.
