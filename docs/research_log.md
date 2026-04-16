@@ -813,17 +813,22 @@ Established a canonical taxonomy for seam families to guide future analysis and 
 ## OBS-043
 
 **Date:** 2026-04-15  
-**State:** Response-eigenvector flow established as a seam-engaged dynamical layer on the manifold
+**State:** Response-eigenvector flow established as a seam-engaged dynamical layer on the manifold, with route-family structure resolved at first pass
 
 **Claim:**  
-The dominant response eigenvector induced a coherent, strongly seam-engaged embedded flow field, establishing the first dynamical response-flow layer on the manifold.
+The response eigenvector field induces a real seam-engaged flow picture, and that flow resolves into stable first-pass route families.
 
 **Summary:**  
-The dominant eigenvector of the response tensor was treated as a local direction field and integrated over the embedded node space.
+The dominant eigenvector of the response tensor defines a coherent local direction field in the embedded manifold. Integration of this field over the node graph produces structured trajectories that are not random but exhibit region-dependent directional organization.
 
-The resulting trajectories showed coherent structure, strong seam engagement, and extended routing under relaxed integration conditions.
+Across all tested regimes, flow remains strongly seam-engaged. Relaxed integration reveals longer, outward-routing trajectories while preserving high seam-contact share. This shows that the seam functions not only as a local capture region but also as a launch region for broader routing.
 
-Flow behavior interacted with phase structure and was modulated by directional mismatch scalars, while remaining constrained by discrete graph connectivity.
+The resulting trajectories admit a stable first-pass route-family decomposition into seam-hugging, release-directed, short-trapped, and mixed paths. Phase-crossing behavior is distributed across these families and is therefore best treated as a path attribute rather than a distinct class.
+
+Seam-bundle mismatch scalars modulate routing without destroying seam engagement. In particular, neighborhood directional mismatch reduces cross-phase release behavior while preserving the presence of the underlying route families.
 
 **Operational consequence:**  
-Introduced a dynamical flow layer enabling trajectory-based analysis of response-guided motion on the manifold.
+Introduces a response-guided flow layer with route-family structure, enabling trajectory-level analysis of seam engagement, release behavior, and scalar-modulated routing.
+
+**Recovery note:**  
+Normalized from extended OBS-043 entry; content consolidated without loss of stated results or distinctions between flow regimes, route families, and scalar modulation.
