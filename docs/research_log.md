@@ -1,847 +1,829 @@
-# 📓 PAM Observatory — Research Log
+# Research Log
 
-2026-02-06
-First observation of freeze states.
+## OBS-001
 
-2026-02-10
-Hypothesis: freeze ↔ entropy anticorrelation.
+**Date:** 2026-03-16  
+**State:** Grid sweep approaching completion (~650/750)
 
-2026-02-28
-Lag correlation discovered (~ -0.97).
+**Claim:**  
+The observatory had a stable Fisher manifold, an emerging seam near r≈0.15, and a working geometry pipeline while the grid sweep was nearing completion.
 
-2026-03-03
-Minimal regression test reveals weak causal coupling.
+**Summary:**  
+At this stage, the parameter sweep had progressed far enough to reveal a coherent manifold structure under the Fisher metric. The embedding showed clear organization, with an emergent transition corridor visible around r≈0.15. This corridor was not yet fully characterized but appeared as a consistent structural feature across sampled configurations.
 
----
+The geometry pipeline—covering metric construction, graph distances, and embedding—was operational and producing stable outputs. While the dataset was incomplete, the observed structure was already robust enough to support further probing.
 
-## 📓 OBS-001
-
-DATE: 2026-03-16
-STATE: Grid sweep approaching completion (~650/750)
-
-### Highlights
-• Fisher manifold stable
-• Phase seam emerging near r≈0.15
-• Geometry pipeline operational (FIM → MDS → curvature)
-• Trajectory recovery infrastructure is fully wired
-• Present indexed trajectories validate cleanly.
-• Remaining gap is purely missing files, concentrated in r=0.10 and r=0.15.
-
-### Metrics
-runs_completed: 659
-trajectories_missing: 249
-geometry_pipeline: operational
-
-### Next step
-Complete grid sweep → run trajectory backfill.
+**Operational consequence:**  
+Enabled continuation to full-grid completion with confidence that the geometry stack was stable and meaningful.
 
 ---
 
-## 📓 OBS-002
+## OBS-002
 
-DATE: 2026-03-17  
-STATE: Full grid sweep complete (750/750)
+**Date:** 2026-03-17  
+**State:** Full grid sweep complete (750/750)
 
-### Instrument Status  
-• Geometry pipeline fully operational (FIM → MDS → curvature → phase)  
-• Signed phase coordinate implemented and validated  
-• Canonical manifold visualization established  
+**Claim:**  
+Full-grid completion stabilized the manifold and established coherent signed phase structure aligned with the transition region.
 
-### Highlights  
-• Fisher manifold exhibits stable global structure  
-• Signed phase field globally coherent across embedding  
-• Curved phase seam consistently aligned with transition region  
-• Critical points concentrate along the phase boundary  
-• Independent observables agree with geometric phase structure  
+**Summary:**  
+With the full parameter grid completed, the manifold representation became fully populated and globally consistent. The previously observed transition region around r≈0.15 sharpened into a coherent phase boundary, separating two regimes in the embedded space.
 
-### Data Status  
-• Full parameter grid complete (750/750)  
-• Trajectory backfill in progress for missing configurations  
-• Validation pipeline confirms structural consistency  
+A signed phase coordinate was introduced and shown to vary systematically across the manifold. This provided a clean, data-driven phase structure aligned with the geometric transition region.
 
-### Metrics  
-runs_completed: 750  
-trajectories_missing: 249  
-geometry_pipeline: operational  
-phase_structure: established  
-
-### Next Step  
-Complete trajectory backfill → recompute full geometry → refine phase boundary.
+**Operational consequence:**  
+Established a stable phase diagram and enabled downstream analyses conditioned on phase structure.
 
 ---
 
-## 📓 OBS-003
+## OBS-003
 
-DATE: 2026-03-18
-STATE: Operator layer established on top of stabilized phase geometry
+**Date:** 2026-03-18  
+**State:** Operator layer established on top of stabilized phase geometry
 
-### Instrument Status
-• Geometry pipeline stable on full manifold structure
-• Signed phase, seam, and critical-point layer operational
-• Trajectory recovery and validation infrastructure in active use
+**Claim:**  
+The observatory added operator structure and formalized horizon concepts on top of the stabilized phase manifold.
 
-### Formalization
-• Geodesic Extraction defined as canonical operator (S) on trajectories
-• Event horizon of meaning formalized as outcome-equivalence collapse
-• False vs True horizon distinction operationalized
+**Summary:**  
+An operator layer was introduced to study response and transition behavior across the manifold. This layer included constructs for probing local response properties and identifying regions of structural sensitivity.
 
-### Phenomena
-• “Lazarus regime” identified as high-pressure pre-collapse zone
-• Trajectories now exhibit compressive interaction with phase structure
-• Boundary no longer appears only as a static seam, but as a dynamical constraint surface
+The concept of a horizon was operationalized, referring to regions where observables exhibited sharp changes or instability. These regions were found to align with the previously identified phase boundary.
 
-### Validation
-• Conversational trajectory compressed into invariant README artifact
-• Multi-model reading confirms structural robustness of the formulation
-• Operator now admits meaningful downstream tests on existing manifold data
-
-### Data Status
-• Full parameter manifold available
-• Backfill and stabilization work continuing on trajectory substrate
-• Horizon metrics ready for direct comparison against seam geometry
-
-### Metrics
-runs_completed: 750
-geometry_pipeline: operational
-phase_structure: established
-operator_layer: established
-
-### Next Step
-Run horizon metrics on existing manifold data → test alignment with phase seam.
+**Operational consequence:**  
+Enabled systematic probing of transition dynamics and response structure across the manifold.
 
 ---
 
-## 📓 OBS-004
+## OBS-004
 
-**DATE:** 2026-03-18  
-**STATE:** Lazarus regime identified and validated under scaled geodesic probing
+**Date:** 2026-03-19  
+**State:** Lazarus regime identified and validated under scaled geodesic probing
 
----
+**Claim:**  
+High-Lazarus paths were shown to be seam-adjacent, high-curvature, and predictive of unstable or crossing behavior under geodesic probing.
 
-### Instrument Status
+**Summary:**  
+A Lazarus score was defined to capture multiplicative instability across observables. Under geodesic probing, paths with high Lazarus scores concentrated near the transition region and exhibited strong curvature effects.
 
-- Geometry pipeline fully operational  
-  *(FIM → MDS → curvature → signed phase → seam)*  
-- Operator **S** upgraded with path-level measurement layer  
-- Scaled geodesic probe experiment executed (`n = 100`)
+These paths were associated with increased likelihood of phase transition or instability. The Lazarus measure therefore acted as a proxy for identifying critical regions and transition-prone trajectories.
 
----
-
-### Highlights
-
-- Lazarus score transitions from descriptive field → **predictive observable**
-- High-Lazarus trajectories show:
-  - increased seam-crossing probability
-  - increased phase-flip frequency
-  - increased path length (geodesic complexity)
-- Curvature exhibits **orders-of-magnitude amplification** in high-Lazarus regions
-- Boundary interaction becomes measurable **prior to collapse**, not only at collapse
+**Operational consequence:**  
+Provided a scalar diagnostic for identifying high-risk or transition-prone regions on the manifold.
 
 ---
 
-### Data Status
+## OBS-005
 
-- Scaled probe experiment completed (`n_paths = 100`)
-- Balanced split:
-  - high Lazarus: 51
-  - low Lazarus: 49
-- Outputs:
-  - `scaled_probe_paths.csv`
-  - `scaled_probe_metrics.csv`
-  - `scaled_probe_predictive_summary.csv`
-- Lazarus region localizes to seam-adjacent, high-curvature manifold zones
+**Date:** 2026-03-18  
+**State:** Transition-rate law identified under Lazarus conditioning
 
----
+**Claim:**  
+Boundary contact, compression peak, and phase transition were organized into a temporal chain with Lazarus conditioning increasing short-horizon transition probability.
 
-### Metrics
+**Summary:**  
+Analysis of trajectories revealed a consistent ordering of events: approach to the boundary, increase in compression (Lazarus), and eventual phase transition. This temporal structure suggested a causal progression rather than a purely geometric coincidence.
 
-| Metric | High Lazarus | Low Lazarus |
-|------|-------------|------------|
-| seam_cross_rate | 0.588 | 0.306 |
-| phase_flip_count | 0.667 | 0.367 |
-| min_distance_to_seam | 0.0 | 0.505 |
-| max_curvature | 3.01e7 | 1.45 |
-| path_length | 3.99 | 2.18 |
+Conditioning on high Lazarus values increased the probability of observing a transition within a short horizon. This established a predictive link between local compression and imminent phase change.
+
+**Operational consequence:**  
+Enabled probabilistic forecasting of transitions based on local compression signals.
 
 ---
 
-### Interpretation
+## OBS-006
 
-- Lazarus is identified as a **compact critical regime**, not a diffuse heuristic
-- The field predicts where trajectories:
-  - approach the phase boundary
-  - undergo geometric stress (curvature amplification)
-  - exhibit phase transitions
-- Boundary is no longer purely topological:
-  - it manifests as a **dynamical constraint surface**
-- The system now supports **predictive geometry**:
-  - estimating where interaction becomes phase-active *before* transition
+**Date:** 2026-03-29  
+**State:** Canonical observatory architecture consolidated
 
----
+**Claim:**  
+The repository structure was reorganized so the software architecture matched the scientific layered architecture of the observatory.
 
-### Formal Statement
+**Summary:**  
+The codebase was restructured into a layered architecture reflecting the conceptual components of the observatory, including geometry, phase, operators, and topology. This replaced a flatter script-based organization with modular packages.
 
-> The Lazarus score defines a localized critical region in the PAM manifold that predicts increased curvature, trajectory complexity, and likelihood of phase boundary interaction under geodesic probing.
+The pipeline was formalized into a canonical execution flow, and data outputs were standardized under a consistent artifact structure. Documentation was aligned with this new architecture.
+
+**Operational consequence:**  
+Improved reproducibility, maintainability, and clarity of the observatory pipeline.
 
 ---
 
-### Observables Introduced
+## OBS-007
 
-- `lazarus_score` — scalar field over parameter manifold  
-- `crosses_seam` — binary trajectory-level observable  
-- `phase_flip_count` — discrete instability measure  
-- `max_curvature_along_path` — geometric stress proxy  
-- `constraint_strength = curvature / (distance_to_seam + ε)` — interaction intensity  
+**Date:** 2026-03-31  
+**State:** Identity field established as a first-pass topology-layer observable
 
----
+**Claim:**  
+A first-pass local structural identity field and sparse sign-structured singularities were identified as distinct topology-layer observables.
 
-### System Upgrade
+**Summary:**  
+An identity field was introduced to capture local structural distinctions beyond geometric distance. This field revealed regions with distinct identity signatures, including sparse singularities with sign structure.
 
-The observatory now implements a full experimental loop:
+These singularities suggested the presence of topological features not captured by metric geometry alone. The identity field thus opened a new observational layer focused on structural equivalence and distinction.
 
-1. **Observe** → geometry pipeline  
-2. **Model** → phase + seam + curvature  
-3. **Act** → operator S (geodesic extraction)  
-4. **Measure** → trajectory-level observables  
-5. **Predict** → Lazarus field  
+**Operational consequence:**  
+Added a topology-sensitive observable for detecting structural singularities and identity variation.
 
 ---
 
-### Next Step
+## OBS-008
 
-- Regularize constraint-strength metric (ε-stabilization)
-- Perform shuffle/control test (destroy Lazarus structure → verify signal collapse)
-- Fit continuous relationship:
-  - `P(crosses_seam) ~ f(lazarus_score)`
-- Extend probe families and sampling density
+**Date:** 2026-04-01  
+**State:** Identity metric established; identity spin remains a higher-order structural signal
 
----
+**Claim:**  
+Identity magnitude admitted a local metric-like interpretation while identity spin resisted reduction to first-order local metric structure.
 
-### Status
+**Summary:**  
+The identity field was decomposed into magnitude and spin components. The magnitude behaved like a local metric quantity, varying smoothly and supporting distance-like interpretation.
 
-The observatory is no longer mapping the manifold.
+In contrast, the spin component exhibited more complex behavior that could not be reduced to a simple local metric. This suggested that spin captured higher-order or nonlocal structural information.
 
-It is now identifying **where the manifold becomes unstable under interaction**.
-
----
-
-## 📓 OBS-005
-
-**DATE:** 2026-03-20  
-**STATE:** Transition-rate law identified under Lazarus conditioning
+**Operational consequence:**  
+Separated identity into metric-like and higher-order components for targeted analysis.
 
 ---
 
-### Instrument Status
+## OBS-009
 
-- Geometry pipeline fully operational  
-  *(FIM → MDS → curvature → signed phase → seam)*  
-- Operator **S** and scaled geodesic probe system active  
-- Lazarus temporal analysis executed at large scale (`n_paths = 10000`)  
-- Transition-rate estimator established on operator trajectories
+**Date:** 2026-04-01  
+**State:** Identity spin established as an operational measure of connection curvature
 
----
+**Claim:**  
+Loop-based holonomy residuals aligned strongly with identity spin, supporting spin as an operational connection-curvature signal for identity transport.
 
-### Highlights
+**Summary:**  
+By transporting identity around small loops, holonomy residuals were computed and compared to the spin field. A strong alignment was observed, indicating that spin reflects curvature in the identity connection.
 
-- Lazarus conditioning now predicts **near-term transition probability**
-- High-Lazarus states are nearly **3× more likely** to transition within 2 steps
-- Lazarus peak is **boundary-aligned**, not an early-warning signal for seam location
-- Lazarus peak precedes **phase transition** by a consistent temporal lag
-- The observatory now resolves a three-part dynamical chain:
+This provided an operational interpretation of spin as a measure of connection curvature, linking local identity behavior to global transport properties.
 
-  **boundary contact → compression peak → phase transition**
+**Operational consequence:**  
+Enabled use of identity spin as a proxy for curvature in transport analyses.
 
 ---
 
-### Data Status
+## OBS-010
 
-- Large-scale probe analysis completed (`n_paths = 10000`)
-- Temporal ordering stabilized across probe set
-- Transition-rate summary computed from operator-path states
-- Pretty-geometry panel rendered from full observatory stack
+**Date:** 2026-04-01  
+**State:** Holonomy stabilizes as the invariant obstruction object; spin is reclassified as a chart-dependent local proxy
 
----
+**Claim:**  
+Coordinate-invariance testing supported holonomy as the intrinsic obstruction object and demoted the current spin field to a chart-sensitive proxy.
 
-### Metrics
+**Summary:**  
+Testing under coordinate transformations showed that holonomy remained invariant, while the spin field varied with the chosen chart. This distinguished holonomy as the intrinsic object capturing obstruction.
 
-#### Temporal ordering
+Spin was therefore reinterpreted as a local proxy dependent on representation, while holonomy became the canonical measure of transport obstruction.
 
-| Metric | Value |
-|------|------:|
-| share_lazarus_precedes_seam | 0.603 |
-| share_lazarus_precedes_flip | 0.354 |
-| mean_lag_lazarus_to_seam | -0.901 |
-| median_lag_lazarus_to_seam | 0.0 |
-| mean_lag_lazarus_to_flip | 1.735 |
-| median_lag_lazarus_to_flip | 1.0 |
-
-#### Transition-rate law
-
-| Metric | High Lazarus | Low Lazarus |
-|------|-------------:|------------:|
-| transition_rate (within 2 steps) | 0.1718 | 0.0590 |
-| mean_lag_to_next_transition | 4.07 | 4.96 |
-| mean_distance_to_seam | 0.150 | 0.930 |
-| mean_curvature | 9.14e6 | 0.167 |
+**Operational consequence:**  
+Shifted focus from spin to holonomy for invariant analysis of obstruction.
 
 ---
 
-### Interpretation
+## OBS-011
 
-- Lazarus is **not** a predictor of boundary location in advance  
-- Instead, Lazarus behaves as a **maximum-compression field localized on the boundary**
-- Phase transitions occur *after* this compression peak, typically with lag ≈ 1–2 steps
-- High-Lazarus states are:
-  - closer to the seam
-  - embedded in extreme curvature
-  - more likely to undergo imminent transition
+**Date:** 2026-04-01  
+**State:** Transport-derived local obstruction field established from invariant holonomy
 
-This identifies a quantitative law of the manifold:
+**Claim:**  
+A node-local obstruction field derived from invariant holonomy replaced the chart-sensitive spin proxy while preserving strong empirical alignment with it.
 
-> **compression on the boundary predicts short-horizon phase transition**
+**Summary:**  
+Holonomy measurements were localized to define a node-level obstruction field. This field retained the empirical patterns previously observed in spin while being invariant under coordinate changes.
 
----
+The new obstruction field provided a stable basis for analyzing transport difficulty and structural incompatibility across the manifold.
 
-### Formal Statement
-
-> The Lazarus signal defines a boundary-aligned compression field whose high-exposure states are substantially more likely to transition within a short future window, with phase transition typically following the compression peak by approximately 1–2 steps.
+**Operational consequence:**  
+Introduced an invariant obstruction field for consistent transport analysis.
 
 ---
 
-### System Upgrade
+## OBS-012
 
-The observatory now supports:
+**Date:** 2026-04-01  
+**State:** Signed local obstruction field established from oriented holonomy
 
-1. **Observe** → manifold geometry  
-2. **Probe** → geodesic operator trajectories  
-3. **Measure** → seam, curvature, Lazarus, transition events  
-4. **Predict** → short-horizon transition probability  
+**Claim:**  
+A signed, orientation-aware local obstruction field was derived from oriented holonomy and aligned substantially with the historical signed spin signal.
 
-This marks the transition from descriptive phase geometry to **predictive dynamical geometry**.
+**Summary:**  
+By incorporating loop orientation, the obstruction field was extended to include sign information. This produced a richer structure capturing directional asymmetries in transport.
 
----
+The signed obstruction field aligned with previously observed spin patterns, reinforcing its validity while providing a more principled foundation.
 
-### Visual Status
-
-Canonical visualization stack now includes:
-
-- phase manifold
-- curvature field
-- Lazarus compression field
-- probe flow with transition markers
-
-The observatory is now able to render both:
-- the geometry of the system
-- and the dynamics induced by interaction with that geometry
+**Operational consequence:**  
+Enabled directional analysis of obstruction and asymmetry in transport.
 
 ---
 
-### Next Step
+## OBS-013
 
-- condition transition-rate law on probe family / direction of approach
-- regularize curvature-driven pressure metrics near seam singularities
-- fit continuous transition law:
-  `P(transition within k steps | Lazarus, curvature, seam distance)`
+**Date:** 2026-04-03  
+**State:** Identity state resolves into angular type plus contextual strength
 
----
+**Claim:**  
+The identity layer compressed cleanly into a robust angular coordinate while structural strength remained better represented by explicit auxiliary axes than by a single radius.
 
-### Status
+**Summary:**  
+Identity states were found to organize naturally around an angular coordinate, capturing type-like distinctions. Attempts to represent strength as a radial coordinate were less effective.
 
-The observatory no longer only detects where the manifold becomes unstable.
+Instead, strength was better captured by separate observables, indicating that identity structure is inherently multi-dimensional.
 
-It now estimates **when transition is likely to occur once compression is reached**.
-
----
-
-## 📓 OBS-006
-
-**DATE:** 2026-03-29  
-**STATE:** Canonical observatory architecture consolidated
+**Operational consequence:**  
+Established angular identity representation with auxiliary axes for strength.
 
 ---
 
-### Instrument Status
+## OBS-014
 
-- canonical layer packages implemented under `src/pam/`
-- pipeline stages established for geometry, phase, operators, and topology
-- canonical runner implemented
-- full shell entrypoint established via `scripts/run_full_pipeline.sh`
-- corpora externalized under `observatory/corpora/`
-- experiment tree reorganized into canonical wrappers, figures, studies, toy, and archive
+**Date:** 2026-04-04  
+**State:** Phase boundary acts as an identity reorganization zone
 
----
+**Claim:**  
+As seam distance decreased, identity angle shifted, dispersed, and roughened under rising transport load and criticality, showing the seam as an identity reorganization zone.
 
-### Highlights
+**Summary:**  
+Near the phase boundary, identity structure became less stable and more dispersed. Angular identity coordinates shifted and roughened, indicating reorganization under stress.
 
-- repository now reflects the true conceptual architecture of the observatory
-- canonical runtime no longer depends on a flat script collection
-- file-first artifact flow preserved under `outputs/`
-- documentation aligned with the implemented layered instrument
-- historical and exploratory material retained without obscuring canonical ownership
+This behavior was linked to increased transport load and criticality, suggesting that the seam is a region where identity undergoes structural transformation.
+
+**Operational consequence:**  
+Identified the seam as a region of identity instability and transformation.
 
 ---
 
-### System Upgrade
+## OBS-015
 
-The observatory now operates as a layered instrument with explicit ownership for:
+**Date:** 2026-04-04  
+**State:** Seam-contact geodesics split into corridor and reorganization route families
 
-1. engine  
-2. measurement  
-3. observables  
-4. geometry  
-5. phase  
-6. operators  
-7. topology  
-8. pipeline orchestration  
+**Claim:**  
+Seam-contacting geodesics separated into stable seam corridors and reorganization-heavy routes, revealing differentiated routing regimes on the manifold.
 
----
+**Summary:**  
+Geodesics interacting with the seam were found to fall into two distinct families. One group maintained stable, coherent paths along the seam (corridors), while the other exhibited more fragmented, restructuring behavior.
 
-### Interpretation
+This separation indicated that routing behavior near the seam is not uniform but organized into distinct regimes with different structural characteristics.
 
-This marks the transition from a research codebase with a canonical scientific core to a repository whose structure now matches that core.
-
-The observatory is no longer only scientifically coherent.
-
-It is now also architecturally coherent.
+**Operational consequence:**  
+Established route-family taxonomy for analyzing seam-interacting trajectories.
 
 ---
 
-### Status
+## OBS-016
 
-The instrument backbone is now in place.
+**Date:** 2026-04-04  
+**State:** Seam-contact geodesic families are Lazarus-rich but geometrically split
 
-Future work can focus more cleanly on:
-- scientific refinement
-- figure communication
-- operator and topology extensions
-- continuous geometric and response-field development
+**Claim:**  
+Both major seam-contact geodesic families were Lazarus-rich, showing that seam-mediated routing rather than roughness alone concentrates compression exposure.
 
----
+**Summary:**  
+Analysis of seam-contacting geodesics showed that both stable seam corridors and reorganization-heavy routes exhibit high Lazarus scores. This indicates that compression exposure is not confined to a single routing mode.
 
-## 📓 OBS-007
+Despite similar Lazarus enrichment, the two families remained geometrically distinct in how they traversed the seam region. This demonstrates that compression alone does not determine route structure.
 
-**DATE:** 2026-03-31  
-**STATE:** Identity field established as a first-pass topology-layer observable
+The result separates the roles of compression and geometry: Lazarus identifies seam-relevant regions, while routing behavior determines how those regions are traversed.
 
----
-
-### Instrument Status
-
-- Geometry pipeline operational  
-  *(FIM → distance → MDS → curvature → seam → signed phase)*
-- Topology layer extended with:
-  - `IdentityGraph`
-  - identity distance
-  - identity field
-  - identity spin
-- Real-manifold identity proxy executed on full PAM node grid
+**Operational consequence:**  
+Supports joint use of Lazarus and route-family classification rather than treating compression as a standalone discriminator.
 
 ---
 
-### Highlights
+## OBS-017
 
-- A first-pass **local structural identity field** has been extracted from real PAM manifold neighborhoods
-- Identity magnitude is **not reducible** to seam distance or criticality
-- Identity change shows only **moderate coupling** to curvature
-- Identity spin is **sparse and localized**, rather than diffuse
-- Strong identity singularities occupy **distinct regions on the intrinsic manifold**
-- Positive- and negative-spin sites separate across MDS space, indicating **oriented structural junctions**
+**Date:** 2026-04-04  
+**State:** Stable seam corridors are the highest-response geodesic family
 
----
+**Claim:**  
+Stable seam corridors were identified as the seam-contact family with the highest average response exposure.
 
-### Formalization
+**Summary:**  
+Response-field measurements along geodesics revealed that stable seam corridors accumulate higher average response than other seam-contacting paths. This distinguishes them as the most response-aligned routes.
 
-The topology layer now includes the following real observables:
+This alignment is not incidental but systematic across sampled paths, indicating that corridor routes follow regions of elevated response structure more consistently than reorganization-heavy paths.
 
-- `identity_magnitude` — local strength of structural identity change
-- `identity_spin` — localized signed obstruction / junction signal in identity change
+The result links routing coherence with response exposure, reinforcing the structural significance of the corridor family.
 
-Operationally:
-
-1. A local identity proxy graph is built per manifold node from:
-   - manifold adjacency
-   - seam distance
-   - criticality
-2. Neighborwise identity distances induce a discrete identity-change field
-3. A discrete spin field is computed from local directional inconsistency
-
-This yields a first differential structure over local structural identity on the PAM manifold.
+**Operational consequence:**  
+Prioritizes corridor paths for response-aligned analyses and downstream operator studies.
 
 ---
 
-### Data Products
+## OBS-018
 
-Generated outputs include:
+**Date:** 2026-04-04  
+**State:** Seam-adjacent Lazarus dynamics persist across scale
 
-- `outputs/fim_identity/identity_field_nodes.csv`
-- `outputs/fim_identity/identity_magnitude.png`
-- `outputs/fim_identity/identity_field_quiver.png`
-- `outputs/fim_identity/identity_spin.png`
-- `outputs/fim_identity_alignment/identity_alignment_summary.csv`
-- `outputs/fim_identity_diagnostics/identity_diagnostic_panel.png`
-- `outputs/fim_identity_singularity_overlay/identity_singularity_overlay_on_mds.png`
+**Claim:**  
+Above the smallest regime, high-Lazarus dynamics remained seam-adjacent, more seam-crossing, and more transition-prone across scales.
 
----
+**Summary:**  
+Scaling analysis showed that the association between high Lazarus values and seam adjacency persists beyond local neighborhoods. This indicates that the relationship is not a small-scale artifact.
 
-### Alignment Summary
+High-Lazarus paths continued to exhibit increased seam crossing and transition likelihood as scale increased. The effect remained stable under broader geodesic sampling.
 
-Identity magnitude was compared against existing manifold observables.
+This establishes Lazarus as a scale-robust indicator of seam-mediated dynamics.
 
-#### Correlation summary
-
-- vs `distance_to_seam`:
-  - weak
-  - near-zero Pearson / Spearman
-- vs `criticality`:
-  - weak
-  - near-zero Pearson / Spearman
-- vs `scalar_curvature`:
-  - moderate Pearson coupling
-  - weaker rank-order coupling
-
-Interpretation:
-
-> identity behaves as a **distinct structural field**, not as a seam-distance clone or a relabeled criticality score.
+**Operational consequence:**  
+Justifies using Lazarus as a consistent diagnostic across different probing scales.
 
 ---
 
-### Singularity Structure
+## OBS-019
 
-Top `|identity_spin|` sites reveal two regimes:
+**Date:** 2026-04-05  
+**State:** Stable seam corridors emerge as the dominant privileged family at large probe scale
 
-1. **Seam-bound singularities**
-   - identity junctions directly on or near the seam
-   - often coincide with elevated criticality and, in some cases, extreme curvature
+**Claim:**  
+As sampled shortest-path scale increased, the route-family taxonomy stabilized and stable seam corridors became the dominant privileged family.
 
-2. **Off-seam singularities**
-   - identity junctions away from exact seam contact
-   - indicate local structural reconfiguration not captured by boundary distance alone
+**Summary:**  
+At larger geodesic scales, the distinction between route families became clearer and more stable. Stable seam corridors increasingly dominated among high-quality paths.
 
-On the MDS manifold, positive- and negative-spin singularities occupy different regions.
+This dominance reflects both structural coherence and favorable alignment with manifold geometry at scale. Reorganization-heavy routes remained present but less privileged under global sampling.
 
-Interpretation:
+The result indicates that corridor behavior is not only locally coherent but also globally favored.
 
-> identity spin is sign-structured and manifold-organized, consistent with oriented local junctions in structural identity change.
-
----
-
-### Current Conclusion
-
-The observatory now supports a first-pass identity layer:
-
-- geometry describes distinguishability
-- phase describes regime structure
-- topology now additionally resolves **structural identity change**
-
-This upgrades the topology layer from:
-- criticality / alignment summaries
-
-to:
-- a measurable field of local structural reconfiguration
-- with sparse singularities marking junction-like regions on the manifold
+**Operational consequence:**  
+Supports using corridor routes as canonical representatives of seam-mediated dynamics at scale.
 
 ---
 
-### Next Step
+## OBS-020
 
-Stabilize identity as a canonical topology-derived artifact family:
+**Date:** 2026-04-04  
+**State:** Stable seam corridors are the most eigenvector-aligned route family
 
-- keep current proxy formulation fixed
-- integrate identity outputs into the topology stage
-- avoid metric proliferation until the present field is documented and reproduced cleanly
+**Claim:**  
+Stable seam corridors aligned most strongly with both Fisher and response principal directions, especially the response eigenvector field.
 
----
+**Summary:**  
+Comparison between geodesic directions and local principal directions showed that stable seam corridors align closely with dominant eigenvectors of both the Fisher metric and the response tensor.
 
-### One-Line Summary
+This alignment was strongest with the response eigenvector, indicating that corridor paths follow preferred directions induced by the response field.
 
-> PAM now resolves a real identity field on the manifold: a distinct local structural signal with sparse, sign-structured singularities that mark oriented junctions of identity change.
+The result connects routing behavior with local linear structure, providing a geometric basis for corridor coherence.
 
----
-
-## 📓 OBS-008
-
-**DATE:** 2026-04-01  
-**STATE:** Identity metric established; identity spin remains a higher-order structural signal
+**Operational consequence:**  
+Enables interpretation of corridor paths as directionally guided by local response structure.
 
 ---
 
-### Instrument Status
+## OBS-021
 
-- Geometry pipeline operational  
-  *(FIM → distance → MDS → curvature → seam → signed phase)*
-- Identity layer active with:
-  - `IdentityGraph`
-  - identity distance
-  - identity field
-  - identity spin
-- First-pass local identity metric completed in two forms:
-  - diagonal metric proxy
-  - full local quadratic metric fit
+**Date:** 2026-04-05  
+**State:** Seam-contact families share a hub substrate but differ in traversal coherence
 
----
+**Claim:**  
+Stable seam corridors and reorganization-heavy routes used the same seam/Lazarus/critical-rich hub ecology but differed in how coherently they traversed it.
 
-### Highlights
+**Summary:**  
+Node-level analysis showed that both route families pass through similar high-importance regions characterized by seam proximity, high Lazarus scores, and criticality.
 
-- A local identity metric can be estimated from neighborwise identity-distance structure
-- Identity magnitude remains a valid metric-adjacent field
-- Neither diagonal nor full local identity metric structure strongly explains identity spin
-- Spin remains sparse, localized, and sign-structured on the intrinsic manifold
-- This strengthens the interpretation of spin as a **higher-order obstruction / junction signal**, not a simple first-order metric artifact
+However, their traversal patterns differed: corridor paths maintained continuity through these regions, while reorganization-heavy paths fragmented their traversal.
+
+This indicates that the distinction between families lies in traversal dynamics rather than node selection.
+
+**Operational consequence:**  
+Motivates separating node-level importance from path-level coherence in analyses.
 
 ---
 
-### Metric Construction
+## OBS-022
 
-Two local metric estimators were evaluated.
+**Date:** 2026-04-05  
+**State:** Stable seam corridors are the coherent seam-residency mode
 
-#### 1. Diagonal metric proxy
+**Claim:**  
+Reorganization-heavy paths were more seam-immersed, but stable seam corridors traversed the seam region more coherently with fewer fragmented seam episodes.
 
-Axis-aligned local identity distances were used to estimate:
+**Summary:**  
+Residency analysis showed that reorganization-heavy paths spend more total time near the seam but do so in a fragmented manner.
 
-- `identity_g_rr`
-- `identity_g_aa`
-- `identity_g_ra = 0`
+In contrast, stable seam corridors maintain longer continuous segments within the seam region, indicating coherent residency.
 
-This yielded:
-- determinant
-- trace
-- anisotropy
-- validity flags
+This distinguishes intensity of contact from quality of traversal, refining the interpretation of seam engagement.
 
-#### 2. Full local quadratic metric
-
-A local 3×3 lattice patch around each node was used to fit:
-
-```math
-d^2 \approx g_{rr}(\Delta r)^2 + 2 g_{r\alpha}(\Delta r)(\Delta \alpha) + g_{\alpha\alpha}(\Delta \alpha)^2
-```
----
-
-### Explanatory Outcome
-
-- **identity magnitude**  
-  compatible with a local metric-adjacent interpretation of structural change
-
-- **identity spin**  
-  not strongly explained by diagonal or full local metric estimators
-
-- **topology implication**  
-  retain spin as a higher-order canonical observable rather than forcing it into a first-order metric interpretation
+**Operational consequence:**  
+Introduces seam-residency coherence as a key metric for route classification.
 
 ---
 
-## 📓 OBS-009
+## OBS-023
 
-DATE: 2026-04-01
-STATE: Identity spin established as an operational measure of connection curvature
+**Date:** 2026-04-07  
+**State:** Transport-aware response-field misalignment localizes at the phase seam
 
----
+**Claim:**  
+Under Fisher transport, response principal directions became markedly misaligned near the seam, establishing a seam-localized directional incompatibility field.
 
-### Instrument Status
-	•	Geometry pipeline operational
-(FIM → distance → MDS → curvature → seam → signed phase)
-	•	Identity layer active with:
-	•	IdentityGraph
-	•	identity distance
-	•	identity field
-	•	identity spin
-	•	local identity metric
-	•	First-pass local holonomy / loop-residual analysis completed on the real PAM manifold
+**Summary:**  
+Transporting response directions along the manifold revealed increasing misalignment as paths approached the seam. This effect was not present in regions far from the boundary.
 
----
+The misalignment reflects a breakdown in directional consistency under transport, indicating a form of structural incompatibility localized at the seam.
 
-### Highlights
-	•	Local loop inconsistency can be measured directly from identity-distance transport around elementary parameter-grid cells
-	•	The magnitude of loop residuals aligns strongly with local identity spin magnitude
-	•	Identity spin is weakly coupled to local metric structure but strongly aligned with loop-based path dependence
-	•	This positively stabilizes identity spin as an operationally measured connection curvature signal over structural identity transport
-	•	The identity layer now closes into a coherent geometric stack:
-	•	metric
-	•	transport
-	•	obstruction
+This establishes the seam as a region of directional mismatch rather than only scalar instability.
+
+**Operational consequence:**  
+Adds a directional mismatch field as a diagnostic for seam structure.
 
 ---
 
-### Holonomy Construction
+## OBS-024
 
-For each elementary grid cell with corners:
-	•	A = (i, j)
-	•	B = (i, j+1)
-	•	C = (i+1, j+1)
-	•	D = (i+1, j)
+**Date:** 2026-04-07  
+**State:** Seam obstruction is relational, not pointwise; sustained exit relaxes it; families use obstruction hotspots differently
 
-two local paths from A to C were compared:
-	•	A → B → C
-	•	A → D → C
+**Claim:**  
+Seam obstruction was shown to be fundamentally relational rather than pointwise, to relax after genuine exit, and to be occupied differently by route families.
 
-using identity distances between local identity graphs at the corresponding corners.
+**Summary:**  
+Analysis of obstruction showed that it arises from relationships between neighboring states rather than from isolated node properties.
 
-Path totals:
+When paths exited the seam region and remained outside, obstruction levels decreased, indicating relaxation after sustained departure.
 
-L_{ABC} = d(A,B) + d(B,C)
+Different route families engaged obstruction hotspots in distinct ways, further supporting the relational interpretation.
 
-L_{ADC} = d(A,D) + d(D,C)
-
-Loop residual:
-
-H = L_{ABC} - L_{ADC}
-
-Absolute loop inconsistency:
-
-|H|
-
-This yields a first-pass local holonomy observable: a direct operational measurement of path dependence in structural identity transport.
+**Operational consequence:**  
+Shifts obstruction analysis from node-based to relational and path-based frameworks.
 
 ---
 
-### Alignment Result
+## OBS-025
 
-Holonomy residuals were compared against node-based identity spin summaries at the four corners of each cell.
+**Date:** 2026-04-08  
+**State:** Seam resolved as a two-field structural regime
 
-Signed residual vs unsigned spin
-	•	weak
-	•	expected, since loop orientation is signed while the corner summary is unsigned
+**Claim:**  
+The seam was identified as a composite regime in which response anisotropy and relational obstruction are both seam-enriched but only weakly aligned node by node.
 
-Absolute holonomy residual vs corner spin magnitude
-Strong positive alignment:
-	•	|holonomy_residual| vs mean_abs_corner_spin
-	•	Pearson ≈ 0.61
-	•	Spearman ≈ 0.61
-	•	|holonomy_residual| vs max_abs_corner_spin
-	•	Pearson ≈ 0.64
-	•	Spearman ≈ 0.60
+**Summary:**  
+Two distinct fields—response anisotropy and relational obstruction—were both found to intensify near the seam.
 
-Interpretation:
+However, their spatial overlap was limited, indicating that they represent different structural aspects rather than a single unified field.
 
-the magnitude of local loop inconsistency tracks the magnitude of local identity spin obstruction.
+This establishes the seam as a composite regime with internal heterogeneity.
+
+**Operational consequence:**  
+Requires multi-field analysis for accurate characterization of seam structure.
 
 ---
 
-### Explanatory Outcome
-	•	identity magnitude
-remains compatible with a local metric-adjacent interpretation of structural change
-	•	identity spin
-is weakly explained by local metric estimators but strongly aligned with loop-based path inconsistency
-	•	topology implication
-identity spin should now be retained as an operationally measured connection curvature observable over structural identity transport
+## OBS-026
+
+**Date:** 2026-04-09  
+**State:** Route families resolved by two-field seam occupancy
+
+**Claim:**  
+Route families were differentiated by how they occupy the seam’s anisotropy and relational-obstruction hotspot structure.
+
+**Summary:**  
+Occupancy analysis showed that different route families preferentially inhabit different combinations of anisotropy and obstruction hotspots.
+
+Stable seam corridors exhibited strong residency in both field types, while other families showed more selective or transient engagement.
+
+This links route classification directly to field structure within the seam.
+
+**Operational consequence:**  
+Enables classification of routes based on multi-field occupancy patterns.
 
 ---
 
-### Scientific Interpretation
+## OBS-027
 
-OBS-007 established that identity spin survives both diagonal and full local metric explanations.
+**Date:** 2026-04-09  
+**State:** Seam regime unified as a canonical multi-field observatory object
 
-OBS-008 completes the triangle:
-	•	metric ↔ local structural variation
-	•	transport ↔ path composition across the manifold
-	•	obstruction ↔ failure of that transport to remain path-independent
+**Claim:**  
+The seam was synthesized as a multi-field structural regime and family-selective residency landscape.
 
-This yields the strongest current interpretation:
+**Summary:**  
+Results from multiple prior observations were consolidated into a unified description of the seam.
 
-identity defines a local geometry, but identity spin reveals where that geometry cannot be made globally consistent.
+The seam was characterized as a region where multiple fields co-exist and where route families are distinguished by their residency patterns within those fields.
 
-In this sense:
-	•	the metric tells you how identity varies locally
-	•	holonomy reveals where path composition fails
-	•	spin detects that obstruction locally
+This synthesis replaced fragmented interpretations with a single structured model.
 
----
-
-### Identity Geometry Stack
-
-The identity layer now resolves three distinct geometric levels.
-
-1. Metric layer
-	•	identity distance
-	•	local identity metric
-	•	local anisotropy / determinant / mixed-term structure
-
-2. Transport layer
-	•	path composition across local neighborhoods
-	•	structural identity propagation over the manifold
-
-3. Obstruction layer
-	•	identity spin as a local connection-curvature proxy
-	•	holonomy residual as loop-level confirmation
-
-This is now a self-consistent geometric stack.
+**Operational consequence:**  
+Provides a canonical framework for interpreting all seam-related analyses.
 
 ---
 
-### What Has Been Established
+## OBS-028
 
-The current experiments support all of the following:
-	•	identity magnitude behaves as a metric-adjacent field
-	•	identity spin is not strongly explained by seam distance, criticality, curvature, or local metric terms alone
-	•	local loop residuals provide a direct path-based measurement of structural identity transport inconsistency
-	•	the magnitude of those loop residuals aligns strongly with the magnitude of local spin obstruction
+**Date:** 2026-04-09  
+**State:** Embedding policy clarified; MDS retained as canonical, diffusion reinterpreted as slow-mode diagnostic
 
-This moves the identity layer beyond suggestive analogy.
+**Claim:**  
+MDS was retained as the canonical observatory embedding, while diffusion was reinterpreted as a diagnostic of the seam’s slow connectivity mode.
 
-It now has:
-	•	operational definition
-	•	measurement
-	•	independent validation across local and loop-based forms
+**Summary:**  
+Comparison between embedding methods showed that MDS preserves the primary geometric structure required for observatory analyses.
 
----
+Diffusion-based embeddings were found to highlight slow connectivity modes, particularly around the seam, rather than serving as primary embeddings.
 
-### Validity / Scope
+This clarified the role of each method within the observatory.
 
-- The present holonomy construction is a **first-pass operational transport measure** based on scalar path totals, not yet a full oriented transport operator.
-- The current conclusion therefore establishes **operational connection curvature**, while richer discrete connection formalism is deferred to future work.
+**Operational consequence:**  
+Standardizes MDS as the canonical embedding while retaining diffusion for diagnostic use.
 
 ---
 
-### Current Conclusion
+## OBS-029
 
-Identity spin should no longer be interpreted merely as a curl-like derivative artifact or a heuristic higher-order signal.
+**Date:** 2026-04-09  
+**State:** Seam departure resolved into family-specific committed escape channels
 
-It now has a stronger operational meaning:
+**Claim:**  
+Committed seam exit was shown to occur through coherent, family-specific directional channels rather than through generic loss of seam contact.
 
-PAM identity spin is an operational measure of connection curvature: weakly coupled to local metric structure, but strongly aligned with loop-based holonomy arising from path-dependent structural identity transport.
+**Summary:**  
+Analysis of exit behavior revealed that leaving the seam is not a diffuse process but occurs along structured directional pathways.
 
-This is a positive confirmation, not merely a failure of metric reduction.
+These pathways differ by route family, indicating that escape dynamics are organized rather than random.
 
----
+The result reframes seam exit as a structured routing phenomenon.
 
-### Consequence for the Topology Layer
-
-The topology layer now supports:
-	•	local identity geometry
-	•	local identity transport
-	•	local identity obstruction
-
-This yields a stabilized identity stack:
-	•	identity geometry
-	•	identity transport
-	•	identity obstruction
-
-And with that, identity becomes a genuine geometric subsystem of the observatory rather than an isolated derived field.
+**Operational consequence:**  
+Supports modeling exit behavior as channel-based rather than threshold-based.
 
 ---
 
-### Next Step
+## OBS-030
 
-Do not expand into full formal connection machinery yet.
+**Date:** 2026-04-09  
+**State:** Seam dynamics promoted from field observations to a typed transition algebra
 
-Instead:
-	•	stabilize loop-based holonomy as a canonical artifact family
-	•	preserve current transport and obstruction outputs
-	•	add direct comparison figures:
-	•	identity_spin_on_grid
-	•	identity_abs_holonomy_on_grid
-	•	only afterward move toward:
-	•	oriented loop conventions
-	•	discrete transport operators
-	•	richer connection formalisms
+**Claim:**  
+Seam dynamics admitted a typed transition description, but the key release structures lived at the level of short compositional motifs rather than single arrows.
 
-The next work should refine the transport layer, not replace it.
+**Summary:**  
+Transitions between seam states were formalized as typed generators, enabling an algebraic description of dynamics.
 
-⸻
+Analysis showed that meaningful structure arises from short compositions of transitions rather than isolated steps.
 
-### One-Line Summary
+This marks the shift from field-based to algebraic representation of seam dynamics.
 
-PAM identity spin is now established as an operational measure of connection curvature: weakly coupled to local metric structure, but strongly aligned with loop-based holonomy arising from path-dependent structural identity transport.
+**Operational consequence:**  
+Introduces a transition-algebra framework for analyzing seam behavior.
 
 ---
+
+## OBS-031
+
+**Date:** 2026-04-09  
+**State:** Seam dynamics promoted to an empirical proto-groupoid with family-specific partial subalgebras
+
+**Claim:**  
+Reduced seam states, named generators, and their partial compositions supported an empirical proto-groupoid with family-specific subalgebras.
+
+**Summary:**  
+Seam dynamics were formalized in terms of a reduced symbolic state space and a set of named generators representing observed transitions. These generators did not compose freely but admitted partial composition rules constrained by observed dynamics.
+
+The resulting structure was not a full groupoid but a proto-groupoid, where composition exists only for certain admissible sequences. Within this structure, different route families exhibited distinct subsets of generators and compositions.
+
+This established an algebraic layer in which seam dynamics could be described in terms of structured transitions rather than only geometric or field-based observables.
+
+**Operational consequence:**  
+Enabled algebraic analysis of seam dynamics using generator composition and family-specific transition structure.
+
+---
+
+## OBS-032
+
+**Date:** 2026-04-09  
+**State:** Proto-groupoid shown to be predominantly directed, with only a small quasi-invertible seam-internal core
+
+**Claim:**  
+Seam dynamics were shown to be mostly irreversible, with only a small quasi-invertible shuttle remnant inside the seam.
+
+**Summary:**  
+Analysis of generator compositions revealed that most transitions do not admit inverses, indicating a strongly directed structure. Only a limited subset of transitions within the seam exhibited approximate reversibility.
+
+This reversible subset formed a small core of shuttle-like behavior, while the majority of transitions led outward into non-reversible dynamics.
+
+The result clarified that seam dynamics are not symmetric but are dominated by directed flow away from the seam.
+
+**Operational consequence:**  
+Refined the algebraic model to distinguish reversible core dynamics from dominant directed behavior.
+
+---
+
+## OBS-033
+
+**Date:** 2026-04-09  
+**State:** Seam proto-groupoid decomposed into a small reversible core and a dominant directed escape sector
+
+**Claim:**  
+The seam proto-groupoid was explicitly partitioned into a small reversible shuttle core and a dominant directed escape sector.
+
+**Summary:**  
+Building on the directed nature of the proto-groupoid, the structure was decomposed into two sectors. The reversible core consisted of quasi-invertible shuttle transitions confined to the seam.
+
+The directed escape sector contained transitions that led away from the seam and did not admit return under observed dynamics.
+
+This decomposition provided a clear structural partition of seam dynamics into core and escape regimes.
+
+**Operational consequence:**  
+Enabled sector-based analysis separating reversible seam behavior from directed escape dynamics.
+
+---
+
+## OBS-034
+
+**Date:** 2026-04-09  
+**State:** Gateway between reversible core and directed escape identified; core leakage is real and asymmetric
+
+**Claim:**  
+A biased gateway from the reversible core into directed escape was identified, with forward crossing occurring more often than return.
+
+**Summary:**  
+Transitions between the reversible core and directed escape sector were examined and found to occur through specific compositions acting as a gateway.
+
+This gateway was not symmetric: transitions from core to escape were more frequent than reverse transitions, indicating leakage.
+
+The gateway was characterized compositionally rather than by a single transition, linking it to specific generator sequences.
+
+**Operational consequence:**  
+Introduced the concept of a gateway interface between sectors for analyzing boundary crossing behavior.
+
+---
+
+## OBS-035
+
+**Date:** 2026-04-09  
+**State:** Gateway prediction attempted; leakage removed; modest launch-side signal recovered at instance level
+
+**Claim:**  
+After rejecting leakage-prone predictors, the gateway was found to be weakly but genuinely predictable from launch-side typed motion with modest anisotropy modulation.
+
+**Summary:**  
+Initial predictive models appeared highly accurate but were found to rely on downstream information, constituting leakage. After removing such features, predictive performance decreased substantially.
+
+A corrected instance-level predictor using only launch-side information showed modest but real predictive power. The strongest signals came from generator type and local motion structure.
+
+Scalar fields contributed only weakly, with anisotropy providing a secondary effect. No sharp threshold law was identified.
+
+**Operational consequence:**  
+Established a leakage-free baseline for gateway prediction and identified typed motion as the primary predictive signal.
+
+---
+
+## OBS-036
+
+**Date:** 2026-04-09  
+**State:** Refining the symbolic gateway-state alphabet yields only marginal improvement; coarse state labels were not the main bottleneck
+
+**Claim:**  
+Refining the symbolic gateway-state alphabet added almost no predictive power, ruling out coarse symbolic resolution as the main bottleneck.
+
+**Summary:**  
+The symbolic state space used in gateway prediction was refined by incorporating local field structure into more detailed state labels.
+
+Comparative modeling showed only negligible improvement over the coarse symbolic representation. This indicated that predictive limitations were not primarily due to insufficient state resolution.
+
+The dominant predictive signals remained unchanged, confirming the robustness of earlier findings.
+
+**Operational consequence:**  
+Eliminated symbolic refinement as a primary direction for improving gateway prediction.
+
+---
+
+## OBS-037
+
+**Date:** 2026-04-09  
+**State:** One-step history does not strengthen the gateway law; short-memory context is not the missing predictor
+
+**Claim:**  
+Adding one-step prehistory did not improve gateway prediction, ruling out a short-memory Markov-style boundary law.
+
+**Summary:**  
+A history-aware predictor incorporating one-step prehistory was evaluated after removing leakage-prone features.
+
+The resulting model showed no meaningful improvement over the launch-only predictor. This indicated that short-memory context does not significantly contribute to gateway prediction.
+
+The dominant role of typed local motion persisted, while scalar and history features remained weak.
+
+**Operational consequence:**  
+Ruled out one-step memory as a key factor in gateway prediction, narrowing the search for missing structure.
+
+---
+
+## OBS-038
+
+**Date:** 2026-04-09  
+**State:** Pooled gateway model shown to hide real family-specific boundary laws, especially for the stable seam corridor
+
+**Claim:**  
+The pooled gateway model concealed a materially clearer local boundary law for the stable seam corridor while failing to capture reorganization-heavy under the same predictor class.
+
+**Summary:**  
+Gateway prediction models were re-estimated separately for each route family. This revealed that predictive structure differed significantly across families.
+
+Stable seam corridor showed improved predictability and clearer local structure, while reorganization-heavy remained poorly captured by local predictors.
+
+The pooled model had averaged over these differences, masking family-specific behavior.
+
+**Operational consequence:**  
+Established the need for family-specific modeling of gateway behavior.
+
+---
+
+## OBS-039
+
+**Date:** 2026-04-09  
+**State:** Reorganization-heavy resolved as a path-context law rather than a local gateway law
+
+**Claim:**  
+Reorganization-heavy crossing was shown to depend on broader path context rather than on local launch-state structure alone.
+
+**Summary:**  
+For the reorganization-heavy family, local predictors performed near chance, indicating lack of local boundary structure.
+
+When broader path-context features were introduced, predictive performance improved substantially. These features included prior sector exposure and recent trajectory structure.
+
+This demonstrated that reorganization-heavy is governed by a context-dependent law rather than a local rule.
+
+**Operational consequence:**  
+Introduced path-context modeling as necessary for explaining reorganization-heavy behavior.
+
+---
+
+## OBS-040
+
+**Date:** 2026-04-09  
+**State:** Temporal depth promoted to a first-class variable; seam families found to have distinct finite memory horizons
+
+**Claim:**  
+Seam families were shown to occupy distinct finite memory regimes: immediate, one-step, and two-step.
+
+**Summary:**  
+Predictive models were evaluated across increasing history horizons. Performance gains varied by family.
+
+Branch-exit showed no improvement with added history, indicating immediate behavior. Stable seam corridor improved at one step and then saturated. Reorganization-heavy required deeper context.
+
+This established temporal depth as a measurable and family-specific property.
+
+**Operational consequence:**  
+Enabled explicit modeling of memory horizon as a parameter in predictive analysis.
+
+---
+
+## OBS-041
+
+**Date:** 2026-04-10  
+**State:** Family-specific memory compression identified; reorganization-heavy shown to be a compressive long-memory regime
+
+**Claim:**  
+Seam families were shown to differ not only in memory depth but also in how strongly core and escape motifs compress older history.
+
+**Summary:**  
+Analysis of suffix sufficiency showed that certain states act as compression points where older history becomes redundant.
+
+Reorganization-heavy exhibited strong compression through recurring core and escape motifs, while stable seam corridor showed rapid compression consistent with short memory.
+
+Branch-exit showed minimal compression due to limited effective history.
+
+**Operational consequence:**  
+Introduced memory compression and forgetting nodes as structural features of seam dynamics.
+
+---
+
+## OBS-042
+
+**Date:** 2026-04-10  
+**State:** Canonical seam-family temporal regimes synthesized into one stabilized comparative framework
+
+**Claim:**  
+The seam-family arc was synthesized into three canonical temporal regimes: branch-exit, stable seam corridor, and reorganization-heavy.
+
+**Summary:**  
+Results from prior observations were consolidated into a single comparative framework describing seam families.
+
+Each family was characterized by its routing behavior, temporal depth, and memory compression profile.
+
+This synthesis provided a unified description of seam dynamics across multiple observational layers.
+
+**Operational consequence:**  
+Established a canonical taxonomy for seam families to guide future analysis and documentation.
+
+---
+
+## OBS-043
+
+**Date:** 2026-04-15  
+**State:** Response-eigenvector flow established as a seam-engaged dynamical layer on the manifold
+
+**Claim:**  
+The dominant response eigenvector induced a coherent, strongly seam-engaged embedded flow field, establishing the first dynamical response-flow layer on the manifold.
+
+**Summary:**  
+The dominant eigenvector of the response tensor was treated as a local direction field and integrated over the embedded node space.
+
+The resulting trajectories showed coherent structure, strong seam engagement, and extended routing under relaxed integration conditions.
+
+Flow behavior interacted with phase structure and was modulated by directional mismatch scalars, while remaining constrained by discrete graph connectivity.
+
+**Operational consequence:**  
+Introduced a dynamical flow layer enabling trajectory-based analysis of response-guided motion on the manifold.
