@@ -260,4 +260,29 @@ The canonical family/gateway layer is now:
 - still architecturally downstream
 - still scientifically provisional in some important respects
 
-That is the current repository truth.
+## Distributed recoverability
+
+Later recoverability analysis shows that route-family identity is not strongly pointwise recoverable in the canonical event-family dataset.
+
+Using a strict feature ladder:
+
+- pointwise local observables yield weak recoverability
+- local neighborhood support adds only modest improvement
+- short route context improves recoverability further
+- but the overall result remains far from clean recovery
+
+The family-level picture is asymmetric:
+
+- stable_seam_corridor is relatively locally legible
+- branch_exit improves under short-context enrichment
+- reorganization_heavy remains poorly recoverable even after short-context enrichment
+
+The canonical reading is therefore:
+
+route-family identity is better understood as a distributed recoverable object rather than a simple local state label.
+
+This result strengthens the broader family-layer interpretation:
+
+- corridor is closest to a local seam-boundary law
+- branch-exit is only partially local
+- reorganization-heavy is the least reducible to local observables and remains the clearest path-context-dependent family

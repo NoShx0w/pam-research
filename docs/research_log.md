@@ -832,3 +832,106 @@ Introduces a response-guided flow layer with route-family structure, enabling tr
 
 **Recovery note:**  
 Normalized from extended OBS-043 entry; content consolidated without loss of stated results or distinctions between flow regimes, route families, and scalar modulation.
+
+---
+
+## OBS-044
+
+**Date:** 2026-04-16  
+**State:** Continuous response-flow reconstruction established as a seam-preserving smoothing of the OBS-043 dynamical layer, with route-family comparison against the discrete baseline completed
+
+**Claim:**  
+Continuous reconstruction preserves the seam-engaged character and route-family structure of response-guided flow, while remaining more conservative than the relaxed discrete baseline in path extent and phase crossing.
+
+**Summary:**  
+A continuous response-flow reconstruction was introduced as a local smoothing of the OBS-043 discrete flow using interpolated response eigenvectors in embedded space. The resulting trajectories remain coherent and strongly seam-engaged, confirming that seam-centered flow is not an artifact of graph discretization.
+
+The reconstruction produces smoother paths with stronger average seam adjacency, while reducing total path extent and phase-crossing frequency relative to the relaxed discrete regime. Seam-contact share is preserved exactly, indicating that seam engagement is a robust structural property of the flow.
+
+The first-pass route-family structure—seam-hugging, release-directed, short-trapped, and mixed—survives continuous reconstruction. However, the distribution shifts modestly toward smoother release-directed behavior, and cross-phase motion is damped across all major families.
+
+Termination behavior becomes more structured under the continuous solver. Extended seam-hugging and release-directed paths are primarily limited by support radius, while short-trapped paths are limited by local angular inconsistency, replacing the uniform forward-neighbor exhaustion seen in the discrete baseline.
+
+**Operational consequence:**  
+Establishes a seam-preserving continuous reconstruction of response-guided flow with stable route-family structure, enabling separation of robust dynamical features from solver-dependent effects.
+
+**Recovery note:**  
+Normalized from extended OBS-044 entry; detailed quantitative comparisons and termination diagnostics preserved in summarized form without altering reported values or conclusions.
+
+---
+
+## OBS-045
+
+**Date:** 2026-04-16  
+**State:** Controlled support expansion shown to increase continuous path extent without recovering additional cross-phase release
+
+**Claim:**  
+Support expansion increases continuous path extent while preserving seam engagement, but does not recover additional cross-phase release.
+
+**Summary:**  
+A controlled support-radius sweep was performed on the continuous response-flow reconstruction introduced in OBS-044. The test varied only the local support radius while keeping the interpolation model family, seed policy, seam-contact threshold, step-size scale, and local consistency logic fixed. This made the experiment a clean single-axis test of whether broader support alone could recover the missing release behavior.
+
+Increasing support radius produced longer trajectories and more steps, confirming that the continuous solver is support-limited in extent. Seam-contact share remained fixed at the OBS-044 level across the entire sweep, while average seam distance increased only modestly. This shows that broader support allows somewhat wider continuation without destroying seam-guided flow.
+
+However, neither overall phase-sign crossing nor release-directed cross-phase share improved under broader support. Route-family shares also remained unchanged. The missing broader release behavior therefore does not appear to be primarily caused by conservative support bounds.
+
+The result narrows the remaining explanation space. Support expansion changes how far the current continuous solver travels, but not the deeper cross-phase release structure it expresses. The remaining deficit is therefore more likely tied to the local interpolation rule or the continuous local reconstruction model itself than to support radius alone.
+
+**Operational consequence:**  
+Support-envelope tuning can extend continuous trajectories without compromising seam engagement, but it should not be treated as the primary route for recovering the missing cross-phase release behavior of the continuous solver.
+
+**Recovery note:**  
+Normalized from the extended OBS-045 entry; quantitative sweep outcomes and the distinction between extent limitation and release limitation were preserved without adding new interpretation.
+
+---
+
+## OBS-046
+
+**Date:** 2026-04-16  
+**State:** Interpolation-model sensitivity established; minimally averaged and non-averaged local steering recover modestly more phase-crossing behavior than the broad averaged continuous baseline
+
+**Claim:**  
+Cross-phase release in continuous response-flow reconstruction is modestly sensitive to the interpolation model, with minimally averaged local blending recovering more release behavior than broad averaged interpolation while preserving seam engagement.
+
+**Summary:**  
+An interpolation-model sensitivity sweep was performed to test whether the under-recovery of cross-phase release in continuous flow is driven by the local interpolation rule rather than support limitations. The experiment compared broad kNN averaging, narrower averaging, non-averaged steering, and minimally averaged blending within a fixed solver configuration.
+
+Reducing averaging width within the same kNN family increased path extent but did not improve phase-crossing or release behavior, ruling out averaging width alone as the primary cause. A qualitative shift in interpolation model class was required to produce any recovery signal.
+
+Non-averaged steering and minimally averaged blending both increased overall phase-crossing relative to the OBS-044 baseline. The strongest improvement in release-directed cross-phase behavior was obtained with the top2_blend model, which outperformed both the broad averaged baseline and nearest-anchor steering while maintaining identical seam-contact share.
+
+The results establish that interpolation model class directly affects the expression of release behavior. Broad averaged interpolation is now a dominated baseline, while minimal local blending provides the best current seam-preserving compromise, improving release without destabilizing route-family structure.
+
+**Operational consequence:**  
+Continuous-flow reconstruction should adopt a minimally averaged local interpolation rule as the new baseline, as support tuning and averaging width alone are insufficient to recover release behavior.
+
+**Recovery note:**  
+Normalized from the extended OBS-046 entry; comparative model results and the distinction between averaging width and model-class effects were preserved without modification.
+
+---
+
+## OBS-047
+
+**Date:** 2026-04-16  
+**State:** Minimal-blend continuous baseline stabilized; top2_blend selected as the best current seam-preserving continuous reconstruction baseline
+
+**Claim:**  
+Minimal local blending (top2_blend) stabilizes as the best current seam-preserving continuous baseline, improving phase crossing and release-directed behavior while maintaining seam engagement.
+
+**Summary:**  
+A stabilization sweep was conducted to determine whether the top2_blend interpolation model remains the best continuous reconstruction baseline under modest tuning of support radius and step size. The experiment compared three model families—broad averaged (knn_avg_k8), nearest-anchor, and top2_blend—across a controlled parameter grid.
+
+The legacy broad-averaged baseline remained clearly dominated, with lower phase crossing and weaker release-directed behavior than the alternatives. nearest_anchor continued to perform well on overall phase crossing and trajectory extent but did not match top2_blend on release-directed cross-phase recovery.
+
+The top2_blend model achieved the strongest joint performance, matching the best phase-crossing levels while delivering the highest release-directed cross-phase share, all with unchanged seam-contact share. The optimal configuration was the conservative setting (support_radius_scale = 3.5, step_size_scale = 0.15), indicating that improved performance arises from the interpolation rule rather than more aggressive solver expansion.
+
+The selected baseline preserves an interpretable route-family structure and shifts the solver into a primarily support-limited regime, with reduced reliance on angular-consistency constraints. This marks a transition from exploratory model comparison to a stabilized continuous reconstruction reference.
+
+**Operational consequence:**  
+Establishes top2_blend (support_radius_scale = 3.5, step_size_scale = 0.15) as the canonical continuous baseline for response-flow reconstruction, enabling consistent downstream analysis and comparison.
+
+**Recovery note:**  
+Normalized from the extended OBS-047 entry; selection criteria, parameter values, and comparative outcomes preserved without modification.
+
+---
+
