@@ -1,221 +1,93 @@
-# PAM Observatory — Documentation
+Documentation
 
-## Overview
+This directory contains the canonical reference surface for the PAM Observatory, along with project history, interface docs, planning notes, and research provenance.
 
-This documentation describes the canonical architecture, runtime flow, and research context of the PAM Observatory.
+Not all documents play the same role. The sections below indicate which materials should be treated as canonical reference, which are active project documentation, and which are planning or historical records.
 
-The repository is now organized as a **layered computational instrument** for studying phase structure in recursive language systems across the control manifold
+Canonical reference docs
 
-$\theta = (r, \alpha)$
+These documents define the current repository-facing scientific and architectural surface.
 
-through:
+* architecture.md — high-level repository architecture
+* observatory.md — observatory-level framing
+* abstract.md — compact project summary
+* observatory_philosophy.md — observatory design stance
+* research_log.md — canonical observatory log surface
+* 01_observatory/ — how to read the observatory and its core terms
+* 02_geometry/ — geometry-layer reference docs
+* 03_pipeline/ — phase, operators, topology, and pipeline-facing docs
+* 05_project/ canonical specs — family layer, normalization, gateway, and response-flow reference docs
 
-- recursive corpus dynamics
-- invariant measurement
-- observable extraction
-- information geometry
-- phase structure
-- operator-driven probing
-- topological organization
+These are the best starting points for understanding the current observatory.
 
-The canonical runtime is now exposed through:
+Project and research-arc docs
 
-```bash
-bash scripts/run_full_pipeline.sh
-```
+These documents capture the evolving scientific program, stabilization work, and current canonical project objects.
 
----
+* 05_project/README.md
+* 05_project/canonical_event_family_classification_spec.md
+* 05_project/canonical_event_normalization_contract.md
+* 05_project/canonical_family_gateway_spec.md
+* 05_project/canonical_family_layer_status.md
+* 05_project/canonical_response_guided_flow.md
 
-## Documentation Index
+These should be read as the current project-facing scientific reference layer.
 
-### Core architecture
+Interface docs
 
-- [`architecture.md`](architecture.md)  
-  Canonical repository architecture and layer ownership
+These documents describe the operational observatory surface and interface-related design work.
 
-- [`README.md`](../README.md)  
-  Top-level repository overview and canonical runtime entrypoint
+* 04_interface/README.md
+* 04_interface/observatory_tui.md
 
----
+Additional interface planning and historical design notes may also live in 04_interface/, but not all interface docs are canonical reference surfaces.
 
-### Geometry
+Planning and historical design docs
 
-- [`02_geometry/geometry_pipeline.md`](02_geometry/geometry_pipeline.md)  
-  Geometry pipeline from observables to Fisher manifold structure
+Some documents are intentionally retained as planning records, implementation notes, or historical stabilization plans.
 
-- [`02_geometry/parameter_sweep_geometry.md`](02_geometry/parameter_sweep_geometry.md)  
-  Parameter-space coverage and geometric interpretation of the $(r, \alpha)$ sweep
+Examples include:
 
----
+* canonicalization plans
+* stabilization plans
+* interface implementation plans
 
-### Phase, topology, and operators
+These documents are useful for understanding how the observatory evolved, but they should not automatically be treated as the current canonical reference surface unless stated explicitly.
 
-- [`03_pipeline/phase_geometry.md`](03_pipeline/phase_geometry.md)  
-  Seam extraction, signed phase, and phase interpretation
+Provenance and notes
 
-- [`03_pipeline/field_topology.md`](03_pipeline/field_topology.md)  
-  Field alignment, critical structure, and topological organization
+Some documents are kept as research provenance, conceptual notes, or supporting context.
 
-- [`03_pipeline/operators.md`](03_pipeline/operators.md)  
-  Geodesic extraction, probes, scaled probes, and operator-based analysis
+Examples include:
 
----
+* conversation excerpts
+* notes
+* vision or framing texts
+* prompt/tooling notes
 
-### Observatory and interpretation
+These belong in the repository because they preserve development context, but they are secondary to the canonical reference and project docs.
 
-- [`01_observatory/how_to_read.md`](01_observatory/how_to_read.md)  
-  How to read observatory outputs and manifold-derived artifacts
+Reading order
 
-- [`01_observatory/observable_glossary.md`](01_observatory/observable_glossary.md)  
-  Definitions of key observables and derived quantities
+A good reading path is:
 
-- [`observatory_philosophy.md`](observatory_philosophy.md)  
-  Conceptual framing of the observatory
+1. README.md
+2. architecture.md
+3. observatory.md
+4. research_log.md
+5. 01_observatory/
+6. 02_geometry/
+7. 03_pipeline/
+8. 05_project/
+9. 04_interface/
 
----
+This order moves from high-level framing to observatory mechanics, then to project-specific canonical layers, and finally to the operational interface.
 
-### Research context
+Status notes
 
-- [`abstract.md`](abstract.md)  
-  Project abstract
+When in doubt:
 
-- [`research_log.md`](research_log.md)  
-  Running research log
-
-- [`conversation_excerpts.md`](conversation_excerpts.md)  
-  Selected excerpts that informed framing and development
-
----
-
-### Canonical family layer
-
-- [`05_project/README.md`](05_project/README.md)  
-  Project-level canonicalization, stabilization, and implementation notes
-
-- [`05_project/canonical_family_layer_status.md`](05_project/canonical_family_layer_status.md)  
-  Current status of the implemented canonical family/gateway layer
-
-This section covers the downstream canonical family/gateway layer now implemented in:
-
-- `scripts/canonical/`
-- `outputs/canonical/`
-
-It records what is implemented, what is validated, and what remains provisional.
-
----
-
-### Canonical dynamical layer
-
-- [`05_project/canonical_response_guided_flow.md`](05_project/canonical_response_guided_flow.md)  
-  Formal definition and current stabilized status of response-guided flow as the first observatory dynamical-layer object
-
-This document records the OBS-043 extension from static seam/response structure into seam-engaged response-guided flow, including the current first-pass route-family refinement.
-
----
-
-## Canonical Runtime
-
-The repository now has a single canonical full-pipeline entrypoint:
-
-```bash
-bash scripts/run_full_pipeline.sh
-```
-
-This executes the orchestrated stage pipeline defined in:
-
-- `src/pam/pipeline/stages/`
-- `src/pam/pipeline/runner.py`
-
-Stage order:
-
-```text
-engine
-↓
-measurement
-↓
-observables
-↓
-geometry
-↓
-phase
-↓
-operators
-↓
-topology
-```
-
----
-
-## Canonical Code Layout
-
-The main package structure is:
-
-```text
-src/pam/
-  engine/
-  measurement/
-  observables/
-  geometry/
-  phase/
-  topology/
-  operators/
-  pipeline/
-```
-
-Supporting repository roots:
-
-```text
-observatory/
-  corpora/
-  runs/
-  derived/
-  reports/
-  figures/
-
-experiments/
-  figures/
-  studies/
-  toy/
-  archive/
-
-outputs/
-  active file-first artifact store
-  including downstream canonical artifacts under outputs/canonical/
-```
-
----
-
-## Documentation Notes
-
-A number of older documents reflect earlier stages of the repository, when the system was centered more strongly on:
-
-- flat experiment scripts
-- TUI-first monitoring
-- visualization-first workflows
-- `outputs/index.csv` as the main architectural interface
-
-Those materials remain useful historically, but the canonical repository architecture is now the layered instrument described in:
-
-- [`architecture.md`](architecture.md)
-
-The repository also now includes a downstream canonical family/gateway layer that should be read as:
-
-- implemented
-- validated
-- still architecturally downstream for now
-
-For current status of that layer, prefer:
-
-- [`05_project/canonical_family_layer_status.md`](05_project/canonical_family_layer_status.md)
-
----
-
-## Summary
-
-The PAM Observatory documentation now supports a repository that is no longer just a script collection or visualization workflow.
-
-It documents:
-
-- a canonical layered instrument for evolving recursive systems
-- a downstream canonical family/gateway layer for consolidating and validating family-level observatory structure
-- an architecture that distinguishes core runtime production from downstream canonicalization
+* treat src/pam/ as the canonical implementation layer
+* treat docs/ as the canonical explanatory layer
+* treat experiments/ as reproducible study and entrypoint history unless explicitly promoted
+* treat planning docs as historical or roadmap material unless they are marked as current reference

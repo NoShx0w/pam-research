@@ -1,3 +1,22 @@
+# Document roles
+
+This folder mixes two kinds of material:
+
+Canonical project reference
+
+These documents define current repository-facing project objects and contracts, such as:
+
+- family-layer status
+- canonical classification and normalization specs
+- gateway spec
+- canonical response-guided flow
+
+Planning / historical design material
+
+Some files in this folder are retained as implementation plans or stabilization notes. These are useful for historical context and development tracking, but they are not always the current canonical reference surface.
+
+When reading this folder, prefer the canonical reference docs first, then consult planning documents for implementation history or roadmap context.
+
 # Project
 
 This section contains project-level documentation for the PAM Observatory.
