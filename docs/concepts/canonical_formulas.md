@@ -258,7 +258,7 @@ the exact composition of $C(\theta_t)$ is implementation-level and may involve s
 
 ## 10. Finite-horizon transition indicator
 
-Let $R_t$ denote the regime label at time $t$, or in the sign-based case let $s_t=\operatorname{sign}\phi(\theta_t)$.
+Let $R_t$ denote the regime label at time $t$, or in the sign-based case let $s_t=\mathrm{sign}(\phi(\theta_t))$.
 
 The $k$-step transition indicator is
 
@@ -500,8 +500,8 @@ Unsigned obstruction is the localized magnitude of nearby loop residual concentr
 ```math
 \Omega(\theta)
 =
-\operatorname{Agg}_{\square \ni \theta}
-|H_{\square}|
+\mathrm{Agg}_{\square \ni \theta}
+\,|H_{\square}|
 ```
 
 where the aggregation runs over nearby loop cells incident to $\theta$.
@@ -511,8 +511,8 @@ Signed obstruction retains orientation:
 ```math
 \Omega_{\pm}(\theta)
 =
-\operatorname{Agg}_{\square \ni \theta}
-H_{\square}
+\mathrm{Agg}_{\square \ni \theta}
+\,H_{\square}
 ```
 
 Interpretation:
@@ -528,7 +528,7 @@ Let $T(\theta)$ denote the local response tensor. Its dominant response directio
 ```math
 v_{\mathrm{rsp}}(\theta)
 =
-\operatorname{eigvec}_{\max}\!\left(T(\theta)\right)
+\mathrm{eigvec}_{\max}\!\left(T(\theta)\right)
 ```
 
 Interpretation:
