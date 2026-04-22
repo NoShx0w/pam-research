@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from pam.pipeline.artifacts import mirror_file
 from pam.pipeline.state import PipelineState
 from pam.topology.critical_points import run_critical_points
 from pam.topology.field import run_field_alignment
@@ -53,17 +54,16 @@ def _run_identity_topology_outputs(
         - identity_obstruction_nodes.csv
         - identity_obstruction_signed_nodes.csv
     """
-    fim_identity_dir = Path(state.outputs.root) / "fim_identity"
-    fim_identity_holonomy_dir = Path(state.outputs.root) / "fim_identity_holonomy"
+    fim_identity_dir = state.outputs.identity_dir
+    fim_identity_holonomy_dir = state.outputs.identity_holonomy_dir
     fim_identity_dir.mkdir(parents=True, exist_ok=True)
     fim_identity_holonomy_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1) Build local identity proxy graphs from canonical upstream artifacts
     proxy_node_df, proxy_edge_df = load_identity_proxy_inputs(
-        nodes_csv=state.outputs.fim_distance_dir / "fisher_nodes.csv",
-        edges_csv=state.outputs.fim_distance_dir / "fisher_edges.csv",
-        criticality_csv=state.outputs.fim_critical_dir / "criticality_surface.csv",
-        phase_distance_csv=state.outputs.fim_phase_dir / "phase_distance_to_seam.csv",
+        nodes_csv=state.outputs.fisher_nodes_csv,
+        edges_csv=state.outputs.fisher_edges_csv,
+        criticality_csv=state.outputs.criticality_surface_csv,
+        phase_distance_csv=state.outputs.phase_distance_to_seam_csv,
     )
 
     identity_graphs = build_local_identity_graphs(
@@ -75,7 +75,6 @@ def _run_identity_topology_outputs(
         ),
     )
 
-    # 2) Build grid + identity field
     identity_grid = identity_grid_from_node_graphs(
         node_df=proxy_node_df,
         identity_graphs=identity_graphs,
@@ -85,7 +84,6 @@ def _run_identity_topology_outputs(
         normalized=normalized_distance,
     )
 
-    # Node-level field table
     work = proxy_node_df.copy().sort_values(["i", "j"]).reset_index(drop=True)
     work["node_id"] = pd.to_numeric(work["node_id"], errors="coerce").astype("Int64").astype(str)
 
@@ -164,17 +162,12 @@ def _run_identity_topology_outputs(
                     }
                 )
 
-    identity_field_nodes_csv = fim_identity_dir / "identity_field_nodes.csv"
-    identity_field_edges_csv = fim_identity_dir / "identity_field_edges.csv"
-    identity_spin_csv = fim_identity_dir / "identity_spin.csv"
+    pd.DataFrame(field_rows).to_csv(state.outputs.identity_field_nodes_csv, index=False)
+    pd.DataFrame(edge_rows).to_csv(state.outputs.identity_field_edges_csv, index=False)
+    pd.DataFrame(spin_rows).to_csv(state.outputs.identity_spin_csv, index=False)
 
-    pd.DataFrame(field_rows).to_csv(identity_field_nodes_csv, index=False)
-    pd.DataFrame(edge_rows).to_csv(identity_field_edges_csv, index=False)
-    pd.DataFrame(spin_rows).to_csv(identity_spin_csv, index=False)
-
-    # 3) Holonomy table
     holonomy_nodes_df = load_identity_transport_nodes(
-        identity_nodes_csv=identity_field_nodes_csv,
+        identity_nodes_csv=state.outputs.identity_field_nodes_csv,
     )
     hol_df = build_identity_holonomy_table(
         nodes_df=holonomy_nodes_df,
@@ -184,10 +177,8 @@ def _run_identity_topology_outputs(
         ),
     )
 
-    identity_holonomy_cells_csv = fim_identity_holonomy_dir / "identity_holonomy_cells.csv"
-    hol_df.to_csv(identity_holonomy_cells_csv, index=False)
+    hol_df.to_csv(state.outputs.identity_holonomy_cells_csv, index=False)
 
-    # 4) Alignment summary
     def _corr_summary(df: pd.DataFrame, x: str, y: str) -> dict[str, float]:
         work = df[[x, y]].dropna()
         if len(work) < 3:
@@ -214,13 +205,11 @@ def _run_identity_topology_outputs(
             _corr_summary(hol_df, "abs_holonomy_residual", "max_abs_corner_spin"),
         ]
     )
-    identity_holonomy_alignment_csv = fim_identity_holonomy_dir / "identity_holonomy_alignment.csv"
-    hol_align.to_csv(identity_holonomy_alignment_csv, index=False)
+    hol_align.to_csv(state.outputs.identity_holonomy_alignment_csv, index=False)
 
-    # 5) Transport-derived local obstruction fields
     obstruction_nodes_df, obstruction_cells_df = load_identity_obstruction_inputs(
-        identity_nodes_csv=identity_field_nodes_csv,
-        holonomy_cells_csv=identity_holonomy_cells_csv,
+        identity_nodes_csv=state.outputs.identity_field_nodes_csv,
+        holonomy_cells_csv=state.outputs.identity_holonomy_cells_csv,
     )
 
     obstruction_df = build_identity_obstruction_table(
@@ -231,27 +220,18 @@ def _run_identity_topology_outputs(
         ),
     )
 
-    fim_identity_obstruction_dir = Path(state.outputs.root) / "fim_identity_obstruction"
-    fim_identity_obstruction_dir.mkdir(parents=True, exist_ok=True)
-
-    identity_obstruction_nodes_csv = (
-        fim_identity_obstruction_dir / "identity_obstruction_nodes.csv"
-    )
-    identity_obstruction_signed_nodes_csv = (
-        fim_identity_obstruction_dir / "identity_obstruction_signed_nodes.csv"
-    )
-
-    obstruction_df.to_csv(identity_obstruction_nodes_csv, index=False)
-    obstruction_df.to_csv(identity_obstruction_signed_nodes_csv, index=False)
+    state.outputs.identity_obstruction_dir.mkdir(parents=True, exist_ok=True)
+    obstruction_df.to_csv(state.outputs.identity_obstruction_nodes_csv, index=False)
+    obstruction_df.to_csv(state.outputs.identity_obstruction_signed_nodes_csv, index=False)
 
     return {
-        "identity_field_nodes_csv": str(identity_field_nodes_csv),
-        "identity_field_edges_csv": str(identity_field_edges_csv),
-        "identity_spin_csv": str(identity_spin_csv),
-        "identity_holonomy_cells_csv": str(identity_holonomy_cells_csv),
-        "identity_holonomy_alignment_csv": str(identity_holonomy_alignment_csv),
-        "identity_obstruction_nodes_csv": str(identity_obstruction_nodes_csv),
-        "identity_obstruction_signed_nodes_csv": str(identity_obstruction_signed_nodes_csv),
+        "identity_field_nodes_csv": str(state.outputs.identity_field_nodes_csv),
+        "identity_field_edges_csv": str(state.outputs.identity_field_edges_csv),
+        "identity_spin_csv": str(state.outputs.identity_spin_csv),
+        "identity_holonomy_cells_csv": str(state.outputs.identity_holonomy_cells_csv),
+        "identity_holonomy_alignment_csv": str(state.outputs.identity_holonomy_alignment_csv),
+        "identity_obstruction_nodes_csv": str(state.outputs.identity_obstruction_nodes_csv),
+        "identity_obstruction_signed_nodes_csv": str(state.outputs.identity_obstruction_signed_nodes_csv),
     }
 
 
@@ -268,42 +248,93 @@ def run_topology_stage(
       2. Gradient alignment
       3. Critical points
       4. Organizational topology / phase selection map
+      5. Identity field / holonomy / obstruction
 
     Notes
     -----
     - File-first orchestration over the existing outputs root.
     - Preserves current artifact contracts under outputs/.
+    - Mirrors first-pass canonical topology artifacts into observatory/.
     """
 
+    # ------------------------------------------------------------------
+    # Legacy-active writes
+    # ------------------------------------------------------------------
+
     run_field_alignment(
-        mds_csv=state.outputs.fim_mds_dir / "mds_coords.csv",
-        phase_csv=state.outputs.fim_phase_dir / "signed_phase_coords.csv",
-        lazarus_csv=state.outputs.fim_lazarus_dir / "lazarus_scores.csv",
+        mds_csv=state.outputs.mds_coords_csv,
+        phase_csv=state.outputs.signed_phase_coords_csv,
+        lazarus_csv=state.outputs.lazarus_scores_csv,
         paths_csv=state.outputs.fim_ops_scaled_dir / "scaled_probe_paths.csv",
         outdir=state.outputs.fim_field_alignment_dir,
     )
 
     run_gradient_alignment(
-        mds_csv=state.outputs.fim_mds_dir / "mds_coords.csv",
-        phase_csv=state.outputs.fim_phase_dir / "signed_phase_coords.csv",
-        lazarus_csv=state.outputs.fim_lazarus_dir / "lazarus_scores.csv",
+        mds_csv=state.outputs.mds_coords_csv,
+        phase_csv=state.outputs.signed_phase_coords_csv,
+        lazarus_csv=state.outputs.lazarus_scores_csv,
         outdir=state.outputs.fim_gradient_alignment_dir,
     )
 
     run_critical_points(
-        fim_csv=state.outputs.fim_dir / "fim_surface.csv",
-        curvature_csv=state.outputs.fim_curvature_dir / "curvature_surface.csv",
-        phase_distance_csv=state.outputs.fim_phase_dir / "phase_distance_to_seam.csv",
+        fim_csv=state.outputs.fim_surface_csv,
+        curvature_csv=state.outputs.curvature_surface_csv,
+        phase_distance_csv=state.outputs.phase_distance_to_seam_csv,
         outdir=state.outputs.fim_critical_dir,
         top_k=critical_top_k,
     )
 
     run_organization(
-        summary_csv=state.outputs.fim_initial_conditions_dir / "initial_conditions_outcome_summary.csv",
+        summary_csv=state.outputs.initial_conditions_outcome_summary_csv,
         outdir=state.outputs.fim_initial_conditions_dir,
     )
 
     identity_outputs = _run_identity_topology_outputs(state)
+
+    # ------------------------------------------------------------------
+    # Pass 1 canonical mirrors
+    # ------------------------------------------------------------------
+
+    mirror_file(
+        state.outputs.criticality_surface_csv,
+        state.observatory.topology_criticality_surface_csv,
+    )
+    mirror_file(
+        state.outputs.critical_points_csv,
+        state.observatory.topology_critical_points_csv,
+    )
+    mirror_file(
+        state.outputs.initial_conditions_outcome_summary_csv,
+        state.observatory.topology_initial_conditions_summary_csv,
+    )
+    mirror_file(
+        state.outputs.identity_field_nodes_csv,
+        state.observatory.topology_identity_field_nodes_csv,
+    )
+    mirror_file(
+        state.outputs.identity_field_edges_csv,
+        state.observatory.topology_identity_field_edges_csv,
+    )
+    mirror_file(
+        state.outputs.identity_spin_csv,
+        state.observatory.topology_identity_spin_csv,
+    )
+    mirror_file(
+        state.outputs.identity_holonomy_cells_csv,
+        state.observatory.topology_identity_holonomy_cells_csv,
+    )
+    mirror_file(
+        state.outputs.identity_holonomy_alignment_csv,
+        state.observatory.topology_identity_holonomy_alignment_csv,
+    )
+    mirror_file(
+        state.outputs.identity_obstruction_nodes_csv,
+        state.observatory.topology_identity_obstruction_nodes_csv,
+    )
+    mirror_file(
+        state.outputs.identity_obstruction_signed_nodes_csv,
+        state.observatory.topology_identity_obstruction_signed_nodes_csv,
+    )
 
     return state.with_metadata(
         topology={
