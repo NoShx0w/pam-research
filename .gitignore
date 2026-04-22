@@ -20,3 +20,7 @@ snapshots/
 
 # macOS
 .DS_Store
+
+observatory/derived/**
+!observatory/derived/
+!observatory/derived/README.md
