@@ -935,3 +935,53 @@ Normalized from the extended OBS-047 entry; selection criteria, parameter values
 
 ---
 
+## OBS-048
+
+**Date:** 2026-04-16  
+**State:** Route-family identity shown to be only weakly pointwise recoverable and better understood as a distributed recoverable object
+
+**Claim:**  
+Route-family identity is only weakly recoverable from local observables and is better understood as a distributed object supported across broader path context.
+
+**Summary:**  
+A recoverability ladder was constructed to test whether seam-family identity can be inferred from local event-level observables or requires broader distributed context. The experiment evaluated three feature tiers: pointwise local features, local plus neighborhood features, and local plus neighborhood plus short route context.
+
+Pointwise local features yielded weak performance, indicating that family identity is not strongly encoded in local crossing state, anisotropy, relational structure, or distance measures. Adding neighborhood features produced only modest gains, showing that limited distributed local support is insufficient for strong recovery.
+
+Short route-context features produced the largest improvement, confirming that family identity depends on path history. However, even the enriched feature set failed to achieve strong recovery, with accuracy and macro F1 remaining low. This demonstrates that family identity is only partially visible within the current local and short-context observables.
+
+At the family level, stable seam corridor showed high local recoverability, consistent with its role as a local gateway regime. Branch-exit showed moderate improvement with context, while reorganization-heavy remained poorly recoverable across all feature sets. This aligns with earlier results identifying reorganization-heavy as the most path-context-dependent family.
+
+**Operational consequence:**  
+Family classification and analysis should not rely on pointwise or short-context features alone; richer distributed representations are required to capture seam-family identity.
+
+**Recovery note:**  
+Normalized from the extended OBS-048 entry; recoverability ladder structure and per-family behavior preserved without inference.
+
+---
+
+## OBS-049
+
+**Date:** 2026-04-20  
+**State:** First full corpus-Cp observatory closure achieved: complete trajectory coverage, complete pipeline execution, and full TUI inspection surface now operating on the finished Cp manifold
+
+**Claim:**  
+The observatory achieves its first full corpus-level closure, with complete trajectory coverage, successful end-to-end pipeline execution, and operational TUI inspection on the finished Cp manifold.
+
+**Summary:**  
+The corpus-Cp trajectory manifold has been completed at full resolution (750/750), removing prior gaps in source coverage. This establishes a fully realized manifold as the basis for all downstream observatory layers.
+
+The full canonical pipeline, spanning geometry, phase, operator, and topology stacks, now executes successfully end-to-end on the completed dataset. This confirms that the observatory can transition from raw trajectory generation to fully derived artifact construction without failure.
+
+The TUI inspection surface operates correctly across all available modes and overlays on the completed Cp outputs. This demonstrates that the observatory supports not only generation and derivation, but also coherent interactive inspection of the full manifold.
+
+Together, these results establish the first complete operational closure of the observatory at corpus scale, marking the transition from partial experimental assembly to a fully functioning end-to-end system.
+
+**Operational consequence:**  
+Shifts repository focus from closure validation to post-closure work, including pipeline hardening, artifact canonicalization, and refinement of the TUI and manifold representation.
+
+**Recovery note:**  
+Normalized from the extended OBS-049 entry; emphasis on closure criteria (coverage, pipeline execution, inspection) preserved without modification.
+
+---
+
