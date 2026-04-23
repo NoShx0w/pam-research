@@ -1,14 +1,16 @@
+import argparse
+import csv
+import itertools
 import json
 import os
 import socket
 import time
-import csv
-import itertools
-import numpy as np
-
-from pathlib import Path
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
+
+import numpy as np
 
 from pam.types import RunParams
 from common_quench_metrics import (
@@ -18,14 +20,6 @@ from common_quench_metrics import (
     run_one_summary,
 )
 
-
-OUT_DIR = Path("outputs")
-RUN_NAME = "texts_Cp"
-MANIFEST_DIR = OUT_DIR / "manifests"
-LOG_DIR = OUT_DIR / "logs"
-MANIFEST_PATH = MANIFEST_DIR / f"{RUN_NAME}_manifest.csv"
-PROGRESS_PATH = MANIFEST_DIR / f"{RUN_NAME}_progress.json"
-EVENTS_PATH = LOG_DIR / f"{RUN_NAME}_events.jsonl"
 
 INDEX_FIELDNAMES = [
     "filename",
@@ -68,42 +62,95 @@ MANIFEST_FIELDNAMES = [
 ]
 
 
-def utc_now_iso():
+@dataclass(frozen=True)
+class BatchPaths:
+    root: Path
+    run_name: str
+
+    @property
+    def manifests_dir(self) -> Path:
+        return self.root / "manifests"
+
+    @property
+    def logs_dir(self) -> Path:
+        return self.root / "logs"
+
+    @property
+    def trajectories_dir(self) -> Path:
+        return self.root / "trajectories"
+
+    @property
+    def index_csv(self) -> Path:
+        return self.root / "index.csv"
+
+    @property
+    def run_spec_path(self) -> Path:
+        return self.root / "run_spec.json"
+
+    @property
+    def manifest_path(self) -> Path:
+        return self.manifests_dir / f"{self.run_name}_manifest.csv"
+
+    @property
+    def progress_path(self) -> Path:
+        return self.manifests_dir / f"{self.run_name}_progress.json"
+
+    @property
+    def events_path(self) -> Path:
+        return self.logs_dir / f"{self.run_name}_events.jsonl"
+
+
+def campaign_root(base_out_dir: str | Path, corpus_key: str, campaign: str) -> Path:
+    return Path(base_out_dir) / "corpora" / corpus_key / "campaigns" / campaign
+
+
+def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
-def build_job_id(corpus_key, r, alpha, iters, W, seed):
+
+def build_job_id(corpus_key: str, r: float, alpha: float, iters: int, W: int, seed: int) -> str:
     return f"{corpus_key}|r={r:.3f}|a={alpha:.6f}|iters={iters}|W={W}|seed={seed}"
 
-def ensure_runtime_dirs():
-    MANIFEST_DIR.mkdir(parents=True, exist_ok=True)
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / "trajectories").mkdir(parents=True, exist_ok=True)
 
-def append_event(event_type, payload):
-    ensure_runtime_dirs()
+def build_trajectory_filename(corpus_key: str, r: float, alpha: float, seed: int) -> str:
+    return f"traj_{corpus_key}_r{r:.3f}_a{alpha:.6f}_seed{seed}.npz"
+
+
+def ensure_runtime_dirs(paths: BatchPaths) -> None:
+    paths.root.mkdir(parents=True, exist_ok=True)
+    paths.manifests_dir.mkdir(parents=True, exist_ok=True)
+    paths.logs_dir.mkdir(parents=True, exist_ok=True)
+    paths.trajectories_dir.mkdir(parents=True, exist_ok=True)
+
+
+def append_event(paths: BatchPaths, event_type: str, payload: dict) -> None:
+    ensure_runtime_dirs(paths)
     record = {
         "ts": utc_now_iso(),
         "event": event_type,
         **payload,
     }
-    with EVENTS_PATH.open("a", encoding="utf-8") as f:
+    with paths.events_path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-def write_manifest_rows(rows):
-    ensure_runtime_dirs()
-    with MANIFEST_PATH.open("w", newline="", encoding="utf-8") as f:
+
+def write_manifest_rows(paths: BatchPaths, rows: list[dict]) -> None:
+    ensure_runtime_dirs(paths)
+    with paths.manifest_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=MANIFEST_FIELDNAMES)
         writer.writeheader()
         writer.writerows(rows)
 
-def load_manifest_rows():
-    if not MANIFEST_PATH.exists():
+
+def load_manifest_rows(paths: BatchPaths) -> list[dict]:
+    if not paths.manifest_path.exists():
         return []
-    with MANIFEST_PATH.open("r", newline="", encoding="utf-8") as f:
+    with paths.manifest_path.open("r", newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
-def update_manifest_row(job_id, **updates):
-    rows = load_manifest_rows()
+
+def update_manifest_row(paths: BatchPaths, job_id: str, **updates) -> None:
+    rows = load_manifest_rows(paths)
     changed = False
     for row in rows:
         if row["job_id"] == job_id:
@@ -112,11 +159,17 @@ def update_manifest_row(job_id, **updates):
             changed = True
             break
     if changed:
-        write_manifest_rows(rows)
+        write_manifest_rows(paths, rows)
 
-def bootstrap_manifest(jobs, iters, W):
-    existing = {row["job_id"] for row in load_manifest_rows()}
-    rows = load_manifest_rows()
+
+def bootstrap_manifest(
+    paths: BatchPaths,
+    jobs: list[tuple[str, float, float, int, int, int]],
+    iters: int,
+    W: int,
+) -> None:
+    rows = load_manifest_rows(paths)
+    existing = {row["job_id"] for row in rows}
 
     for corpus_key, r, alpha, _, _, seed in jobs:
         job_id = build_job_id(corpus_key, r, alpha, iters, W, seed)
@@ -139,10 +192,11 @@ def bootstrap_manifest(jobs, iters, W):
                 "error": "",
             }
         )
-    write_manifest_rows(rows)
+    write_manifest_rows(paths, rows)
 
-def write_progress_snapshot(start_time):
-    rows = load_manifest_rows()
+
+def write_progress_snapshot(paths: BatchPaths, start_time: float) -> None:
+    rows = load_manifest_rows(paths)
 
     total = len(rows)
     done = sum(r["status"] == "done" for r in rows)
@@ -163,7 +217,8 @@ def write_progress_snapshot(start_time):
     last_error = failed_rows[-1]["error"] if failed_rows else None
 
     snapshot = {
-        "run_name": RUN_NAME,
+        "run_name": paths.run_name,
+        "root": str(paths.root),
         "host": socket.gethostname(),
         "pid": os.getpid(),
         "updated_at": utc_now_iso(),
@@ -180,16 +235,16 @@ def write_progress_snapshot(start_time):
         "last_error": last_error,
     }
 
-    ensure_runtime_dirs()
-    with PROGRESS_PATH.open("w", encoding="utf-8") as f:
+    ensure_runtime_dirs(paths)
+    with paths.progress_path.open("w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2)
 
 
-def load_completed_keys(index_path):
+def load_completed_keys(index_path: Path) -> set[tuple[str, float, float, int, int, int]]:
     if not index_path.exists():
         return set()
 
-    keys = set()
+    keys: set[tuple[str, float, float, int, int, int]] = set()
     with index_path.open("r", newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -205,7 +260,7 @@ def load_completed_keys(index_path):
     return keys
 
 
-def build_meta(corpus_key, r, alpha, iters, W, seed):
+def build_meta(corpus_key: str, r: float, alpha: float, iters: int, W: int, seed: int) -> dict:
     return {
         "corpus": corpus_key,
         "r": r,
@@ -216,8 +271,7 @@ def build_meta(corpus_key, r, alpha, iters, W, seed):
     }
 
 
-def append_summary_index_row(meta, summary, out_dir="outputs", filename=""):
-    index_path = Path(out_dir) / "index.csv"
+def append_summary_index_row(meta: dict, summary: dict, index_path: Path, filename: str = "") -> None:
     index_path.parent.mkdir(parents=True, exist_ok=True)
 
     row = {
@@ -253,7 +307,46 @@ def append_summary_index_row(meta, summary, out_dir="outputs", filename=""):
         writer.writerow(row)
 
 
-def run_one_job(job):
+def build_run_spec(
+    *,
+    corpus_key: str,
+    campaign: str,
+    rs,
+    alphas,
+    seeds,
+    iters: int,
+    W: int,
+) -> dict:
+    return {
+        "corpus": corpus_key,
+        "campaign": campaign,
+        "rs": [float(x) for x in rs],
+        "alphas": [float(x) for x in alphas],
+        "seeds": [int(x) for x in seeds],
+        "iters": int(iters),
+        "W": int(W),
+    }
+
+
+def ensure_run_spec(paths: BatchPaths, spec: dict) -> None:
+    ensure_runtime_dirs(paths)
+
+    if not paths.run_spec_path.exists():
+        with paths.run_spec_path.open("w", encoding="utf-8") as f:
+            json.dump(spec, f, indent=2)
+        return
+
+    with paths.run_spec_path.open("r", encoding="utf-8") as f:
+        existing = json.load(f)
+
+    if existing != spec:
+        raise ValueError(
+            f"Campaign spec mismatch for {paths.root}. "
+            "Refusing to mix incompatible jobs into the same campaign."
+        )
+
+
+def run_one_job(job: tuple[str, float, float, int, int, int], root_dir: str):
     corpus_key, r, alpha, iters, W, seed = job
     started = time.time()
     job_id = build_job_id(corpus_key, r, alpha, iters, W, seed)
@@ -273,7 +366,8 @@ def run_one_job(job):
     )
 
     traj_name = build_trajectory_filename(corpus_key, r, alpha, seed)
-    traj_path = OUT_DIR / "trajectories" / traj_name
+    traj_path = Path(root_dir) / "trajectories" / traj_name
+    traj_path.parent.mkdir(parents=True, exist_ok=True)
 
     summary = run_one_summary(
         texts0=texts0,
@@ -308,32 +402,6 @@ def iter_jobs(corpus_key, rs, alphas, seeds, iters, W, completed):
         yield (corpus_key, r, alpha, iters, W, seed)
 
 
-def build_trajectory_filename(corpus_key, r, alpha, seed):
-    return f"traj_{corpus_key}_r{r:.3f}_a{alpha:.6f}_seed{seed}.npz"
-
-
-def run_one_trajectory_only(
-    *,
-    corpus_key: str,
-    r: float,
-    alpha: float,
-    seed: int,
-    iters: int = 300,
-    W: int = 30,
-    out_dir: str = "outputs",
-):
-    ctx = build_run_context(corpus_key=corpus_key)
-    return run_one_trajectory_only_with_context(
-        ctx=ctx,
-        r=r,
-        alpha=alpha,
-        seed=seed,
-        iters=iters,
-        W=W,
-        out_dir=out_dir,
-    )
-
-
 def build_run_context(*, corpus_key: str):
     """
     Build reusable heavy objects for repeated runs on the same corpus.
@@ -348,6 +416,30 @@ def build_run_context(*, corpus_key: str):
         "tip": tip,
         "mix_inj": mix_inj,
     }
+
+
+def run_one_trajectory_only(
+    *,
+    corpus_key: str,
+    r: float,
+    alpha: float,
+    seed: int,
+    iters: int = 300,
+    W: int = 30,
+    out_dir: str = "outputs",
+    campaign: str = "manual_v1",
+):
+    ctx = build_run_context(corpus_key=corpus_key)
+    campaign_out_dir = campaign_root(out_dir, corpus_key, campaign)
+    return run_one_trajectory_only_with_context(
+        ctx=ctx,
+        r=r,
+        alpha=alpha,
+        seed=seed,
+        iters=iters,
+        W=W,
+        out_dir=str(campaign_out_dir),
+    )
 
 
 def run_one_trajectory_only_with_context(
@@ -380,6 +472,7 @@ def run_one_trajectory_only_with_context(
 
     traj_name = build_trajectory_filename(corpus_key, r, alpha, seed)
     traj_path = Path(out_dir) / "trajectories" / traj_name
+    traj_path.parent.mkdir(parents=True, exist_ok=True)
 
     summary = run_one_summary(
         texts0=texts0,
@@ -399,34 +492,73 @@ def run_one_trajectory_only_with_context(
     }
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--corpus-key", default="Cp")
+    parser.add_argument("--campaign", required=True)
+    parser.add_argument("--base-out-dir", default="outputs")
+    parser.add_argument("--iters", type=int, default=300)
+    parser.add_argument("--W", type=int, default=30)
+    parser.add_argument("--max-workers", type=int, default=6)
+    parser.add_argument("--max-in-flight", type=int, default=None)
+    parser.add_argument("--max-jobs", type=int, default=None)
+    return parser.parse_args()
+
+
 def main():
-    ensure_runtime_dirs()
+    args = parse_args()
     start_time = time.time()
 
-    corpus_key = "Cp"
+    corpus_key = args.corpus_key
+    campaign = args.campaign
+    run_name = f"texts_{corpus_key}_{campaign}"
 
+    paths = BatchPaths(
+        root=campaign_root(args.base_out_dir, corpus_key, campaign),
+        run_name=run_name,
+    )
+    ensure_runtime_dirs(paths)
+
+    # Full intended campaign spec
     rs = [0.10, 0.15, 0.20, 0.25, 0.30]
     alphas = np.linspace(0.03, 0.15, 15)
     seeds = range(10)
 
-    iters = 300
-    W = 30
-    max_workers = 6
-    max_in_flight = max_workers * 2
+    iters = args.iters
+    W = args.W
+    max_workers = args.max_workers
+    max_in_flight = args.max_in_flight or (max_workers * 2)
 
-    index_path = OUT_DIR / "index.csv"
-    completed = load_completed_keys(index_path)
+    spec = build_run_spec(
+        corpus_key=corpus_key,
+        campaign=campaign,
+        rs=rs,
+        alphas=alphas,
+        seeds=seeds,
+        iters=iters,
+        W=W,
+    )
+    ensure_run_spec(paths, spec)
 
+    completed = load_completed_keys(paths.index_csv)
     jobs = list(iter_jobs(corpus_key, rs, alphas, seeds, iters, W, completed))
+
+    # Smoke tests should be subset launches of the same campaign.
+    if args.max_jobs is not None:
+        jobs = jobs[: args.max_jobs]
+
     total = len(jobs)
 
-    bootstrap_manifest(jobs, iters, W)
-    write_progress_snapshot(start_time)
+    bootstrap_manifest(paths, jobs, iters, W)
+    write_progress_snapshot(paths, start_time)
 
-    print("Jobs remaining:", total)
+    print("Corpus:", corpus_key)
+    print("Campaign:", campaign)
+    print("Output root:", paths.root)
+    print("Jobs remaining in this launch:", total)
 
     if not jobs:
-        print("All jobs already complete.")
+        print("All jobs already complete for this launch.")
         return
 
     done = 0
@@ -440,32 +572,33 @@ def main():
             if job is None:
                 break
 
-            corpus_key, r, alpha, iters, W, seed = job
-            job_id = build_job_id(corpus_key, r, alpha, iters, W, seed)
+            j_corpus, r, alpha, j_iters, j_W, seed = job
+            job_id = build_job_id(j_corpus, r, alpha, j_iters, j_W, seed)
 
-            update_manifest_row(job_id, status="running", started_at=utc_now_iso())
-            append_event("job_submitted", {"job_id": job_id})
-            append_event("job_started", {"job_id": job_id})
+            update_manifest_row(paths, job_id, status="running", started_at=utc_now_iso())
+            append_event(paths, "job_submitted", {"job_id": job_id})
+            append_event(paths, "job_started", {"job_id": job_id})
 
-            fut = pool.submit(run_one_job, job)
+            fut = pool.submit(run_one_job, job, str(paths.root))
             in_flight[fut] = job
 
         while in_flight:
             for fut in as_completed(list(in_flight)):
                 job = in_flight.pop(fut)
-                corpus_key, r, alpha, iters, W, seed = job
-                job_id = build_job_id(corpus_key, r, alpha, iters, W, seed)
+                j_corpus, r, alpha, j_iters, j_W, seed = job
+                job_id = build_job_id(j_corpus, r, alpha, j_iters, j_W, seed)
 
                 try:
                     meta, summary = fut.result()
                     append_summary_index_row(
                         meta,
                         summary,
-                        out_dir=str(OUT_DIR),
+                        index_path=paths.index_csv,
                         filename=meta["trajectory_filename"],
                     )
 
                     update_manifest_row(
+                        paths,
                         job_id,
                         status="done",
                         finished_at=utc_now_iso(),
@@ -473,6 +606,7 @@ def main():
                         error="",
                     )
                     append_event(
+                        paths,
                         "job_done",
                         {
                             "job_id": job_id,
@@ -482,15 +616,16 @@ def main():
                     )
                 except Exception as e:
                     update_manifest_row(
+                        paths,
                         job_id,
                         status="failed",
                         finished_at=utc_now_iso(),
                         error=repr(e),
                     )
-                    append_event("job_failed", {"job_id": job_id, "error": repr(e)})
+                    append_event(paths, "job_failed", {"job_id": job_id, "error": repr(e)})
 
                 done += 1
-                write_progress_snapshot(start_time)
+                write_progress_snapshot(paths, start_time)
                 print(f"progress {done}/{total}", end="\r")
 
                 next_job = next(job_iter, None)
@@ -498,16 +633,16 @@ def main():
                     n_corpus, n_r, n_alpha, n_iters, n_W, n_seed = next_job
                     next_job_id = build_job_id(n_corpus, n_r, n_alpha, n_iters, n_W, n_seed)
 
-                    update_manifest_row(next_job_id, status="running", started_at=utc_now_iso())
-                    append_event("job_submitted", {"job_id": next_job_id})
-                    append_event("job_started", {"job_id": next_job_id})
+                    update_manifest_row(paths, next_job_id, status="running", started_at=utc_now_iso())
+                    append_event(paths, "job_submitted", {"job_id": next_job_id})
+                    append_event(paths, "job_started", {"job_id": next_job_id})
 
-                    new_fut = pool.submit(run_one_job, next_job)
+                    new_fut = pool.submit(run_one_job, next_job, str(paths.root))
                     in_flight[new_fut] = next_job
 
                 break
 
-    write_progress_snapshot(start_time)
+    write_progress_snapshot(paths, start_time)
     print()
     print("Batch complete.")
 
