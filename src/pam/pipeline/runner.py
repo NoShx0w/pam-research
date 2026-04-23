@@ -6,6 +6,7 @@ from pam.pipeline.stages.geometry import run_geometry_stage
 from pam.pipeline.stages.operators import run_operators_stage
 from pam.pipeline.stages.phase import run_phase_stage
 from pam.pipeline.stages.topology import run_topology_stage
+from pam.pipeline.stages.initial_conditions import run_initial_conditions_stage
 from pam.pipeline.state import PipelineState
 
 
@@ -46,7 +47,8 @@ def run_pipeline(
       1. geometry
       2. phase
       3. operators
-      4. topology
+      4. initial conditions
+      5. topology
 
     Notes
     -----
@@ -95,6 +97,8 @@ def run_pipeline(
         scaled_max_draw=operators_scaled_max_draw,
         transition_within_k=operators_transition_within_k,
     )
+
+    state = run_initial_conditions_stage(state)
 
     state = run_topology_stage(
         state,
