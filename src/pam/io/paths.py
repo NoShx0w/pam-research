@@ -433,3 +433,27 @@ class ObservatoryPaths:
     @property
     def topology_identity_obstruction_signed_nodes_csv(self) -> Path:
         return self.topology_identity_dir / "identity_obstruction_signed_nodes.csv"
+
+    @property
+    def topology_annotations_dir(self) -> Path:
+        return self.topology_dir / "annotations"
+
+    @property
+    def topology_hub_nodes_csv(self) -> Path:
+        return self.topology_annotations_dir / "hub_nodes.csv"
+
+    @property
+    def topology_hotspot_nodes_csv(self) -> Path:
+        return self.topology_annotations_dir / "hotspot_nodes.csv"
+
+    @property
+    def topology_seam_bundle_nodes_csv(self) -> Path:
+        return self.topology_annotations_dir / "seam_bundle_nodes.csv"
+
+    @property
+    def topology_seam_bundle_embedding_summary_csv(self) -> Path:
+        return self.topology_annotations_dir / "seam_bundle_embedding_summary.csv"
+
+    @property
+    def topology_seam_bundle_family_summary_csv(self) -> Path:
+        return self.topology_annotations_dir / "seam_bundle_family_summary.csv"
