@@ -20,11 +20,25 @@ def _safe_mtime(path: Path) -> float | None:
         return None
 
 
-def load_phase_data(outputs_root: str | Path = "outputs") -> PhaseData:
+def load_phase_data(
+    outputs_root: str | Path = "outputs",
+    observatory_root: str | Path = "observatory",
+) -> PhaseData:
     outputs_root = Path(outputs_root)
+    observatory_root = Path(observatory_root)
 
-    signed_phase_csv = outputs_root / "fim_phase" / "signed_phase_coords.csv"
-    seam_distance_csv = outputs_root / "fim_phase" / "phase_distance_to_seam.csv"
+    canonical_signed_phase_csv = observatory_root / "derived" / "phase" / "signed_phase.csv"
+    canonical_seam_distance_csv = observatory_root / "derived" / "phase" / "distance_to_seam.csv"
+
+    legacy_signed_phase_csv = outputs_root / "fim_phase" / "signed_phase_coords.csv"
+    legacy_seam_distance_csv = outputs_root / "fim_phase" / "phase_distance_to_seam.csv"
+
+    signed_phase_csv = (
+        canonical_signed_phase_csv if canonical_signed_phase_csv.exists() else legacy_signed_phase_csv
+    )
+    seam_distance_csv = (
+        canonical_seam_distance_csv if canonical_seam_distance_csv.exists() else legacy_seam_distance_csv
+    )
 
     signed = pd.read_csv(signed_phase_csv).copy() if signed_phase_csv.exists() else pd.DataFrame()
     seam = pd.read_csv(seam_distance_csv).copy() if seam_distance_csv.exists() else pd.DataFrame()

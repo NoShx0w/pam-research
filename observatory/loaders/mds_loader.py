@@ -19,9 +19,17 @@ def _safe_mtime(path: Path) -> float | None:
         return None
 
 
-def load_mds_data(outputs_root: str | Path = "outputs") -> MDSData:
+def load_mds_data(
+    outputs_root: str | Path = "outputs",
+    observatory_root: str | Path = "observatory",
+) -> MDSData:
     outputs_root = Path(outputs_root)
-    mds_csv = outputs_root / "fim_mds" / "mds_coords.csv"
+    observatory_root = Path(observatory_root)
+
+    canonical_csv = observatory_root / "derived" / "geometry" / "mds" / "coords.csv"
+    legacy_csv = outputs_root / "fim_mds" / "mds_coords.csv"
+
+    mds_csv = canonical_csv if canonical_csv.exists() else legacy_csv
 
     if not mds_csv.exists():
         return MDSData(mds_df=pd.DataFrame(), mtime=None)

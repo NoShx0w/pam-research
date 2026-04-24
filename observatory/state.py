@@ -18,6 +18,8 @@ class ObservatoryState:
     status_message: str = "Ready"
 
     outputs_root: str = "outputs"
+    observatory_root: str = "observatory"
+
     right_pane_mode: str = "detail"  # detail | ranking
     ranking_index: int = 0
     marker_mode: str = "off"  # off | seam | critical | obstruction | lazarus

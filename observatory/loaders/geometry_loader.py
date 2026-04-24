@@ -20,11 +20,25 @@ def _safe_mtime(path: Path) -> float | None:
         return None
 
 
-def load_geometry_data(outputs_root: str | Path = "outputs") -> GeometryData:
+def load_geometry_data(
+    outputs_root: str | Path = "outputs",
+    observatory_root: str | Path = "observatory",
+) -> GeometryData:
     outputs_root = Path(outputs_root)
+    observatory_root = Path(observatory_root)
 
-    curvature_csv = outputs_root / "fim_curvature" / "curvature_surface.csv"
-    fim_csv = outputs_root / "fim" / "fim_surface.csv"
+    canonical_curvature_csv = (
+        observatory_root / "derived" / "geometry" / "curvature" / "curvature_surface.csv"
+    )
+    canonical_fim_csv = (
+        observatory_root / "derived" / "geometry" / "metric" / "fim_surface.csv"
+    )
+
+    legacy_curvature_csv = outputs_root / "fim_curvature" / "curvature_surface.csv"
+    legacy_fim_csv = outputs_root / "fim" / "fim_surface.csv"
+
+    curvature_csv = canonical_curvature_csv if canonical_curvature_csv.exists() else legacy_curvature_csv
+    fim_csv = canonical_fim_csv if canonical_fim_csv.exists() else legacy_fim_csv
 
     curv = pd.read_csv(curvature_csv).copy() if curvature_csv.exists() else pd.DataFrame()
     fim = pd.read_csv(fim_csv).copy() if fim_csv.exists() else pd.DataFrame()

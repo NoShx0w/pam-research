@@ -21,17 +21,45 @@ def _safe_mtime(path: Path) -> float | None:
         return None
 
 
-def load_identity_data(outputs_root: str | Path = "outputs") -> IdentityData:
+def load_identity_data(
+    outputs_root: str | Path = "outputs",
+    observatory_root: str | Path = "observatory",
+) -> IdentityData:
     outputs_root = Path(outputs_root)
+    observatory_root = Path(observatory_root)
 
-    identity_nodes_csv = outputs_root / "fim_identity" / "identity_field_nodes.csv"
-    obstruction_csv = outputs_root / "fim_identity_obstruction" / "identity_obstruction_nodes.csv"
-    obstruction_signed_csv = outputs_root / "fim_identity_obstruction" / "identity_obstruction_signed_nodes.csv"
-    holonomy_cells_csv = outputs_root / "fim_identity_holonomy" / "identity_holonomy_cells.csv"
+    canonical_identity_nodes_csv = (
+        observatory_root / "derived" / "topology" / "identity" / "identity_field_nodes.csv"
+    )
+    canonical_obstruction_csv = (
+        observatory_root / "derived" / "topology" / "identity" / "identity_obstruction_nodes.csv"
+    )
+    canonical_obstruction_signed_csv = (
+        observatory_root / "derived" / "topology" / "identity" / "identity_obstruction_signed_nodes.csv"
+    )
+    canonical_holonomy_cells_csv = (
+        observatory_root / "derived" / "topology" / "identity" / "identity_holonomy_cells.csv"
+    )
+
+    legacy_identity_nodes_csv = outputs_root / "fim_identity" / "identity_field_nodes.csv"
+    legacy_obstruction_csv = outputs_root / "fim_identity_obstruction" / "identity_obstruction_nodes.csv"
+    legacy_obstruction_signed_csv = outputs_root / "fim_identity_obstruction" / "identity_obstruction_signed_nodes.csv"
+    legacy_holonomy_cells_csv = outputs_root / "fim_identity_holonomy" / "identity_holonomy_cells.csv"
+
+    identity_nodes_csv = canonical_identity_nodes_csv if canonical_identity_nodes_csv.exists() else legacy_identity_nodes_csv
+    obstruction_csv = canonical_obstruction_csv if canonical_obstruction_csv.exists() else legacy_obstruction_csv
+    obstruction_signed_csv = (
+        canonical_obstruction_signed_csv
+        if canonical_obstruction_signed_csv.exists()
+        else legacy_obstruction_signed_csv
+    )
+    holonomy_cells_csv = canonical_holonomy_cells_csv if canonical_holonomy_cells_csv.exists() else legacy_holonomy_cells_csv
 
     identity_nodes = pd.read_csv(identity_nodes_csv).copy() if identity_nodes_csv.exists() else pd.DataFrame()
     obstruction = pd.read_csv(obstruction_csv).copy() if obstruction_csv.exists() else pd.DataFrame()
-    obstruction_signed = pd.read_csv(obstruction_signed_csv).copy() if obstruction_signed_csv.exists() else pd.DataFrame()
+    obstruction_signed = (
+        pd.read_csv(obstruction_signed_csv).copy() if obstruction_signed_csv.exists() else pd.DataFrame()
+    )
     holonomy_cells = pd.read_csv(holonomy_cells_csv).copy() if holonomy_cells_csv.exists() else pd.DataFrame()
 
     for df in [identity_nodes, obstruction, obstruction_signed]:
@@ -70,20 +98,28 @@ def load_identity_data(outputs_root: str | Path = "outputs") -> IdentityData:
     merged = identity_nodes.copy()
 
     if not obstruction.empty:
-        cols = [c for c in [
-            "node_id",
-            "obstruction_mean_holonomy",
-            "obstruction_mean_abs_holonomy",
-            "obstruction_max_abs_holonomy",
-        ] if c in obstruction.columns]
+        cols = [
+            c
+            for c in [
+                "node_id",
+                "obstruction_mean_holonomy",
+                "obstruction_mean_abs_holonomy",
+                "obstruction_max_abs_holonomy",
+            ]
+            if c in obstruction.columns
+        ]
         merged = merged.merge(obstruction[cols], on="node_id", how="left")
 
     if not obstruction_signed.empty:
-        cols = [c for c in [
-            "node_id",
-            "obstruction_signed_sum_holonomy",
-            "obstruction_signed_weighted_holonomy",
-        ] if c in obstruction_signed.columns]
+        cols = [
+            c
+            for c in [
+                "node_id",
+                "obstruction_signed_sum_holonomy",
+                "obstruction_signed_weighted_holonomy",
+            ]
+            if c in obstruction_signed.columns
+        ]
         merged = merged.merge(obstruction_signed[cols], on="node_id", how="left")
 
     if "obstruction_mean_abs_holonomy" in merged.columns:

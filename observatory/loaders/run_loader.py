@@ -21,6 +21,16 @@ def _safe_mtime(path: Path) -> float | None:
 
 
 def load_run_data(outputs_root: str | Path = "outputs") -> RunData:
+    """
+    Load raw run coverage data from the active run root.
+
+    Notes
+    -----
+    - This loader reads the raw generation surface, not observatory/derived artifacts.
+    - In the corpus/campaign model, `outputs_root` should typically point to a
+      campaign-scoped raw root such as:
+          outputs/corpora/<corpus>/campaigns/<campaign>
+    """
     outputs_root = Path(outputs_root)
     index_csv = outputs_root / "index.csv"
 
