@@ -19,9 +19,17 @@ def _safe_mtime(path: Path) -> float | None:
         return None
 
 
-def load_operators_data(outputs_root: str | Path = "outputs") -> OperatorsData:
+def load_operators_data(
+    outputs_root: str | Path = "outputs",
+    observatory_root: str | Path = "observatory",
+) -> OperatorsData:
     outputs_root = Path(outputs_root)
-    lazarus_csv = outputs_root / "fim_lazarus" / "lazarus_scores.csv"
+    observatory_root = Path(observatory_root)
+
+    canonical_lazarus_csv = observatory_root / "derived" / "operators" / "lazarus" / "lazarus_scores.csv"
+    legacy_lazarus_csv = outputs_root / "fim_lazarus" / "lazarus_scores.csv"
+
+    lazarus_csv = canonical_lazarus_csv if canonical_lazarus_csv.exists() else legacy_lazarus_csv
 
     if not lazarus_csv.exists():
         return OperatorsData(

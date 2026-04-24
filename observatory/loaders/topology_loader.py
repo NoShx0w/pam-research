@@ -19,9 +19,21 @@ def _safe_mtime(path: Path) -> float | None:
         return None
 
 
-def load_topology_data(outputs_root: str | Path = "outputs") -> TopologyData:
+def load_topology_data(
+    outputs_root: str | Path = "outputs",
+    observatory_root: str | Path = "observatory",
+) -> TopologyData:
     outputs_root = Path(outputs_root)
-    criticality_csv = outputs_root / "fim_critical" / "criticality_surface.csv"
+    observatory_root = Path(observatory_root)
+
+    canonical_criticality_csv = (
+        observatory_root / "derived" / "topology" / "criticality" / "criticality_surface.csv"
+    )
+    legacy_criticality_csv = outputs_root / "fim_critical" / "criticality_surface.csv"
+
+    criticality_csv = (
+        canonical_criticality_csv if canonical_criticality_csv.exists() else legacy_criticality_csv
+    )
 
     if not criticality_csv.exists():
         return TopologyData(
