@@ -672,10 +672,10 @@ def pick_representative_path_ids(
             }
         )
 
+    path_df = pd.DataFrame(path_rows)
+
     if len(path_df) == 0:
         return []
-
-    path_df = pd.DataFrame(path_rows)
 
     keep = (
         (path_df["n_steps"] >= min_steps)
