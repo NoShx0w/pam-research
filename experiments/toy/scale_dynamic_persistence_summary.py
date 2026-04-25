@@ -11,7 +11,7 @@ import pandas as pd
 @dataclass(frozen=True)
 class Config:
     root: str = "outputs"
-    scales: tuple[str, ...] = ("10", "100", "1000", "10000", "100000")
+    scales: tuple[str, ...] = ("base", "10", "100", "1000", "10000", "100000")
     outdir: str = "outputs/toy_scale_dynamic_persistence"
 
 
