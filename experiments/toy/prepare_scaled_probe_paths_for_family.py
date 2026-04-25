@@ -46,7 +46,8 @@ def main() -> None:
 
     out = df[["probe_id", "step", "node_id", "r", "alpha", "mds1", "mds2"]].copy()
     out = out.rename(columns={"probe_id": "path_id"})
-
+    out["path_id"] = out["path_id"].astype(str)
+    
     for col in ["path_id", "step", "node_id", "r", "alpha", "mds1", "mds2"]:
         out[col] = pd.to_numeric(out[col], errors="coerce")
 

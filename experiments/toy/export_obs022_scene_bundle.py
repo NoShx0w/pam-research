@@ -902,6 +902,9 @@ def load_routes(
         raise ValueError("Family csv must contain 'path_family'.")
 
     fam_cols = [c for c in ["path_id", "path_family"] if c in fam.columns]
+
+    paths["path_id"] = paths["path_id"].astype(str)
+    fam["path_id"] = fam["path_id"].astype(str)
     routes = paths.merge(fam[fam_cols], on="path_id", how="left")
 
     # enrich missing fields from canonical nodes table
