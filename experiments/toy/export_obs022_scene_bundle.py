@@ -672,6 +672,9 @@ def pick_representative_path_ids(
             }
         )
 
+    if len(path_df) == 0:
+        return []
+
     path_df = pd.DataFrame(path_rows)
 
     keep = (
@@ -906,6 +909,13 @@ def load_routes(
     paths["path_id"] = paths["path_id"].astype(str)
     fam["path_id"] = fam["path_id"].astype(str)
     routes = paths.merge(fam[fam_cols], on="path_id", how="left")
+
+    n_total = len(routes)
+    n_labeled = int(routes["path_family"].notna().sum()) if "path_family" in routes.columns else 0
+    print(f"route rows: {n_total}, labeled rows: {n_labeled}")
+    print(f"unique path ids in paths: {paths['path_id'].nunique(dropna=True)}")
+    print(f"unique path ids in fam: {fam['path_id'].nunique(dropna=True)}")
+    print(f"unique labeled path ids: {routes.loc[routes['path_family'].notna(), 'path_id'].nunique(dropna=True) if 'path_family' in routes.columns else 0}")
 
     # enrich missing fields from canonical nodes table
     join_cols = [c for c in ["node_id", "r", "alpha"] if c in routes.columns and c in nodes.columns]
