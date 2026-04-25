@@ -323,6 +323,51 @@ def load_best_node_proxy() -> pd.DataFrame | None:
     return None
 
 
+def check_required_inputs(cfg: Config) -> None:
+    required = [
+        ("fim_csv", cfg.fim_csv),
+        ("phase_csv", cfg.phase_csv),
+        ("edges_csv", cfg.edges_csv),
+        ("seam_csv", cfg.seam_csv),
+        ("response_csv", cfg.response_csv),
+        ("lazarus_csv", cfg.lazarus_csv),
+        ("family_csv", cfg.family_csv),
+        ("path_nodes_csv", cfg.path_nodes_csv),
+    ]
+
+    missing: list[tuple[str, str]] = []
+    for label, path in required:
+        if not Path(path).exists():
+            missing.append((label, path))
+
+    if not missing:
+        return
+
+    lines = [
+        "Missing required inputs for export_obs022_scene_bundle.py:",
+        "",
+    ]
+    for label, path in missing:
+        lines.append(f"  - {label}: {path}")
+
+    lines.extend(
+        [
+            "",
+            "This export depends on upstream study artifacts in addition to the core pipeline.",
+            "Typical prerequisite chain includes:",
+            "  1. bash scripts/run_full_pipeline.sh",
+            "  2. PYTHONPATH=src python experiments/studies/fim_response_operator.py",
+            "  3. scale-specific family/path preparation artifacts",
+            "",
+            "You may also override inputs explicitly, e.g.:",
+            "  --family-csv <path>",
+            "  --path-nodes-csv <path>",
+        ]
+    )
+
+    raise FileNotFoundError("\n".join(lines))
+
+
 # ---------------------------------------------------------------------
 # loaders / mergers
 # ---------------------------------------------------------------------
@@ -1084,6 +1129,8 @@ def main() -> None:
         glyph_top_k=args.glyph_top_k,
         reps_per_family=args.reps_per_family,
     )
+    
+    check_required_inputs(cfg)
 
     outdir = Path(cfg.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
