@@ -59,7 +59,7 @@ import pandas as pd
 @dataclass(frozen=True)
 class Config:
     root: str = "outputs"
-    scales: tuple[str, ...] = ("base", "10", "100", "1000")
+    scales: tuple[str, ...] = ("base", "10", "100", "1000", "10000", "100000")
     outdir: str = "outputs/toy_geodesic_family_scale_persistence"
     n_per_bucket: int = 2
     python_bin: str = sys.executable
@@ -88,7 +88,7 @@ def read_family_summary(path: Path) -> pd.DataFrame:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Cross-scale persistence pass for geodesic families.")
     parser.add_argument("--root", default="outputs")
-    parser.add_argument("--scales", default="base,10,100,1000")
+    parser.add_argument("--scales", default="base,10,100,1000,10000,100000")
     parser.add_argument("--outdir", default="outputs/toy_geodesic_family_scale_persistence")
     parser.add_argument("--n-per-bucket", type=int, default=2)
     parser.add_argument("--python-bin", default=sys.executable)
@@ -116,12 +116,12 @@ def main() -> None:
         print(f"\n=== Running scale: {scale} @ {sroot} ===")
 
         # Common paths inside this scale root
-        nodes_csv = find_existing(sroot / "fim_distance" / "fisher_nodes.csv")
-        edges_csv = find_existing(sroot / "fim_distance" / "fisher_edges.csv")
-        coords_csv = find_existing(sroot / "fim_mds" / "mds_coords.csv")
+        nodes_csv = find_existing(base_root / "fim_distance" / "fisher_nodes.csv")
+        edges_csv = find_existing(base_root / "fim_distance" / "fisher_edges.csv")
+        coords_csv = find_existing(base_root / "fim_mds" / "mds_coords.csv")
 
-        lazarus_csv = find_existing(sroot / "fim_lazarus" / "lazarus_scores.csv")
-        response_csv = find_existing(sroot / "fim_response_operator" / "response_operator_nodes.csv")
+        lazarus_csv = find_existing(base_root / "fim_lazarus" / "lazarus_scores.csv")
+        response_csv = find_existing(base_root / "fim_response_operator" / "response_operator_nodes.csv")
 
         manifest_out = outdir / tag / "manifest"
         sweep_out = outdir / tag / "sweep"
@@ -166,7 +166,7 @@ def main() -> None:
             cfg.python_bin,
             str(project_root / "experiments/toy/geodesic_path_diagnostics.py"),
             "--paths-csv", str(path_nodes_csv),
-            "--outputs-root", str(sroot),
+            "--outputs-root", str(base_root),
             "--outdir", str(diag_out),
         ])
 
