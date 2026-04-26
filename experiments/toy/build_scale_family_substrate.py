@@ -8,6 +8,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+import pandas as pd
+
 
 @dataclass(frozen=True)
 class Config:
@@ -33,11 +35,16 @@ def copy_required(src: Path, dst: Path, label: str) -> None:
     shutil.copy2(src, dst)
 
 
+def load_n_rows(path: Path) -> int:
+    return len(pd.read_csv(path))
+
+
 def write_metadata(
     outpath: Path,
     *,
     scale_root: Path,
     outputs_root: Path,
+    scaled_paths_csv: Path,
     prepared_paths_csv: Path,
     path_node_diagnostics_csv: Path,
     path_diagnostics_csv: Path,
@@ -55,6 +62,7 @@ def write_metadata(
         "Inputs",
         f"scale_root={scale_root}",
         f"outputs_root={outputs_root}",
+        f"scaled_paths_csv={scaled_paths_csv}",
         f"prepared_paths_csv={prepared_paths_csv}",
         "",
         "Conventions",
@@ -118,12 +126,19 @@ def main() -> None:
     require_file(outputs_root / "fim_phase" / "signed_phase_coords.csv", "base signed phase")
     require_file(outputs_root / "fim_phase" / "phase_distance_to_seam.csv", "base seam distance")
     require_file(outputs_root / "fim_critical" / "criticality_surface.csv", "base criticality surface")
+    require_file(outputs_root / "fim_lazarus" / "lazarus_scores.csv", "base Lazarus scores")
+    require_file(outputs_root / "fim_response_operator" / "response_operator_nodes.csv", "base response operator nodes")
 
     outdir.mkdir(parents=True, exist_ok=True)
+
+    if diagnostics_workdir.exists():
+        shutil.rmtree(diagnostics_workdir)
+    if families_workdir.exists():
+        shutil.rmtree(families_workdir)
+
     diagnostics_workdir.mkdir(parents=True, exist_ok=True)
     families_workdir.mkdir(parents=True, exist_ok=True)
 
-    # 1) Prepare family-ready path nodes.
     run_cmd([
         cfg.python_bin,
         str(project_root / "experiments/toy/prepare_scaled_probe_paths_for_family.py"),
@@ -131,7 +146,6 @@ def main() -> None:
         "--out-csv", str(prepared_paths_csv),
     ])
 
-    # 2) Build path diagnostics using scale-local paths + base observatory fields.
     run_cmd([
         cfg.python_bin,
         str(project_root / "experiments/toy/geodesic_path_diagnostics.py"),
@@ -140,7 +154,6 @@ def main() -> None:
         "--outdir", str(diagnostics_workdir),
     ])
 
-    # 3) Stratify families from diagnostics.
     run_cmd([
         cfg.python_bin,
         str(project_root / "experiments/toy/geodesic_path_family_stratification.py"),
@@ -148,7 +161,6 @@ def main() -> None:
         "--outdir", str(families_workdir),
     ])
 
-    # 4) Promote into stable family_substrate names.
     copy_required(path_node_diagnostics_tmp, path_node_diagnostics_csv, "path node diagnostics")
     copy_required(path_diagnostics_tmp, path_diagnostics_csv, "path diagnostics")
     copy_required(family_assignments_tmp, family_assignments_csv, "family assignments")
@@ -158,6 +170,7 @@ def main() -> None:
         metadata_txt,
         scale_root=scale_root,
         outputs_root=outputs_root,
+        scaled_paths_csv=scaled_paths_csv,
         prepared_paths_csv=prepared_paths_csv,
         path_node_diagnostics_csv=path_node_diagnostics_csv,
         path_diagnostics_csv=path_diagnostics_csv,
@@ -167,11 +180,11 @@ def main() -> None:
 
     print()
     print("=== Scale Family Substrate ===")
-    print(prepared_paths_csv)
-    print(path_node_diagnostics_csv)
-    print(path_diagnostics_csv)
-    print(family_assignments_csv)
-    print(family_summary_csv)
+    print(f"path_nodes_for_family: {prepared_paths_csv} ({load_n_rows(prepared_paths_csv)} rows)")
+    print(f"path_node_diagnostics: {path_node_diagnostics_csv} ({load_n_rows(path_node_diagnostics_csv)} rows)")
+    print(f"path_diagnostics: {path_diagnostics_csv} ({load_n_rows(path_diagnostics_csv)} rows)")
+    print(f"path_family_assignments: {family_assignments_csv} ({load_n_rows(family_assignments_csv)} rows)")
+    print(f"path_family_summary: {family_summary_csv} ({load_n_rows(family_summary_csv)} rows)")
     print(metadata_txt)
 
 
