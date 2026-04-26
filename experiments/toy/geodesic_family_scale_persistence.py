@@ -141,7 +141,7 @@ def main() -> None:
         run_cmd([
             cfg.python_bin,
             str(project_root / "experiments/toy/geodesic_endpoint_manifest.py"),
-            "--outputs-root", str(sroot),
+            "--outputs-root", str(base_root),
             "--outdir", str(manifest_out),
             "--n-per-bucket", str(cfg.n_per_bucket),
         ])
