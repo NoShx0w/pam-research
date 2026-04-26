@@ -74,8 +74,8 @@ class Config:
     seam_csv: str = "outputs/fim_phase/phase_boundary_mds_backprojected.csv"
     response_csv: str = "outputs/fim_response_operator/response_operator_nodes.csv"
     lazarus_csv: str = "outputs/fim_lazarus/lazarus_scores.csv"
-    family_csv: str = "outputs/scales/100000/toy_scaled_probe_path_families/geodesic_path_family_assignments.csv"
-    path_nodes_csv: str = "outputs/scales/100000/fim_ops_scaled/scaled_probe_paths_for_family_clean.csv"
+    family_csv: str = "outputs/scales/100000/family_substrate/path_family_assignments.csv"
+    path_nodes_csv: str = "outputs/scales/100000/family_substrate/path_nodes_for_family.csv"
     outdir: str = "outputs/obs022_scene_bundle"
     top_hubs: int = 20
     glyph_top_k: int = 16
