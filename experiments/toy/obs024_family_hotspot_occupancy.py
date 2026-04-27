@@ -153,7 +153,7 @@ for candidate in ["neighbor_direction_mismatch_deg", "neighbor_direction_mismatc
     if mismatch_col != "neighbor_direction_mismatch_deg":
         enrich = enrich.rename(columns={mismatch_col: "neighbor_direction_mismatch_deg"})
 
-    routes = routes.merge(enrich, on="node_id", how="left")
+        routes = routes.merge(enrich, on="node_id", how="left")
 
     return nodes, routes, threshold
 
