@@ -124,11 +124,11 @@ def prepare_tables(nodes: pd.DataFrame, routes: pd.DataFrame, hotspot_quantile: 
     nodes = nodes.copy()
     routes = classify_routes(routes.copy())
 
-mismatch_col = None
-for candidate in ["neighbor_direction_mismatch_deg", "neighbor_direction_mismatch_mean"]:
-    if candidate in nodes.columns:
-        mismatch_col = candidate
-        break
+    mismatch_col = None
+    for candidate in ["neighbor_direction_mismatch_deg", "neighbor_direction_mismatch_mean"]:
+        if candidate in nodes.columns:
+            mismatch_col = candidate
+            break
 
     if mismatch_col is None:
         raise ValueError(
@@ -153,7 +153,7 @@ for candidate in ["neighbor_direction_mismatch_deg", "neighbor_direction_mismatc
     if mismatch_col != "neighbor_direction_mismatch_deg":
         enrich = enrich.rename(columns={mismatch_col: "neighbor_direction_mismatch_deg"})
 
-        routes = routes.merge(enrich, on="node_id", how="left")
+    routes = routes.merge(enrich, on="node_id", how="left")
 
     return nodes, routes, threshold
 
