@@ -96,6 +96,9 @@ def load_inputs(cfg: Config) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         if c in seam.columns:
             seam[c] = pd.to_numeric(seam[c], errors="coerce")
 
+    if "neighbor_direction_mismatch_deg" not in nodes.columns and "neighbor_direction_mismatch_mean" in nodes.columns:
+        nodes = nodes.rename(columns={"neighbor_direction_mismatch_mean": "neighbor_direction_mismatch_deg"})
+
     return nodes, routes, seam
 
 
@@ -121,19 +124,34 @@ def prepare_tables(nodes: pd.DataFrame, routes: pd.DataFrame, hotspot_quantile: 
     nodes = nodes.copy()
     routes = classify_routes(routes.copy())
 
+mismatch_col = None
+for candidate in ["neighbor_direction_mismatch_deg", "neighbor_direction_mismatch_mean"]:
+    if candidate in nodes.columns:
+        mismatch_col = candidate
+        break
+
+    if mismatch_col is None:
+        raise ValueError(
+            "Could not find a relational mismatch column in nodes table. "
+            "Expected one of: neighbor_direction_mismatch_deg, neighbor_direction_mismatch_mean"
+        )
+
     threshold = float(
-        pd.to_numeric(nodes["neighbor_direction_mismatch_deg"], errors="coerce").quantile(hotspot_quantile)
+        pd.to_numeric(nodes[mismatch_col], errors="coerce").quantile(hotspot_quantile)
     )
     nodes["is_hotspot"] = (
-        pd.to_numeric(nodes["neighbor_direction_mismatch_deg"], errors="coerce") >= threshold
+        pd.to_numeric(nodes[mismatch_col], errors="coerce") >= threshold
     ).astype(int)
 
     # Do not merge distance_to_seam here; routes already has it.
     enrich = nodes[[
         "node_id",
-        "neighbor_direction_mismatch_deg",
+        mismatch_col,
         "is_hotspot",
     ]].drop_duplicates(subset=["node_id"])
+
+    if mismatch_col != "neighbor_direction_mismatch_deg":
+        enrich = enrich.rename(columns={mismatch_col: "neighbor_direction_mismatch_deg"})
 
     routes = routes.merge(enrich, on="node_id", how="left")
 
