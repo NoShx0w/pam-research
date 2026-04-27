@@ -13,9 +13,14 @@ class Config:
     scale_root: str = "outputs/scales/100000"
     outputs_root: str = "outputs"
     python_bin: str = sys.executable
-    run_hotspot_occupancy: bool = True
-    run_canonical_seam_bundle: bool = True
+    run_hotspot_occupancy: bool = False
+    run_canonical_seam_bundle: bool = False
     run_pass2_annotations: bool = False
+
+
+def require_optional_file(path: Path, label: str) -> None:
+    if not path.exists():
+        raise FileNotFoundError(f"Missing required {label}: {path}")
 
 
 def run(cmd: list[str]) -> None:
@@ -30,17 +35,17 @@ def main() -> None:
     parser.add_argument("--scale-root", default="outputs/scales/100000")
     parser.add_argument("--outputs-root", default="outputs")
     parser.add_argument("--python-bin", default=sys.executable)
-    parser.add_argument("--skip-hotspot-occupancy", action="store_true")
-    parser.add_argument("--skip-canonical-seam-bundle", action="store_true")
+    parser.add_argument("--run-hotspot-occupancy", action="store_true")
+    parser.add_argument("--run-canonical-seam-bundle", action="store_true")
     parser.add_argument("--run-pass2-annotations", action="store_true")
     args = parser.parse_args()
-
+    
     cfg = Config(
         scale_root=args.scale_root,
         outputs_root=args.outputs_root,
         python_bin=args.python_bin,
-        run_hotspot_occupancy=not args.skip_hotspot_occupancy,
-        run_canonical_seam_bundle=not args.skip_canonical_seam_bundle,
+        run_hotspot_occupancy=args.run_hotspot_occupancy,
+        run_canonical_seam_bundle=args.run_canonical_seam_bundle,
         run_pass2_annotations=args.run_pass2_annotations,
     )
 
@@ -62,6 +67,10 @@ def main() -> None:
 
     # 3) Build hotspot occupancy study outputs.
     if cfg.run_hotspot_occupancy:
+        require_optional_file(
+            Path(cfg.outputs_root) / "obs023_local_direction_mismatch" / "local_direction_mismatch_nodes.csv",
+            "OBS-023 mismatch nodes for OBS-024 hotspot occupancy",
+        )
         run([
             cfg.python_bin,
             str(project_root / "experiments/toy/obs024_family_hotspot_occupancy.py"),
@@ -69,6 +78,14 @@ def main() -> None:
 
     # 4) Export canonical seam bundle.
     if cfg.run_canonical_seam_bundle:
+        require_optional_file(
+            Path(cfg.outputs_root) / "obs023_local_direction_mismatch" / "local_direction_mismatch_nodes.csv",
+            "OBS-023 mismatch nodes for OBS-028c seam bundle",
+        )
+        require_optional_file(
+            Path(cfg.outputs_root) / "obs025_anisotropy_vs_relational_obstruction" / "obs025_anisotropy_vs_relational_obstruction_nodes.csv",
+            "OBS-025 anisotropy/relational obstruction nodes for OBS-028c seam bundle",
+        )
         run([
             cfg.python_bin,
             str(project_root / "experiments/studies/obs028c_export_canonical_seam_bundle.py"),
