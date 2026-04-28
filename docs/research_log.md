@@ -985,3 +985,52 @@ Normalized from the extended OBS-049 entry; emphasis on closure criteria (covera
 
 ---
 
+## OBS-050
+
+**Date:** 2026-04-27  
+**State:** First predictive seam-coupling test completed; recovery-like roughness escalation is distinguished more by retained seam proximity than by inward seam-motion slope
+
+**Claim:**  
+Recovery-like roughness escalation is primarily characterized by retained seam coupling rather than inward seam-distance slope.
+
+**Summary:**  
+A first predictive test was conducted to determine whether instability regimes (roughness escalation windows) contain measurable structure distinguishing recovery-like from nonrecovery-like behavior. The initial hypothesis—that recovery corresponds to inward motion toward the seam—was tested and rejected, as recovering windows did not exhibit consistently negative seam-distance slope.
+
+Instead, a stronger and more consistent signal emerged when analyzing seam-band occupancy. Recovery-like windows were far more likely to remain within seam-coupled regions (core and near bands), while nonrecovering windows overwhelmingly occurred in far, decoupled regions. This difference produced a large effect size, with recovery-like windows approximately an order of magnitude more likely to be seam-coupled.
+
+The result shows that productive instability is not defined by local inward motion, but by remaining structurally coupled to the seam during escalation. Seam-distance slope alone is therefore insufficient as a predictive indicator, while seam-band persistence provides a much stronger discriminator.
+
+This establishes the first predictive observatory result: instability posture can be partially classified based on geometric coupling to the seam, separating recovery-like from nonrecovery-like regimes.
+
+**Operational consequence:**  
+Shifts predictive analysis from slope-based indicators to seam-coupling persistence metrics, enabling classification of instability regimes based on seam-band occupancy.
+
+**Recovery note:**  
+Normalized from the extended OBS-050 entry; predictive comparison (slope vs coupling) and quantitative coupling signal preserved without modification.
+
+---
+
+## OBS-051
+
+**Date:** 2026-04-27  
+**State:** First local-divergence test completed; within seam-coupled escalation windows, recovery-like regimes are dynamically more bounded than nonrecovering regimes
+
+**Claim:**  
+Within seam-coupled roughness-escalation windows, recovery-like regimes exhibit significantly lower local divergence than nonrecovering regimes.
+
+**Summary:**  
+A Lyapunov-like local divergence instrument was introduced to distinguish bounded from explosive behavior within seam-coupled instability windows. Building directly on OBS-050, the analysis restricted attention to escalation windows that remained in seam-coupled bands, isolating the role of dynamic boundedness from structural coupling.
+
+The local divergence proxy compared how nearby windows in state space separate over time, yielding a quantitative measure of bounded versus explosive evolution. Results showed a strong separation: recovery-like regimes had substantially lower mean local divergence than nonrecovering regimes, indicating more constrained and less explosive behavior within the same seam-coupled context.
+
+This demonstrates that seam coupling alone is not sufficient for recovery-like behavior. Instead, productive instability requires both retained coupling and bounded divergence. Some seam-coupled windows still exhibit highly unstable dynamics, confirming that the seam can host both recoverable and nonrecoverable behavior.
+
+Together with OBS-050, this establishes a two-stage predictive structure: recovery-like instability is characterized by both persistence within seam-coupled regions and lower local divergence during escalation.
+
+**Operational consequence:**  
+Introduces a two-stage instability discriminator combining seam-coupling persistence and local divergence, enabling separation of bounded versus explosive regimes within seam-coupled dynamics.
+
+**Recovery note:**  
+Normalized from the extended OBS-051 entry; divergence formulation, group separation, and combined interpretation with OBS-050 preserved without modification.
+
+---
