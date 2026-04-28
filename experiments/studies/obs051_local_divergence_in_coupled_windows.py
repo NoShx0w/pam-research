@@ -10,15 +10,14 @@ Among roughness-escalation windows that remain structurally coupled to the seam,
 do recovery-like families exhibit lower local divergence than nonrecovery-like
 families?
 
-Motivation
-----------
-OBS-050 established that recovery-like roughness-escalation windows are much
-more likely to remain seam-coupled than nonrecovering windows. The next question
-is whether coupled instability is also dynamically more bounded.
+Refinement goals
+----------------
+This version hardens the first-pass Lyapunov-like proxy by:
 
-This script implements a Lyapunov-like local divergence proxy, not a canonical
-Lyapunov exponent. For each escalation window, it compares the initial and final
-separation from nearby matched windows in a compact observatory state space.
+1. enforcing a nontrivial minimum initial separation
+2. standardizing feature space before matching
+3. reporting secondary boundedness proxies in addition to log-ratio
+4. allowing core / near / all seam-band filtering
 
 Inputs
 ------
@@ -55,6 +54,10 @@ Low / negative lambda_local:
 
 High positive lambda_local:
     locally divergent instability
+
+Secondary proxies:
+- delta_d = d_end - d_start
+- bounded_flag = 1 if d_end <= d_start else 0
 """
 
 import argparse
@@ -78,8 +81,10 @@ class Config:
     family_csv: str = "outputs/scales/100000/family_substrate/path_family_assignments.csv"
     outdir: str = "outputs/obs051_local_divergence_in_coupled_windows"
     coupling_class: str = "coupled"
+    seam_band_filter: str = "all"  # all | core | near
     k_neighbors: int = 5
     max_initial_distance: float = 2.5
+    min_initial_distance: float = 0.05
     eps: float = 1e-6
     min_dt: float = 1.0
 
@@ -168,6 +173,19 @@ def choose_obstruction_col(nodes: pd.DataFrame) -> str | None:
     return None
 
 
+def standardize_columns(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
+    out = df.copy()
+    for c in cols:
+        if c not in out.columns:
+            continue
+        x = pd.to_numeric(out[c], errors="coerce")
+        mu = float(x.mean(skipna=True)) if x.notna().any() else 0.0
+        sd = float(x.std(skipna=True)) if x.notna().any() else 1.0
+        sd = max(sd, 1e-12)
+        out[c] = (x - mu) / sd
+    return out
+
+
 def build_window_states(segs: pd.DataFrame, nodes: pd.DataFrame) -> pd.DataFrame:
     obstruction_col = choose_obstruction_col(nodes)
     records: list[dict[str, object]] = []
@@ -180,13 +198,15 @@ def build_window_states(segs: pd.DataFrame, nodes: pd.DataFrame) -> pd.DataFrame
 
     use_nodes = nodes[node_cols].copy()
 
+    grouped_nodes = {pid: sub.copy() for pid, sub in use_nodes.groupby("path_id", dropna=False)}
+
     for row in segs.itertuples(index=False):
         pid = str(row.path_id)
         start_step = float(row.start_step)
         end_step = float(row.end_step)
 
-        sub = use_nodes[use_nodes["path_id"] == pid].copy()
-        if len(sub) == 0:
+        sub = grouped_nodes.get(pid)
+        if sub is None or len(sub) == 0:
             continue
 
         start_rows = sub[np.isclose(sub["step"], start_step)]
@@ -223,7 +243,26 @@ def build_window_states(segs: pd.DataFrame, nodes: pd.DataFrame) -> pd.DataFrame
 
         records.append(rec)
 
-    return pd.DataFrame(records)
+    state_df = pd.DataFrame(records)
+    if state_df.empty:
+        return state_df
+
+    start_cols = [c for c in [
+        "start_distance_to_seam",
+        "start_roughness",
+        "start_criticality",
+        "start_obstruction",
+    ] if c in state_df.columns]
+
+    end_cols = [c for c in [
+        "end_distance_to_seam",
+        "end_roughness",
+        "end_criticality",
+        "end_obstruction",
+    ] if c in state_df.columns]
+
+    state_df = standardize_columns(state_df, start_cols + end_cols)
+    return state_df
 
 
 def feature_distance(a: pd.Series, b: pd.Series, cols: list[str]) -> float:
@@ -256,7 +295,6 @@ def build_divergence_table(states: pd.DataFrame, cfg: Config) -> pd.DataFrame:
         feature_cols_end.append("end_obstruction")
 
     rows: list[dict[str, object]] = []
-
     states = states.reset_index(drop=True)
 
     for i, a in states.iterrows():
@@ -275,12 +313,15 @@ def build_divergence_table(states: pd.DataFrame, cfg: Config) -> pd.DataFrame:
                 continue
             if d0 > cfg.max_initial_distance:
                 continue
+            if d0 < cfg.min_initial_distance:
+                continue
             dists.append((d0, j))
 
         if not dists:
             continue
 
         dists.sort(key=lambda x: x[0])
+
         for rank, (d_start, j) in enumerate(dists[: cfg.k_neighbors], start=1):
             b = states.iloc[j]
             d_end = feature_distance(a, b, feature_cols_end)
@@ -289,6 +330,8 @@ def build_divergence_table(states: pd.DataFrame, cfg: Config) -> pd.DataFrame:
 
             dt = max(float(a["dt"]), cfg.min_dt)
             lambda_local = (1.0 / dt) * np.log((d_end + cfg.eps) / (d_start + cfg.eps))
+            delta_d = d_end - d_start
+            bounded_flag = int(d_end <= d_start)
 
             rows.append(
                 {
@@ -304,6 +347,8 @@ def build_divergence_table(states: pd.DataFrame, cfg: Config) -> pd.DataFrame:
                     "dt": dt,
                     "d_start": d_start,
                     "d_end": d_end,
+                    "delta_d": delta_d,
+                    "bounded_flag": bounded_flag,
                     "lambda_local": lambda_local,
                 }
             )
@@ -316,11 +361,16 @@ def build_window_summary(div: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
 
     return (
-        div.groupby(["segment_id", "path_id", "path_family", "outcome_group", "seam_band", "coupling_class"], dropna=False)
+        div.groupby(
+            ["segment_id", "path_id", "path_family", "outcome_group", "seam_band", "coupling_class"],
+            dropna=False,
+        )
         .agg(
             n_neighbors=("neighbor_segment_id", "size"),
             mean_d_start=("d_start", "mean"),
             mean_d_end=("d_end", "mean"),
+            mean_delta_d=("delta_d", "mean"),
+            bounded_share=("bounded_flag", "mean"),
             mean_lambda_local=("lambda_local", "mean"),
             median_lambda_local=("lambda_local", "median"),
             max_lambda_local=("lambda_local", "max"),
@@ -339,6 +389,8 @@ def build_outcome_summary(win: pd.DataFrame) -> pd.DataFrame:
             n_windows=("segment_id", "size"),
             mean_lambda_local=("mean_lambda_local", "mean"),
             median_lambda_local=("mean_lambda_local", "median"),
+            mean_delta_d=("mean_delta_d", "mean"),
+            mean_bounded_share=("bounded_share", "mean"),
             mean_d_start=("mean_d_start", "mean"),
             mean_d_end=("mean_d_end", "mean"),
         )
@@ -356,6 +408,8 @@ def build_family_summary(win: pd.DataFrame) -> pd.DataFrame:
             n_windows=("segment_id", "size"),
             mean_lambda_local=("mean_lambda_local", "mean"),
             median_lambda_local=("mean_lambda_local", "median"),
+            mean_delta_d=("mean_delta_d", "mean"),
+            mean_bounded_share=("bounded_share", "mean"),
             mean_d_start=("mean_d_start", "mean"),
             mean_d_end=("mean_d_end", "mean"),
         )
@@ -377,8 +431,10 @@ def summarize_text(
     lines.append("=== OBS-051 Local Divergence Summary ===")
     lines.append("")
     lines.append(f"coupling_class = {cfg.coupling_class}")
+    lines.append(f"seam_band_filter = {cfg.seam_band_filter}")
     lines.append(f"k_neighbors = {cfg.k_neighbors}")
     lines.append(f"max_initial_distance = {cfg.max_initial_distance:.6f}")
+    lines.append(f"min_initial_distance = {cfg.min_initial_distance:.6f}")
     lines.append(f"n_windows = {len(states)}")
     lines.append(f"n_window_pairs = {len(div)}")
     lines.append("")
@@ -391,6 +447,8 @@ def summarize_text(
                 f"n_windows={int(row['n_windows'])}, "
                 f"mean_lambda_local={row['mean_lambda_local']:.6f}, "
                 f"median_lambda_local={row['median_lambda_local']:.6f}, "
+                f"mean_delta_d={row['mean_delta_d']:.6f}, "
+                f"mean_bounded_share={row['mean_bounded_share']:.6f}, "
                 f"mean_d_start={row['mean_d_start']:.6f}, "
                 f"mean_d_end={row['mean_d_end']:.6f}"
             )
@@ -404,6 +462,16 @@ def summarize_text(
                 f"mean_lambda_local_diff="
                 f"{float(rec['mean_lambda_local'].iloc[0]) - float(non['mean_lambda_local'].iloc[0]):.6f}"
             )
+            lines.append(
+                "recovering_vs_nonrecovering: "
+                f"mean_delta_d_diff="
+                f"{float(rec['mean_delta_d'].iloc[0]) - float(non['mean_delta_d'].iloc[0]):.6f}"
+            )
+            lines.append(
+                "recovering_vs_nonrecovering: "
+                f"mean_bounded_share_diff="
+                f"{float(rec['mean_bounded_share'].iloc[0]) - float(non['mean_bounded_share'].iloc[0]):.6f}"
+            )
 
     if not fam_summary.empty:
         lines.append("")
@@ -414,6 +482,8 @@ def summarize_text(
                 f"n_windows={int(row['n_windows'])}, "
                 f"mean_lambda_local={row['mean_lambda_local']:.6f}, "
                 f"median_lambda_local={row['median_lambda_local']:.6f}, "
+                f"mean_delta_d={row['mean_delta_d']:.6f}, "
+                f"mean_bounded_share={row['mean_bounded_share']:.6f}, "
                 f"mean_d_start={row['mean_d_start']:.6f}, "
                 f"mean_d_end={row['mean_d_end']:.6f}"
             )
@@ -474,8 +544,10 @@ def main() -> None:
     parser.add_argument("--family-csv", default=Config.family_csv)
     parser.add_argument("--outdir", default=Config.outdir)
     parser.add_argument("--coupling-class", default=Config.coupling_class)
+    parser.add_argument("--seam-band-filter", default="all", choices=["all", "core", "near"])
     parser.add_argument("--k-neighbors", type=int, default=Config.k_neighbors)
     parser.add_argument("--max-initial-distance", type=float, default=Config.max_initial_distance)
+    parser.add_argument("--min-initial-distance", type=float, default=Config.min_initial_distance)
     parser.add_argument("--eps", type=float, default=Config.eps)
     parser.add_argument("--min-dt", type=float, default=Config.min_dt)
     args = parser.parse_args()
@@ -486,8 +558,10 @@ def main() -> None:
         family_csv=args.family_csv,
         outdir=args.outdir,
         coupling_class=args.coupling_class,
+        seam_band_filter=args.seam_band_filter,
         k_neighbors=args.k_neighbors,
         max_initial_distance=args.max_initial_distance,
+        min_initial_distance=args.min_initial_distance,
         eps=args.eps,
         min_dt=args.min_dt,
     )
@@ -498,6 +572,9 @@ def main() -> None:
     segs, nodes, fam = load_inputs(cfg)
     segs = add_coupling_class(segs)
     segs = segs[segs["coupling_class"] == cfg.coupling_class].copy()
+
+    if cfg.seam_band_filter != "all":
+        segs = segs[segs["seam_band"] == cfg.seam_band_filter].copy()
 
     states = build_window_states(segs, nodes)
     div = build_divergence_table(states, cfg)
