@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -23,6 +23,9 @@ class ObservatoryState:
     right_pane_mode: str = "detail"  # detail | ranking
     ranking_index: int = 0
     marker_mode: str = "off"  # off | seam | critical | obstruction | lazarus
+
+    show_webbing: bool = True
+    webbing_mode: str = "all"   # "all" | "local"
 
     def clamp_selection(self) -> None:
         self.selected_i = max(0, min(self.selected_i, self.grid_rows - 1))

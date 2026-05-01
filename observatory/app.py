@@ -9,6 +9,7 @@ from textual.containers import Container, Horizontal, Vertical
 from textual.binding import Binding
 
 from observatory.loaders import (
+    load_edges_data,
     load_geometry_data,
     load_identity_data,
     load_mds_data,
@@ -16,6 +17,7 @@ from observatory.loaders import (
     load_phase_data,
     load_run_data,
     load_topology_data,
+    load_transitions_data,
 )
 from observatory.modes import DEFAULT_OVERLAY_BY_MODE, MODES, OVERLAYS_BY_MODE
 from observatory.state import ObservatoryState
@@ -73,11 +75,14 @@ class ObservatoryApp(App):
         Binding("4", "set_mode('Topology')", "Topology"),
         Binding("5", "set_mode('Operators')", "Operators"),
         Binding("6", "set_mode('Identity')", "Identity"),
+        Binding("7", "set_mode('Transitions')", "Transitions"),
         Binding("left", "move_selection(-1, 0)", "Left"),
         Binding("right", "move_selection(1, 0)", "Right"),
         Binding("up", "move_selection(0, -1)", "Up"),
         Binding("down", "move_selection(0, 1)", "Down"),
         Binding("g", "toggle_view", "Grid/MDS"),
+        Binding("w", "toggle_webbing", "Webbing"),
+        Binding("e", "cycle_webbing_mode", "Edge mode"),
         Binding("s", "toggle_right_pane_mode", "Rank/detail"),
         Binding("o", "next_overlay", "Next overlay"),
         Binding("shift+o", "prev_overlay", "Prev overlay"),
@@ -94,6 +99,7 @@ class ObservatoryApp(App):
     def __init__(self) -> None:
         super().__init__()
         self.state = ObservatoryState()
+
         self.run_data = load_run_data(self.state.outputs_root)
         self.geometry_data = load_geometry_data(
             self.state.outputs_root,
@@ -115,7 +121,15 @@ class ObservatoryApp(App):
             self.state.outputs_root,
             self.state.observatory_root,
         )
+        self.transitions_data = load_transitions_data(
+            self.state.outputs_root,
+            self.state.observatory_root,
+        )
         self.mds_data = load_mds_data(
+            self.state.outputs_root,
+            self.state.observatory_root,
+        )
+        self.edges_data = load_edges_data(
             self.state.outputs_root,
             self.state.observatory_root,
         )
@@ -327,6 +341,73 @@ class ObservatoryApp(App):
             "identity_spin": pd.to_numeric(rec.get("identity_spin"), errors="coerce"),
         }
 
+    def _selected_transitions_summary(self) -> dict[str, object]:
+        df = self.transitions_data.transitions_df
+        if df.empty:
+            return {
+                "r": None,
+                "alpha": None,
+                "mean_lambda_local": None,
+                "bounded_share": None,
+                "recovering_landings": None,
+                "nonrecovering_landings": None,
+                "total_landings": None,
+                "attractor_score": None,
+                "seam_band": None,
+                "coupling_class": None,
+                "basin_class": None,
+            }
+
+        r_vals = sorted(pd.to_numeric(df["r"], errors="coerce").dropna().unique())
+        a_vals = sorted(pd.to_numeric(df["alpha"], errors="coerce").dropna().unique())
+        if not r_vals or not a_vals:
+            return {
+                "r": None,
+                "alpha": None,
+                "mean_lambda_local": None,
+                "bounded_share": None,
+                "recovering_landings": None,
+                "nonrecovering_landings": None,
+                "total_landings": None,
+                "attractor_score": None,
+                "seam_band": None,
+                "coupling_class": None,
+                "basin_class": None,
+            }
+
+        r = r_vals[self.state.selected_i]
+        a = a_vals[self.state.selected_j]
+        row = df[(df["r"] == r) & (df["alpha"] == a)]
+        if row.empty:
+            return {
+                "r": r,
+                "alpha": a,
+                "mean_lambda_local": None,
+                "bounded_share": None,
+                "recovering_landings": None,
+                "nonrecovering_landings": None,
+                "total_landings": None,
+                "attractor_score": None,
+                "seam_band": None,
+                "coupling_class": None,
+                "basin_class": None,
+            }
+
+        rec = row.iloc[0]
+        return {
+            "r": float(rec["r"]),
+            "alpha": float(rec["alpha"]),
+            "mean_lambda_local": pd.to_numeric(rec.get("mean_lambda_local"), errors="coerce"),
+            "bounded_share": pd.to_numeric(rec.get("bounded_share"), errors="coerce"),
+            "recovering_landings": pd.to_numeric(rec.get("recovering_landings"), errors="coerce"),
+            "nonrecovering_landings": pd.to_numeric(rec.get("nonrecovering_landings"), errors="coerce"),
+            "total_landings": pd.to_numeric(rec.get("total_landings"), errors="coerce"),
+            "attractor_score": pd.to_numeric(rec.get("attractor_score"), errors="coerce"),
+            "seam_band": rec.get("seam_band"),
+            "coupling_class": rec.get("coupling_class"),
+            "basin_class": rec.get("basin_class"),
+        }
+
     def _active_overlay_dataframe_and_column(self):
         mode = self.state.mode
         overlay = self.state.overlay
@@ -370,6 +451,18 @@ class ObservatoryApp(App):
             if overlay == "signed_local_obstruction":
                 return df, "obstruction_signed_sum_holonomy", True
             return df, "identity_spin", True
+
+        if mode == "Transitions":
+            df = self.transitions_data.transitions_df.copy()
+            if overlay == "mean_lambda_local":
+                return df, "mean_lambda_local", True
+            if overlay == "bounded_share":
+                return df, "bounded_share", False
+            if overlay == "recovering_landings":
+                return df, "recovering_landings", False
+            if overlay == "attractor_score":
+                return df, "attractor_score", True
+            return df, "mean_lambda_local", True
 
         return pd.DataFrame(), "value", False
 
@@ -458,7 +551,6 @@ class ObservatoryApp(App):
 
         return pd.DataFrame(), "value", "max"
 
-
     def _marker_coords(self, top_n: int = 12) -> set[tuple[float, float]]:
         if self.state.marker_mode == "off":
             return set()
@@ -487,7 +579,6 @@ class ObservatoryApp(App):
         outdir.mkdir(parents=True, exist_ok=True)
         return outdir
 
-
     def _snapshot_selected_summary(self) -> dict[str, object]:
         if self.state.mode == "Run":
             return self._selected_run_cell_summary()
@@ -501,6 +592,8 @@ class ObservatoryApp(App):
             return self._selected_operators_summary()
         if self.state.mode == "Identity":
             return self._selected_identity_summary()
+        if self.state.mode == "Transitions":
+            return self._selected_transitions_summary()
         return {}
 
     def _snapshot_text(self) -> str:
@@ -517,6 +610,8 @@ class ObservatoryApp(App):
         lines.append(f"- view_space: {self.state.view_space}")
         lines.append(f"- marker_mode: {self.state.marker_mode}")
         lines.append(f"- right_pane_mode: {self.state.right_pane_mode}")
+        lines.append(f"- show_webbing: {self.state.show_webbing}")
+        lines.append(f"- webbing_mode: {self.state.webbing_mode}")
         lines.append(f"- selected_node_id: {self.state.selected_node_id}")
         lines.append(f"- selected_i: {self.state.selected_i}")
         lines.append(f"- selected_j: {self.state.selected_j}")
@@ -581,6 +676,7 @@ class ObservatoryApp(App):
         topology_summary = self._selected_topology_summary()
         operators_summary = self._selected_operators_summary()
         identity_summary = self._selected_identity_summary()
+        transitions_summary = self._selected_transitions_summary()
         marker_coords = self._marker_coords()
 
         self.query_one("#inspector", InspectorView).render_from_state(
@@ -591,6 +687,7 @@ class ObservatoryApp(App):
             topology_summary=topology_summary if self.state.mode == "Topology" else None,
             operators_summary=operators_summary if self.state.mode == "Operators" else None,
             identity_summary=identity_summary if self.state.mode == "Identity" else None,
+            transitions_summary=transitions_summary if self.state.mode == "Transitions" else None,
             index_mtime=self.run_data.index_mtime,
         )
 
@@ -607,11 +704,14 @@ class ObservatoryApp(App):
             mode_data = self.operators_data
         elif self.state.mode == "Identity":
             mode_data = self.identity_data
+        elif self.state.mode == "Transitions":
+            mode_data = self.transitions_data
 
         self.query_one("#manifold", ManifoldView).render_from_state(
             self.state,
             mode_data=mode_data,
             mds_data=self.mds_data,
+            edges_data=self.edges_data,
             grid_r_vals=self.grid_r_vals,
             grid_a_vals=self.grid_a_vals,
             marker_coords=marker_coords,
@@ -625,6 +725,7 @@ class ObservatoryApp(App):
             topology_summary=topology_summary if self.state.mode == "Topology" else None,
             operators_summary=operators_summary if self.state.mode == "Operators" else None,
             identity_summary=identity_summary if self.state.mode == "Identity" else None,
+            transitions_summary=transitions_summary if self.state.mode == "Transitions" else None,
         )
 
         self.query_one("#footer", FooterView).render_from_state(self.state)
@@ -637,6 +738,7 @@ class ObservatoryApp(App):
             ranking_df,
             active_index=self.state.ranking_index,
         )
+
         detail_widget = self.query_one("#detail", DetailView)
         ranking_widget = self.query_one("#ranking", RankingView)
 
@@ -646,7 +748,7 @@ class ObservatoryApp(App):
         else:
             detail_widget.display = False
             ranking_widget.display = True
-        
+
     def action_set_mode(self, mode: str) -> None:
         if mode not in MODES:
             return
@@ -666,6 +768,19 @@ class ObservatoryApp(App):
     def action_toggle_view(self) -> None:
         self.state.view_space = "mds" if self.state.view_space == "grid" else "grid"
         self.state.status_message = f"View set to {self.state.view_space.upper()}"
+        self._render_all()
+
+    def action_toggle_webbing(self) -> None:
+        self.state.show_webbing = not self.state.show_webbing
+        self.state.status_message = f"Webbing: {'on' if self.state.show_webbing else 'off'}"
+        self._render_all()
+
+    def action_cycle_webbing_mode(self) -> None:
+        order = ["all", "local"]
+        current = self.state.webbing_mode
+        idx = order.index(current) if current in order else 0
+        self.state.webbing_mode = order[(idx + 1) % len(order)]
+        self.state.status_message = f"Webbing mode: {self.state.webbing_mode}"
         self._render_all()
 
     def action_toggle_right_pane_mode(self) -> None:
@@ -714,7 +829,15 @@ class ObservatoryApp(App):
             self.state.outputs_root,
             self.state.observatory_root,
         )
+        self.transitions_data = load_transitions_data(
+            self.state.outputs_root,
+            self.state.observatory_root,
+        )
         self.mds_data = load_mds_data(
+            self.state.outputs_root,
+            self.state.observatory_root,
+        )
+        self.edges_data = load_edges_data(
             self.state.outputs_root,
             self.state.observatory_root,
         )
@@ -735,7 +858,6 @@ class ObservatoryApp(App):
         self.state.clamp_ranking_index(len(ranking_df))
         self.state.status_message = f"Ranking row {self.state.ranking_index + 1}"
         self._render_all()
-
 
     def action_ranking_up(self) -> None:
         if self.state.right_pane_mode != "ranking":
@@ -787,6 +909,7 @@ class ObservatoryApp(App):
 
         self.state.status_message = f"Snapshot written: {path.name}"
         self._render_all()
+
 
 def main() -> None:
     ObservatoryApp().run()

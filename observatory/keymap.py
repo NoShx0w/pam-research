@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-KEY_HINTS: list[str] = [
-    "1-6 mode",
+KEY_HINTS = [
+    "1-7 mode",
     "g grid/mds",
+    "w webbing",
+    "e edge mode",
     "o next overlay",
     "O prev overlay",
     "m markers",

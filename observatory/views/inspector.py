@@ -18,6 +18,7 @@ class InspectorView(Static):
         topology_summary: dict | None = None,
         operators_summary: dict | None = None,
         identity_summary: dict | None = None,
+        transitions_summary: dict | None = None,
         index_mtime: float | None = None,
     ) -> None:
         table = Table.grid(padding=(0, 1))
@@ -66,6 +67,14 @@ class InspectorView(Static):
             table.add_row("Obs | |", fmt_value(identity_summary["obstruction_mean_abs_holonomy"], 3))
             table.add_row("Obs ±", fmt_value(identity_summary["obstruction_signed_sum_holonomy"], 3))
             table.add_row("Spin*", fmt_value(identity_summary["identity_spin"], 3))
+
+        if transitions_summary:
+            table.add_row("r", fmt_value(transitions_summary["r"], 3))
+            table.add_row("α", fmt_value(transitions_summary["alpha"], 6))
+            table.add_row("λ local", fmt_value(transitions_summary["mean_lambda_local"], 3))
+            table.add_row("Bounded", fmt_value(transitions_summary["bounded_share"], 3))
+            table.add_row("Rec land", fmt_value(transitions_summary["recovering_landings"], 0))
+            table.add_row("Attr", fmt_value(transitions_summary["attractor_score"], 3))
 
         table.add_row("Refresh", "ON" if state.refresh_enabled else "OFF")
         table.add_row("Status", state.status_message)
