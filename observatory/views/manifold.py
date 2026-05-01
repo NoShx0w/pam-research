@@ -39,6 +39,15 @@ class ManifoldView(Static):
             return "obstruction_signed_sum_holonomy"
         return "identity_spin"
 
+    def _transitions_value_col(self, overlay: str) -> str:
+        if overlay == "bounded_share":
+            return "bounded_share"
+        if overlay == "recovering_landings":
+            return "recovering_landings"
+        if overlay == "attractor_score":
+            return "attractor_score"
+        return "mean_lambda_local"
+
     def _drawable_size(self) -> tuple[int, int]:
         width = max(10, self.size.width - 4)
         height = max(6, self.size.height - 2)
@@ -73,6 +82,68 @@ class ManifoldView(Static):
 
     def _marker_symbol(self) -> str:
         return "[yellow]✦[/]"
+
+    def _bresenham_points(self, x0: int, y0: int, x1: int, y1: int):
+        dx = abs(x1 - x0)
+        dy = -abs(y1 - y0)
+        sx = 1 if x0 < x1 else -1
+        sy = 1 if y0 < y1 else -1
+        err = dx + dy
+
+        x, y = x0, y0
+        while True:
+            yield x, y
+            if x == x1 and y == y1:
+                break
+            e2 = 2 * err
+            if e2 >= dy:
+                err += dy
+                x += sx
+            if e2 <= dx:
+                err += dx
+                y += sy
+
+    def _draw_mds_webbing(
+        self,
+        canvas,
+        coords_by_node_id: dict[int, tuple[int, int]],
+        edges_df,
+        *,
+        selected_node_id: int | None = None,
+        webbing_mode: str = "all",
+    ) -> None:
+        if edges_df is None or edges_df.empty:
+            return
+
+        use_df = edges_df
+        if webbing_mode == "local" and selected_node_id is not None:
+            use_df = edges_df[
+                (edges_df["source_node_id"] == selected_node_id)
+                | (edges_df["target_node_id"] == selected_node_id)
+            ].copy()
+
+        for _, edge in use_df.iterrows():
+            try:
+                u = int(edge["source_node_id"])
+                v = int(edge["target_node_id"])
+            except Exception:
+                continue
+
+            if u not in coords_by_node_id or v not in coords_by_node_id:
+                continue
+
+            x0, y0 = coords_by_node_id[u]
+            x1, y1 = coords_by_node_id[v]
+
+            is_selected_incident = (
+                selected_node_id is not None and (u == selected_node_id or v == selected_node_id)
+            )
+            glyph = "[bright_cyan]·[/]" if is_selected_incident else "[#5f5f5f]·[/]"
+
+            for xx, yy in self._bresenham_points(x0, y0, x1, y1):
+                if 0 <= yy < len(canvas) and 0 <= xx < len(canvas[yy]):
+                    if canvas[yy][xx] == " ":
+                        canvas[yy][xx] = glyph
 
     def _render_grid_blocks(
         self,
@@ -207,6 +278,7 @@ class ManifoldView(Static):
         self,
         state: ObservatoryState,
         mds_data,
+        edges_data=None,
         grid_r_vals=None,
         grid_a_vals=None,
         marker_coords=None,
@@ -255,20 +327,52 @@ class ManifoldView(Static):
                 grid_a_vals[state.selected_j],
             )
 
+        coords_by_node_id: dict[int, tuple[int, int]] = {}
+        selected_node_id: int | None = None
+        points: list[tuple[object, int, int, int | None, tuple[float, float], bool]] = []
+
         for _, row in df.iterrows():
             cx = scale_x(float(row["mds1"]))
             cy = scale_y(float(row["mds2"]))
             rr = height - 1 - cy
 
-            if 0 <= rr < height and 0 <= cx < width:
-                is_selected = (
-                    sel_key is not None
-                    and self._coord_key(row["r"], row["alpha"]) == sel_key
-                )
-                canvas[rr][cx] = "[black on bright_white]●[/]" if is_selected else "[cyan]•[/]"
+            row_key = self._coord_key(row["r"], row["alpha"])
+            is_selected = sel_key is not None and row_key == sel_key
 
-            row_key = (round(float(row["r"]), 9), round(float(row["alpha"]), 9))
+            node_id = None
+            if "node_id" in row.index:
+                try:
+                    if row["node_id"] == row["node_id"]:
+                        node_id = int(row["node_id"])
+                        coords_by_node_id[node_id] = (cx, rr)
+                except Exception:
+                    node_id = None
+
+            if is_selected and node_id is not None:
+                selected_node_id = node_id
+
+            points.append((row, cx, rr, node_id, row_key, is_selected))
+
+        if (
+            state.show_webbing
+            and edges_data is not None
+            and hasattr(edges_data, "edges_df")
+            and not edges_data.edges_df.empty
+        ):
+            self._draw_mds_webbing(
+                canvas,
+                coords_by_node_id,
+                edges_data.edges_df,
+                selected_node_id=selected_node_id,
+                webbing_mode=state.webbing_mode,
+            )
+
+        for row, cx, rr, node_id, row_key, is_selected in points:
+            if not (0 <= rr < height and 0 <= cx < width):
+                continue
+
             is_marker = marker_coords is not None and row_key in marker_coords
+
             if is_selected:
                 canvas[rr][cx] = "[black on bright_white]●[/]"
             elif is_marker:
@@ -320,6 +424,7 @@ class ManifoldView(Static):
         state: ObservatoryState,
         mode_data=None,
         mds_data=None,
+        edges_data=None,
         grid_r_vals=None,
         grid_a_vals=None,
         marker_coords=None,
@@ -328,6 +433,7 @@ class ManifoldView(Static):
             content = self._render_mds_real(
                 state,
                 mds_data,
+                edges_data=edges_data,
                 grid_r_vals=grid_r_vals,
                 grid_a_vals=grid_a_vals,
                 marker_coords=marker_coords,
@@ -395,6 +501,17 @@ class ManifoldView(Static):
                 grid_a_vals=grid_a_vals,
                 marker_coords=marker_coords,
             )
+        elif state.mode == "Transitions":
+            value_col = self._transitions_value_col(state.overlay)
+            content = self._render_scalar_grid(
+                state,
+                mode_data.transitions_df if mode_data else None,
+                value_col,
+                signed=(state.overlay in {"mean_lambda_local", "attractor_score"}),
+                grid_r_vals=grid_r_vals,
+                grid_a_vals=grid_a_vals,
+                marker_coords=marker_coords,
+            )
         else:
             content = self._render_run_grid(
                 state,
@@ -405,4 +522,10 @@ class ManifoldView(Static):
             )
 
         title = f"Manifold — {mode_label(state.mode)} / {state.view_space.upper()} / {overlay_label(state.overlay)}"
+        if state.view_space == "mds":
+            web = "off"
+            if state.show_webbing:
+                web = f"on:{state.webbing_mode}"
+            title += f" / web:{web}"
+
         self.update(Panel(content, title=title, border_style="green"))

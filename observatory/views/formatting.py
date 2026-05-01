@@ -33,6 +33,10 @@ OVERLAY_LABELS: dict[str, str] = {
     "unsigned_local_obstruction": "Unsigned Obstruction",
     "signed_local_obstruction": "Signed Obstruction",
     "legacy_spin": "Legacy Spin (cmp)",
+    "mean_lambda_local": "Mean λ Local",
+    "bounded_share": "Bounded Share",
+    "recovering_landings": "Recovering Landings",
+    "attractor_score": "Attractor Score",
 }
 
 
@@ -43,6 +47,7 @@ MODE_LABELS: dict[str, str] = {
     "Topology": "Topology",
     "Operators": "Operators",
     "Identity": "Identity",
+    "Transitions": "Transitions",
 }
 
 
@@ -111,6 +116,26 @@ OVERLAY_META: dict[str, dict[str, str]] = {
         "kind": "signed",
         "encoding": "blue↔red sign / magnitude",
         "meaning": "Legacy local comparison proxy, not primary.",
+    },
+    "mean_lambda_local": {
+        "kind": "signed",
+        "encoding": "blue↔red sign / magnitude",
+        "meaning": "OBS-051 local divergence estimate projected onto node visitation.",
+    },
+    "bounded_share": {
+        "kind": "unsigned",
+        "encoding": "low→high bounded fraction",
+        "meaning": "OBS-051 fraction of local comparisons that remained bounded.",
+    },
+    "recovering_landings": {
+        "kind": "unsigned",
+        "encoding": "low→high landing count",
+        "meaning": "OBS-052 count of recovery-like landings accumulated at the node.",
+    },
+    "attractor_score": {
+        "kind": "signed",
+        "encoding": "blue↔red signed basin score",
+        "meaning": "OBS-052 provisional composite basin score.",
     },
 }
 

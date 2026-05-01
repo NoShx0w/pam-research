@@ -5,7 +5,6 @@ from rich.panel import Panel
 from textual.widgets import Static
 
 from observatory.state import ObservatoryState
-from observatory.views.formatting import fmt_value, overlay_label
 from observatory.views.formatting import fmt_value, overlay_label, overlay_meta
 
 
@@ -19,6 +18,7 @@ class DetailView(Static):
         topology_summary: dict | None = None,
         operators_summary: dict | None = None,
         identity_summary: dict | None = None,
+        transitions_summary: dict | None = None,
     ) -> None:
         meta = overlay_meta(state.overlay)
         cue_block = f"""
@@ -28,6 +28,7 @@ class DetailView(Static):
 - encoding: `{meta["encoding"]}`
 - meaning: {meta["meaning"]}
 """
+
         if state.mode == "Run":
             body = Markdown(
                 f"""
@@ -45,6 +46,7 @@ class DetailView(Static):
 {cue_block}
 """
             )
+
         elif state.mode == "Geometry":
             body = Markdown(
                 f"""
@@ -61,6 +63,7 @@ class DetailView(Static):
 {cue_block}
 """
             )
+
         elif state.mode == "Phase":
             body = Markdown(
                 f"""
@@ -76,6 +79,7 @@ class DetailView(Static):
 {cue_block}
 """
             )
+
         elif state.mode == "Topology":
             body = Markdown(
                 f"""
@@ -90,6 +94,7 @@ class DetailView(Static):
 {cue_block}
 """
             )
+
         elif state.mode == "Operators":
             body = Markdown(
                 f"""
@@ -104,6 +109,7 @@ class DetailView(Static):
 {cue_block}
 """
             )
+
         elif state.mode == "Identity":
             body = Markdown(
                 f"""
@@ -128,6 +134,34 @@ class DetailView(Static):
 - comparison: legacy spin
 """
             )
+
+        elif state.mode == "Transitions":
+            body = Markdown(
+                f"""
+### Selected transition node
+- node_id: `{state.selected_node_id}`
+- r: `{fmt_value(transitions_summary["r"], 3) if transitions_summary else "—"}`
+- alpha: `{fmt_value(transitions_summary["alpha"], 6) if transitions_summary else "—"}`
+- seam band: `{transitions_summary["seam_band"] if transitions_summary and transitions_summary.get("seam_band") is not None else "—"}`
+- coupling class: `{transitions_summary["coupling_class"] if transitions_summary and transitions_summary.get("coupling_class") is not None else "—"}`
+- mean lambda local: `{fmt_value(transitions_summary["mean_lambda_local"], 3) if transitions_summary else "—"}`
+- bounded share: `{fmt_value(transitions_summary["bounded_share"], 3) if transitions_summary else "—"}`
+- recovering landings: `{fmt_value(transitions_summary["recovering_landings"], 0) if transitions_summary else "—"}`
+- nonrecovering landings: `{fmt_value(transitions_summary["nonrecovering_landings"], 0) if transitions_summary else "—"}`
+- total landings: `{fmt_value(transitions_summary["total_landings"], 0) if transitions_summary else "—"}`
+- attractor score: `{fmt_value(transitions_summary["attractor_score"], 3) if transitions_summary else "—"}`
+- basin class: `{transitions_summary["basin_class"] if transitions_summary and transitions_summary.get("basin_class") is not None else "—"}`
+
+### Active overlay
+`{overlay_label(state.overlay)}`
+{cue_block}
+
+### Transition layer notes
+- `mean_lambda_local` and `bounded_share` are OBS-051-derived
+- `attractor_score` / `basin_class` are OBS-052-derived and provisional
+"""
+            )
+
         else:
             body = Markdown(
                 f"""

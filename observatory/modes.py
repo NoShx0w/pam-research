@@ -7,6 +7,7 @@ MODES: list[str] = [
     "Topology",
     "Operators",
     "Identity",
+    "Transitions",
 ]
 
 DEFAULT_OVERLAY_BY_MODE: dict[str, str] = {
@@ -16,6 +17,7 @@ DEFAULT_OVERLAY_BY_MODE: dict[str, str] = {
     "Topology": "criticality",
     "Operators": "lazarus",
     "Identity": "signed_local_obstruction",
+    "Transitions": "mean_lambda_local",
 }
 
 OVERLAYS_BY_MODE: dict[str, list[str]] = {
@@ -30,5 +32,11 @@ OVERLAYS_BY_MODE: dict[str, list[str]] = {
         "unsigned_local_obstruction",
         "signed_local_obstruction",
         "legacy_spin",
+    ],
+    "Transitions": [
+        "mean_lambda_local",
+        "bounded_share",
+        "recovering_landings",
+        "attractor_score",
     ],
 }
