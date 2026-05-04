@@ -1034,3 +1034,77 @@ Introduces a two-stage instability discriminator combining seam-coupling persist
 Normalized from the extended OBS-051 entry; divergence formulation, group separation, and combined interpretation with OBS-050 preserved without modification.
 
 ---
+
+## OBS-052
+
+**Date:** 2026-05-01  
+**State:** Attractor basin mapping established from recurrence, boundedness, roughness, seam-drift, and recovery landing density
+
+**Claim:**  
+Recovery-like coupled windows preferentially land in seam-aligned, recurrent, bounded, low-drift node regions, forming a distinct alignment-sink basin class separate from a seam-far decoupled sink regime.
+
+**Summary:**  
+A first node-level attractor-basin analysis was constructed by integrating recurrence, local divergence, roughness, seam-drift, and recovery landing density into a composite attractor score. This extends the observatory from window-level instability analysis (OBS-050, OBS-051) to node-level landing structure, allowing recovery behavior to be studied as a geometric distribution over the manifold.
+
+The analysis identifies two stable basin classes. The alignment-sink class is characterized by higher attractor scores, lower divergence, lower roughness, and higher recovery landing density, and is predominantly seam-aligned. The decoupled-sink class is seam-far, with higher roughness and lower recovery favorability, though still recurrent. This establishes that recovery-like dynamics do not terminate uniformly, but preferentially accumulate in specific structured regions.
+
+Although numerical outputs vary across runs in exact node rankings and class sizes, the higher-level two-class basin structure remains stable. The result is therefore robust at the class level, even if individual node identities are not yet fixed. This supports a structured attractor interpretation rather than a single undifferentiated sink.
+
+Overall, the manifold now exhibits a first attractor-basin layer in which recovery-like bounded dynamics are linked to seam-aligned landing regions, while a contrasting seam-far recurrent regime coexists with weaker recovery association.
+
+**Operational consequence:**  
+Introduces a node-level attractor-basin instrument linking recovery behavior to landing geometry, enabling classification of nodes into seam-aligned and seam-far sink regimes based on composite dynamical and geometric features.
+
+**Recovery note:**  
+First-pass basin construction; class structure is stable but node-level rankings and exact statistics remain provisional pending run provenance stabilization.
+
+---
+
+## OBS-053
+
+**Date:** 2026-05-01  
+**State:** Family-structured external witnessing established in the GPT-5.2 linked-response subset
+
+**Claim:**  
+Link-bearing responses in the GPT-5.2 corpus exhibit a non-random, family-structured mode of external witnessing rather than incidental link insertion.
+
+**Summary:**  
+A qualitative, response-level analysis was conducted on the linked-response subset across corpora `C`, `Cp`, and `Cp4`, all generated under GPT-5.2. Each response was annotated using a structured taxonomy capturing family mode, packet structure, motifs, and witnessing role. This established a controlled observational basis for evaluating whether links function as structured elements rather than incidental additions.
+
+Three distinct family-level witnessing modes were identified. In `C`, links form geometric externalizations, organizing conceptual space through staged, often atlas-like constructions. In `Cp`, links appear as compact formal-structural packets, tightly aligned with the logical content of the prose. In `Cp4`, links operate as distributed-emergence packets, emphasizing coherence arising from interaction, network formation, and developmental structure.
+
+These patterns demonstrate that links act as external witnesses whose structure reflects the underlying discourse regime. The linked-response layer therefore preserves family distinctions not only in language but in how external conceptual material is selected, organized, and deployed.
+
+**Operational consequence:**  
+Establishes a response-level taxonomy for linked outputs and promotes the linked-response layer to a valid observatory surface, enabling structured annotation and cross-family comparison of external witnessing behavior.
+
+**Recovery note:**  
+Scope restricted to GPT-5.2 corpus stage; qualitative and annotation-backed; taxonomy and specimen set refined with provenance correction (e.g., removal of Cp:27).
+
+---
+
+## OBS-054
+
+**Date:** 2026-05-01  
+**State:** Linked-response taxonomy instrument consolidated at repository level
+
+**Claim:**  
+The linked-response study has matured into a stable, repository-level observatory instrument with defined ontology, artifacts, and method.
+
+**Summary:**  
+Following the establishment of family-structured external witnessing, the linked-response layer was formalized into a repository-ready instrument. A response-level taxonomy artifact was constructed with one row per linked response, capturing corpus identity, link structure, family mode, subtype, packet architecture, motifs, and interpretive annotations. This converts the stage from qualitative narrative into a structured and reusable dataset.
+
+A controlled vocabulary was stabilized across three family modes—geometric externalization, formal-structural packetization, and distributed-emergence packetization—along with a second layer of subtype labels. These vocabularies define the current ontology of external witnessing and enable consistent classification across the linked-response subset.
+
+Repository-facing documentation was produced to preserve the stage, including taxonomy definitions, annotation protocol, and artifact indexing. Scope constraints were explicitly frozen: the study is limited to GPT-5.2, applies only to the linked-response subset, and remains qualitative and annotation-backed. Provenance discipline was incorporated through explicit correction procedures, including removal of misclassified specimens.
+
+The result is a transition from conversational observation to a durable observatory layer with stable terminology, reproducible method, and preserved artifacts.
+
+**Operational consequence:**  
+Promotes the linked-response layer to a reusable research instrument, enabling structured analysis, comparison, and downstream quantitative or cross-layer integration without re-deriving the taxonomy.
+
+**Recovery note:**  
+Instrument is stable but provisional; lacks inter-rater validation, full statistical treatment, and cross-model generalization; scope explicitly limited to GPT-5.2 linked-response subset.
+
+---
+
