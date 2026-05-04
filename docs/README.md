@@ -1,6 +1,6 @@
 # Documentation
 
-This directory contains the canonical explanatory surface of the PAM repository, along with project history, interface docs, planning notes, and research provenance.
+This directory contains the canonical explanatory surface of the PAM repository, along with project history, interface docs, planning notes, observatory notes, and research provenance.
 
 The repository now has a fairly rich documentation tree. Not all documents play the same role, so the sections below indicate which materials should be treated as canonical reference, which are project-facing scientific docs, and which are planning or historical records.
 
@@ -27,7 +27,9 @@ These are the best starting points for understanding the current observatory.
 
 ## Project and research-arc docs
 
-These documents capture the evolving scientific program, stabilization work, and current canonical project objects.
+These documents capture the evolving scientific program, stabilization work, canonical project objects, and repository-facing observatory-stage instruments.
+
+Primary project-facing docs include:
 
 - `05_project/README.md`
 - `05_project/canonical_event_family_classification_spec.md`
@@ -36,7 +38,13 @@ These documents capture the evolving scientific program, stabilization work, and
 - `05_project/canonical_family_layer_status.md`
 - `05_project/canonical_response_guided_flow.md`
 
-These should be read as the current project-facing scientific reference layer.
+The `05_project/` section now also includes repository-facing observatory-stage docs for the linked-response study:
+
+- `05_project/linked_response_family_taxonomy.md`
+- `05_project/linked_response_annotation_protocol.md`
+- `05_project/linked_response_artifacts.md`
+
+These should be read as the current project-facing scientific reference layer for stabilized or stabilization-ready observatory objects.
 
 ## Concept docs
 
@@ -72,16 +80,17 @@ These documents are useful for understanding how the observatory evolved, but th
 
 ## Provenance and notes
 
-Some documents are kept as research provenance, conceptual notes, or supporting context.
+Some documents are kept as research provenance, observatory notes, conceptual notes, or supporting context.
 
 Examples include:
 
+- observatory log entries and stage notes
 - conversation excerpts
 - notes
 - vision or framing texts
 - prompt / tooling notes
 
-These belong in the repository because they preserve development context, but they are secondary to the canonical reference and project docs.
+These belong in the repository because they preserve development context, but they are secondary to the canonical reference and project docs unless explicitly promoted.
 
 ## Reading order
 
@@ -99,7 +108,7 @@ A good reading path is:
 10. `05_project/`
 11. `04_interface/`
 
-This order moves from high-level framing to observatory mechanics, then to architecture and concept objects, then to project-specific canonical layers, and finally to the operational interface.
+This order moves from high-level framing to observatory mechanics, then to architecture and concept objects, then to project-specific canonical layers and observatory-stage instruments, and finally to the operational interface.
 
 ## Status notes
 
@@ -107,8 +116,10 @@ When in doubt:
 
 - treat `src/pam/` as the canonical implementation layer
 - treat `docs/` as the canonical explanatory layer
+- treat `research_log.md` as the primary observatory-log surface
 - treat `experiments/` as reproducible study and entrypoint history unless explicitly promoted
 - treat planning docs as historical or roadmap material unless they are marked as current reference
+- treat `05_project/` as the main home for project-facing stabilization docs and repository-facing observatory-stage consolidations
 
 The repository’s scientific core is increasingly organized around a clean separation between:
 
@@ -116,6 +127,13 @@ The repository’s scientific core is increasingly organized around a clean sepa
 - the **observatory spine**, which turns those outputs into stable scientific artifact layers
 
 That split is now documented explicitly in `docs/architecture/`.
+
+The repository also now includes a second important distinction inside the documentation layer:
+
+- **runtime/canonical implementation-facing documents**
+- **repository-facing observatory-stage instruments**, such as the linked-response taxonomy layer
+
+That distinction matters when reading `05_project/`.
 
 ## Practical note
 
@@ -125,6 +143,7 @@ The current aim is not to remove every historical or planning document, but to m
 
 - canonical reference
 - project-facing scientific status
+- observatory-stage instrument documentation
 - interface practice
 - planning history
 - and research provenance

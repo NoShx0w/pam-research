@@ -4,7 +4,7 @@
 
 The PAM Observatory is a computational instrument for studying phase structure in recursive language systems.
 
-It combines controlled corpus dynamics, information geometry, phase extraction, topology analysis, and operator-based probing to reveal how systems organize, transition, and stabilize across a parameter manifold.
+It combines controlled corpus dynamics, information geometry, phase extraction, topology analysis, operator-based probing, and repository-facing observatory instrumentation to reveal how systems organize, transition, stabilize, and become legible across a parameter manifold.
 
 ![Python](https://img.shields.io/badge/python-3.14-blue)
 ![Status](https://img.shields.io/badge/status-observatory_active-green)
@@ -24,6 +24,8 @@ DOI: [10.5281/zenodo.19218700](https://doi.org/10.5281/zenodo.19218700)
 
 Active research repository.  
 The canonical instrument architecture is now implemented in layered package form under `src/pam/`, with a single full-pipeline entrypoint under `scripts/`.
+
+The repository also now includes a growing repository-facing observatory/documentation layer for scientifically mature stages that are not yet promoted into the runtime package.
 
 ---
 
@@ -68,8 +70,9 @@ by running controlled recursive experiments and extracting structure at multiple
 - **phase** — how regimes are separated
 - **operators** — how the manifold is actively probed
 - **topology** — how the field is structurally organized
+- **observatory documentation** — how scientifically mature stages are preserved as repository-facing instruments
 
-The repository has evolved from a script-heavy analysis workflow into a **canonical layered instrument**.
+The repository has evolved from a script-heavy analysis workflow into a **canonical layered instrument** with an increasingly explicit observatory-facing documentation surface.
 
 ---
 
@@ -188,6 +191,32 @@ This layer is established at first pass, but remains methodologically discretize
 
 ---
 
+## Linked-Response Observatory Layer
+
+The repository now also includes a repository-facing linked-response observatory layer.
+
+This layer captures a qualitative, annotation-backed study of the **link-bearing response subset** of the corpus stage and currently lives in:
+
+- `docs/05_project/linked_response_family_taxonomy.md`
+- `docs/05_project/linked_response_annotation_protocol.md`
+- `docs/05_project/linked_response_artifacts.md`
+
+Current family-level result:
+
+- `C` → `geometric_externalization`
+- `Cp` → `formal_structural_packetization`
+- `Cp4` → `distributed_emergence_packetization`
+
+Important scope note:
+
+- this linked-response stage is currently **within-model**
+- all corpora in that stage were generated with **GPT-5.2**
+- the result is **annotation-backed** and **provisional**
+
+This layer is not a runtime primitive. It should be understood as a repository-facing observatory instrument and documentation surface.
+
+---
+
 ## Conceptual Layers
 
 ### Engine
@@ -210,6 +239,9 @@ Active probing of the manifold through geodesic extraction, canonical probes, sc
 
 ### Topology
 Critical structure, field alignment, organizational summaries, and phase-selection structure.
+
+### Observatory Documentation
+Repository-facing preservation of scientifically mature observatory stages, artifact layers, and taxonomy instruments.
 
 ---
 
@@ -263,6 +295,13 @@ The repository remains file-first:
 
 Many legacy experiment wrappers are preserved under `experiments/` for compatibility and inspection, but the canonical runtime path is now the pipeline runner.
 
+Some observatory-stage results are preserved primarily through:
+- `docs/05_project/`
+- `docs/research_log.md`
+- repository-facing artifact bundles
+
+Those layers complement the runtime, but are not always promoted into `src/pam/`.
+
 ---
 
 ## Documentation
@@ -276,7 +315,10 @@ Useful repository anchors:
 - `src/pam/pipeline/runner.py`
 - `scripts/run_full_pipeline.sh`
 - `observatory/corpora/README.md`
+- `docs/research_log.md`
+- `docs/05_project/README.md`
 - `docs/05_project/canonical_family_layer_status.md`
+- `docs/05_project/linked_response_family_taxonomy.md`
 
 ---
 
@@ -292,12 +334,13 @@ Useful repository anchors:
 - downstream canonical family/gateway layer implemented and validated
 - corpora externalized into observatory data storage
 - first response-guided dynamical flow layer implemented and documented
+- linked-response observatory layer documented and artifactized at repository level
 
 ---
 
 ## One-Line Summary
 
-> The PAM Observatory is a layered instrument for extracting geometric, phase, topological, operator, and canonical family structure from recursive language dynamics.
+> The PAM Observatory is a layered instrument for extracting geometric, phase, topological, operator, canonical family, and repository-facing observatory structure from recursive language dynamics.
 
 ---
 

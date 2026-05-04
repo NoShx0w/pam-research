@@ -2,7 +2,7 @@
 
 This folder mixes two kinds of material:
 
-Canonical project reference
+## Canonical project reference
 
 These documents define current repository-facing project objects and contracts, such as:
 
@@ -10,12 +10,15 @@ These documents define current repository-facing project objects and contracts, 
 - canonical classification and normalization specs
 - gateway spec
 - canonical response-guided flow
+- linked-response family taxonomy and annotation protocol
 
-Planning / historical design material
+## Planning / historical design material
 
 Some files in this folder are retained as implementation plans or stabilization notes. These are useful for historical context and development tracking, but they are not always the current canonical reference surface.
 
 When reading this folder, prefer the canonical reference docs first, then consult planning documents for implementation history or roadmap context.
+
+---
 
 # Project
 
@@ -29,6 +32,7 @@ It is the home for:
 - milestone and release notes
 - repository maintenance procedures
 - canonical layer status and architecture notes
+- observatory-stage repository-facing documentation
 
 ## Current role
 
@@ -38,6 +42,7 @@ The repository now has:
 - a downstream canonical family/gateway layer implemented in `scripts/canonical/`
 - a first repository-facing canonical dynamical-layer object for OBS-043
 - validated canonical artifacts under `outputs/canonical/`
+- a repository-facing linked-response observatory layer preserved through OBS-053 and OBS-054
 
 Primary runtime entrypoints:
 
@@ -47,6 +52,8 @@ Primary runtime entrypoints:
 Primary architecture reference:
 
 - [`../architecture.md`](../architecture.md)
+
+---
 
 ## Canonical family layer
 
@@ -77,6 +84,8 @@ Current artifact root:
 
 - `outputs/canonical/`
 
+---
+
 ## Canonicalization and stabilization
 
 The documents in this section define **provisional canonical contracts** for research structures that are scientifically mature enough to stabilize, but not yet ready to be treated as fully internalized runtime primitives.
@@ -88,6 +97,8 @@ These documents are intended to:
 - distinguish canonical direction from transitional study outputs
 - improve public-facing transparency as the repository catches up to the science
 - mark what is implemented, what is validated, and what remains provisional
+
+---
 
 ## Canonical dynamical layer
 
@@ -109,6 +120,47 @@ Related study scripts include:
 - `experiments/studies/obs043b_response_flow_path_families.py`
 
 This dynamical layer is now scientifically established at first pass, but remains methodologically discretized and is not yet promoted into `src/pam/`.
+
+---
+
+## Linked-response observatory layer
+
+The repository now also includes a repository-facing linked-response observatory layer.
+
+This layer was formalized through:
+
+- `OBS-053` — family-structured external witnessing in the GPT-5.2 linked-response subset
+- `OBS-054` — consolidation of the linked-response taxonomy instrument at repository level
+
+Current linked-response reference docs:
+
+- [`linked_response_family_taxonomy.md`](./linked_response_family_taxonomy.md)
+- [`linked_response_annotation_protocol.md`](./linked_response_annotation_protocol.md)
+- [`linked_response_artifacts.md`](./linked_response_artifacts.md)
+
+Current linked-response artifact set:
+- patched linked-response taxonomy bundle
+- response-level taxonomy CSV
+- enriched source CSV
+- family summary CSV
+- controlled vocabulary CSV
+
+Current linked-response family modes:
+
+- `geometric_externalization`
+- `formal_structural_packetization`
+- `distributed_emergence_packetization`
+
+Important scope note:
+
+- this linked-response stage is currently **within-model**
+- all corpora in this stage were generated with **GPT-5.2**
+- the taxonomy is **annotation-backed** and **provisional**
+- `Cp:27` was removed after GUI verification showed it was not truly link-bearing in the original response
+
+This layer is not yet a runtime primitive. It is best understood as a repository-facing observatory instrument and documentation layer.
+
+---
 
 ## Current architectural status
 
@@ -136,12 +188,18 @@ Promotion should wait until:
 - event/trajectory linkage matures
 - and multi-corpus pressure testing is further along
 
+The linked-response observatory layer is now:
+
+- documented
+- artifactized
+- vocabulary-stabilized
+- provenance-corrected
+
+But it remains a qualitative observatory surface rather than a promoted runtime layer.
+
+---
+
 ## Documents
-
-Current project-level documents include:
-
-- [`OBS-015.md`](./OBS-015.md)
-- [`pam_identity_transport_holonomy_stabilization_plan.md`](./pam_identity_transport_holonomy_stabilization_plan.md)
 
 Canonical family-layer documents include:
 
@@ -150,9 +208,23 @@ Canonical family-layer documents include:
 - `canonical_event_normalization_contract.md`
 - `canonicalization_implementation_plan.md`
 
-A current status note for the implemented canonical layer should also live in this section.
+Canonical dynamical-layer document:
 
 - [`canonical_response_guided_flow.md`](./canonical_response_guided_flow.md)
+
+Linked-response observatory documents:
+
+- [`linked_response_family_taxonomy.md`](./linked_response_family_taxonomy.md)
+- [`linked_response_annotation_protocol.md`](./linked_response_annotation_protocol.md)
+- [`linked_response_artifacts.md`](./linked_response_artifacts.md)
+
+Observatory notes directly relevant to the current project layer include:
+
+- `OBS-052` — attractor basin mapping
+- `OBS-053` — linked-response family taxonomy finding
+- `OBS-054` — linked-response instrument consolidation
+
+---
 
 ## Guidance
 
@@ -161,4 +233,10 @@ For current runtime and high-level structure, prefer:
 - the repository root documentation
 - [`../architecture.md`](../architecture.md)
 
-For project-level stabilization, canonicalization, implementation planning, and canonical-layer status, prefer the documents in this section.
+For project-level stabilization, canonicalization, implementation planning, observatory-stage consolidation, and repository-facing instrument notes, prefer the documents in this section.
+
+For the linked-response stage specifically, start with:
+
+1. [`linked_response_family_taxonomy.md`](./linked_response_family_taxonomy.md)
+2. [`linked_response_annotation_protocol.md`](./linked_response_annotation_protocol.md)
+3. [`linked_response_artifacts.md`](./linked_response_artifacts.md)
