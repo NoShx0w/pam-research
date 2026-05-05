@@ -203,10 +203,10 @@ But it remains a qualitative observatory surface rather than a promoted runtime 
 
 Canonical family-layer documents include:
 
-- `canonical_family_gateway_spec.md`
-- `canonical_event_family_classification_spec.md`
-- `canonical_event_normalization_contract.md`
-- `canonicalization_implementation_plan.md`
+- [`canonical_family_gateway_spec.md`](./canonical_family_gateway_spec.md)
+- [`canonical_event_family_classification_spec.md`](./canonical_event_family_classification_spec.md)
+- [`canonical_event_normalization_contract.md`](./canonical_event_normalization_contract.md)
+- [`canonicalization_implementation_plan.md`](./canonicalization_implementation_plan.md)
 
 Canonical dynamical-layer document:
 
@@ -217,6 +217,10 @@ Linked-response observatory documents:
 - [`linked_response_family_taxonomy.md`](./linked_response_family_taxonomy.md)
 - [`linked_response_annotation_protocol.md`](./linked_response_annotation_protocol.md)
 - [`linked_response_artifacts.md`](./linked_response_artifacts.md)
+
+Artifact registry:
+
+- [`artifact_registry.md`](./artifact_registry.md) — file-first index of major runtime, downstream canonical, and repository-facing observatory artifacts, including status and scope caveats
 
 Observatory notes directly relevant to the current project layer include:
 
