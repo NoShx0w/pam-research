@@ -1,4 +1,5 @@
-et -euo pipefail
+#!/usr/bin/env bash
+set -euo pipefail
 
 # run_observatory_chain_obs028c_to_obs051.sh
 #
@@ -211,6 +212,42 @@ main() {
 
   if [[ "$RUN_SCENE_PREP" == "1" ]]; then
     run_scene_prep
+    verify_nonempty "$OUTPUTS_ROOT/obs022_scene_bundle/scene_routes.csv"
+
+    "$PYTHON_BIN" - <<'PY'
+import pandas as pd
+from pathlib import Path
+
+p = Path("outputs/obs022_scene_bundle/scene_routes.csv")
+df = pd.read_csv(p)
+
+required = {"path_id", "step", "path_family", "is_branch_away", "is_representative"}
+missing = required - set(df.columns)
+if missing:
+    raise SystemExit(f"ERROR: scene_routes.csv missing route-class basis columns: {sorted(missing)}")
+
+path = (
+    df.groupby("path_id", as_index=False)
+      .agg(
+          path_family=("path_family", "first"),
+          is_branch_away=("is_branch_away", "max"),
+          is_representative=("is_representative", "max"),
+          n_steps=("step", "count"),
+      )
+)
+
+n_branch = int((path["is_branch_away"] == 1).sum())
+n_stable_rep = int(((path["is_representative"] == 1) & (path["path_family"] == "stable_seam_corridor")).sum())
+n_reorg_rep = int(((path["is_representative"] == 1) & (path["path_family"] == "reorganization_heavy")).sum())
+
+print("OBS-022 route-class basis:")
+print(f"  branch_exit paths: {n_branch}")
+print(f"  stable_seam_corridor representative paths: {n_stable_rep}")
+print(f"  reorganization_heavy representative paths: {n_reorg_rep}")
+
+if n_branch == 0 or n_stable_rep == 0 or n_reorg_rep == 0:
+    raise SystemExit("ERROR: OBS-022 route-class basis incomplete.")
+PY
   fi
 
   if [[ "$RUN_OBS050" == "1" ]]; then
