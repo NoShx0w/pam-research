@@ -18,7 +18,7 @@ do the selected origin paths carry distinctive route-class structure?
 
 Controls
 --------
-This first OBS-058 implementation is deterministic and deliberately small:
+This OBS-058 implementation is deterministic and deliberately small:
 
 1. Profile all OBS-022 paths.
 2. Identify selected origin paths:
@@ -44,7 +44,10 @@ This first OBS-058 implementation is deterministic and deliberately small:
    - mean_lazarus_score
    - mean_response_strength
 
-5. Run class-level replacement:
+5. Record whether the selected/decoy pair is profile-exact under the current
+   matching features.
+
+6. Run class-level replacement:
    - replace all selected paths for one route_class with matched decoys
    - keep the other two route classes unchanged
    - recompute transition signatures and full transition distributions
@@ -61,6 +64,7 @@ outputs/obs058_matched_decoy_route_origin_controls/
   obs058_all_path_profile.csv
   obs058_selected_path_profile.csv
   obs058_decoy_candidate_pool.csv
+  obs058_nearest_decoy_candidates.csv
   obs058_matched_decoy_pairs.csv
   obs058_baseline_transition_signature.csv
   obs058_baseline_transition_distribution.csv
@@ -74,10 +78,14 @@ Scope
 This does not validate route classes globally.
 
 It tests whether deterministic nearest-neighbor decoys can reproduce the
-transition signatures of the selected OBS-022 / OBS-030 origin substrate.
+transition signatures of the selected OBS-022 / OBS-030 route-origin substrate.
 
-Random decoy ensembles, threshold variants, and downstream motif/generator
-propagation are intentionally left for later passes.
+If the selected/decoy pairs are profile-exact, this should be interpreted as
+profile-exact matched-decoy survival, not as random-decoy or arbitrary-decoy
+survival.
+
+Random decoy ensembles, non-exact decoy exclusion, threshold variants, and
+downstream motif/generator propagation are intentionally left for later passes.
 """
 
 from __future__ import annotations
@@ -135,6 +143,7 @@ class Config:
     allow_decoy_reuse: bool = False
     branch_decoy_same_family: bool = False
     max_candidates_per_selected: int = 0
+    exact_match_tolerance: float = 1e-12
 
 
 def read_csv_numeric(path: str | Path, text_cols: Iterable[str]) -> pd.DataFrame:
@@ -289,10 +298,6 @@ def assign_state_type(row: pd.Series, cfg: Config) -> str:
     return "mixed_seam"
 
 
-def selected_origin_routes(routes: pd.DataFrame) -> pd.DataFrame:
-    return routes[routes["route_class"].isin(CLASS_ORDER)].copy()
-
-
 def build_path_profile(routes: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     rows = []
     corpus = cfg.corpus_label or "unspecified"
@@ -333,7 +338,11 @@ def build_path_profile(routes: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     out = pd.DataFrame(rows)
     if len(out):
         out["route_class_order"] = out["route_class"].map({c: i for i, c in enumerate(CLASS_ORDER)}).fillna(99)
-        out = out.sort_values(["route_class_order", "path_family", "path_id"]).drop(columns=["route_class_order"]).reset_index(drop=True)
+        out = (
+            out.sort_values(["route_class_order", "path_family", "path_id"])
+            .drop(columns=["route_class_order"])
+            .reset_index(drop=True)
+        )
     return out
 
 
@@ -409,7 +418,25 @@ def standardized_distance(a: pd.Series, b: pd.Series, scales: dict[str, tuple[fl
     return float(np.sqrt(np.sum(diffs)))
 
 
-def build_matched_decoy_pairs(profile: pd.DataFrame, pool: pd.DataFrame, cfg: Config) -> pd.DataFrame:
+def raw_feature_max_abs_delta(row: dict | pd.Series) -> float:
+    deltas = []
+    for col in MATCH_FEATURES:
+        delta_col = f"delta_{col}"
+        val = pd.to_numeric(row.get(delta_col), errors="coerce")
+        if pd.notna(val):
+            deltas.append(abs(float(val)))
+    return max(deltas) if deltas else float("inf")
+
+
+def is_profile_exact(row: dict | pd.Series, tol: float) -> bool:
+    return raw_feature_max_abs_delta(row) <= tol
+
+
+def build_matched_decoy_pairs(
+    profile: pd.DataFrame,
+    pool: pd.DataFrame,
+    cfg: Config,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     selected = profile[profile["route_class"].isin(CLASS_ORDER)].copy()
     selected = selected.sort_values(["route_class", "path_id"]).reset_index(drop=True)
 
@@ -434,6 +461,8 @@ def build_matched_decoy_pairs(profile: pd.DataFrame, pool: pd.DataFrame, cfg: Co
                     "decoy_path_id": "",
                     "match_status": "no_candidate",
                     "matching_distance": np.inf,
+                    "profile_exact_match": False,
+                    "max_abs_raw_feature_delta": np.inf,
                 }
             )
             continue
@@ -454,6 +483,13 @@ def build_matched_decoy_pairs(profile: pd.DataFrame, pool: pd.DataFrame, cfg: Co
 
         keep["selected_path_id"] = sel["path_id"]
         keep["selected_route_class"] = cls
+
+        for col in MATCH_FEATURES:
+            keep[f"selected_{col}"] = sel.get(col, np.nan)
+            keep[f"delta_{col}"] = pd.to_numeric(keep[col], errors="coerce") - pd.to_numeric(sel.get(col), errors="coerce")
+
+        keep["max_abs_raw_feature_delta"] = keep.apply(raw_feature_max_abs_delta, axis=1)
+        keep["profile_exact_match"] = keep["max_abs_raw_feature_delta"] <= cfg.exact_match_tolerance
         candidate_rows.append(keep)
 
         best = candidates.iloc[0]
@@ -478,6 +514,9 @@ def build_matched_decoy_pairs(profile: pd.DataFrame, pool: pd.DataFrame, cfg: Co
             row[f"selected_{col}"] = sel.get(col, np.nan)
             row[f"decoy_{col}"] = best.get(col, np.nan)
             row[f"delta_{col}"] = pd.to_numeric(best.get(col), errors="coerce") - pd.to_numeric(sel.get(col), errors="coerce")
+
+        row["max_abs_raw_feature_delta"] = raw_feature_max_abs_delta(row)
+        row["profile_exact_match"] = is_profile_exact(row, cfg.exact_match_tolerance)
 
         rows.append(row)
 
@@ -561,7 +600,11 @@ def replacement_path_class_map(profile: pd.DataFrame, pairs: pd.DataFrame, repla
     return base
 
 
-def build_transition_distribution(transition_steps: pd.DataFrame, run_id: str, replacement_route_class: str = "") -> pd.DataFrame:
+def build_transition_distribution(
+    transition_steps: pd.DataFrame,
+    run_id: str,
+    replacement_route_class: str = "",
+) -> pd.DataFrame:
     rows = []
 
     for cls in CLASS_ORDER:
@@ -614,7 +657,11 @@ def build_transition_distribution(transition_steps: pd.DataFrame, run_id: str, r
     ]
 
 
-def build_transition_signature(transition_steps: pd.DataFrame, run_id: str, replacement_route_class: str = "") -> pd.DataFrame:
+def build_transition_signature(
+    transition_steps: pd.DataFrame,
+    run_id: str,
+    replacement_route_class: str = "",
+) -> pd.DataFrame:
     rows = []
 
     for cls in CLASS_ORDER:
@@ -821,6 +868,40 @@ def summarize_selected(profile: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def pair_quality_summary(pairs: pd.DataFrame) -> pd.DataFrame:
+    rows = []
+    for cls in CLASS_ORDER:
+        sub = pairs[(pairs["route_class"] == cls) & (pairs["match_status"] == "matched")].copy()
+        if len(sub) == 0:
+            rows.append(
+                {
+                    "route_class": cls,
+                    "matched_pairs": 0,
+                    "profile_exact_pairs": 0,
+                    "profile_exact_share": 0.0,
+                    "mean_matching_distance": np.nan,
+                    "max_matching_distance": np.nan,
+                    "mean_max_abs_raw_feature_delta": np.nan,
+                    "max_abs_raw_feature_delta": np.nan,
+                }
+            )
+            continue
+
+        rows.append(
+            {
+                "route_class": cls,
+                "matched_pairs": int(len(sub)),
+                "profile_exact_pairs": int(sub["profile_exact_match"].sum()),
+                "profile_exact_share": float(sub["profile_exact_match"].mean()),
+                "mean_matching_distance": float(sub["matching_distance"].mean()),
+                "max_matching_distance": float(sub["matching_distance"].max()),
+                "mean_max_abs_raw_feature_delta": float(sub["max_abs_raw_feature_delta"].mean()),
+                "max_abs_raw_feature_delta": float(sub["max_abs_raw_feature_delta"].max()),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def build_report(
     cfg: Config,
     profile: pd.DataFrame,
@@ -831,6 +912,11 @@ def build_report(
     drift: pd.DataFrame,
 ) -> str:
     selected_summary = summarize_selected(profile)
+    quality = pair_quality_summary(pairs)
+
+    total_matched = int((pairs["match_status"] == "matched").sum()) if len(pairs) else 0
+    total_exact = int(pairs.loc[pairs["match_status"] == "matched", "profile_exact_match"].sum()) if len(pairs) else 0
+    exact_share = float(total_exact / total_matched) if total_matched else 0.0
 
     lines = [
         "# OBS-058 — Matched-decoy route-origin controls",
@@ -861,6 +947,17 @@ def build_report(
             "",
             f"`allow_decoy_reuse`: `{cfg.allow_decoy_reuse}`",
             f"`branch_decoy_same_family`: `{cfg.branch_decoy_same_family}`",
+            f"`exact_match_tolerance`: `{cfg.exact_match_tolerance}`",
+            "",
+            "## Exact-match status",
+            "",
+            f"- matched_pairs_total: {total_matched}",
+            f"- profile_exact_pairs_total: {total_exact}",
+            f"- profile_exact_share_total: {exact_share:.6f}",
+            "",
+            "A `profile_exact_match` means the selected path and decoy path are distinct paths, but their OBS-058 matching-feature vector is identical within tolerance.",
+            "",
+            "If profile-exact matches dominate, the result should be read as **profile-exact matched-decoy survival**, not arbitrary-decoy survival.",
             "",
             "## Selected origin substrate",
             "",
@@ -889,20 +986,30 @@ def build_report(
     lines.append("")
 
     lines.extend(["## Matched-decoy quality", ""])
-    for cls in CLASS_ORDER:
+    for _, q in quality.iterrows():
+        cls = q["route_class"]
         sub = pairs[(pairs["route_class"] == cls) & (pairs["match_status"] == "matched")].copy()
-        n = len(sub)
-        if n == 0:
-            lines.extend([f"### {cls}", "", "- no matched decoys", ""])
-            continue
 
         lines.extend(
             [
                 f"### {cls}",
                 "",
-                f"- matched_pairs: {n}",
-                f"- mean_matching_distance: {float(sub['matching_distance'].mean()):.6f}",
-                f"- max_matching_distance: {float(sub['matching_distance'].max()):.6f}",
+                f"- matched_pairs: {int(q['matched_pairs'])}",
+                f"- profile_exact_pairs: {int(q['profile_exact_pairs'])}",
+                f"- profile_exact_share: {float(q['profile_exact_share']):.6f}",
+            ]
+        )
+
+        if int(q["matched_pairs"]) == 0:
+            lines.extend(["- no matched decoys", ""])
+            continue
+
+        lines.extend(
+            [
+                f"- mean_matching_distance: {float(q['mean_matching_distance']):.6f}",
+                f"- max_matching_distance: {float(q['max_matching_distance']):.6f}",
+                f"- mean_max_abs_raw_feature_delta: {float(q['mean_max_abs_raw_feature_delta']):.12f}",
+                f"- max_abs_raw_feature_delta: {float(q['max_abs_raw_feature_delta']):.12f}",
                 f"- mean_abs_delta_n_steps: {float(sub['delta_n_steps'].abs().mean()):.6f}",
                 f"- mean_abs_delta_mean_distance_to_seam: {float(sub['delta_mean_distance_to_seam'].abs().mean()):.6f}",
                 f"- mean_abs_delta_mean_lazarus_score: {float(sub['delta_mean_lazarus_score'].abs().mean()):.6f}",
@@ -967,7 +1074,9 @@ def build_report(
             "",
             "If decoy replacement changes the dominant transition signature, the selected origin paths appear more special relative to plausible alternatives.",
             "",
-            "This first OBS-058 pass is deterministic. Random decoy ensembles and downstream motif/generator propagation should be treated as later extensions.",
+            "If decoys are profile-exact, the result is specifically profile-exact matched-decoy survival.",
+            "",
+            "This pass is deterministic. Random decoy ensembles, non-exact decoy exclusion, and downstream motif/generator propagation should be treated as later extensions.",
             "",
         ]
     )
@@ -986,6 +1095,7 @@ def main() -> None:
     parser.add_argument("--allow-decoy-reuse", action="store_true")
     parser.add_argument("--branch-decoy-same-family", action="store_true")
     parser.add_argument("--max-candidates-per-selected", type=int, default=Config.max_candidates_per_selected)
+    parser.add_argument("--exact-match-tolerance", type=float, default=Config.exact_match_tolerance)
     args = parser.parse_args()
 
     cfg = Config(
@@ -998,6 +1108,7 @@ def main() -> None:
         allow_decoy_reuse=args.allow_decoy_reuse,
         branch_decoy_same_family=args.branch_decoy_same_family,
         max_candidates_per_selected=args.max_candidates_per_selected,
+        exact_match_tolerance=args.exact_match_tolerance,
     )
 
     outdir = Path(cfg.outdir)
