@@ -1,72 +1,55 @@
 #!/usr/bin/env python3
 """
-OBS-065 — Proto-groupoid decoy survival controls.
+OBS-065 — Proto-groupoid decoy survival controls, optimized.
 
-Purpose
--------
-Test whether proto-groupoid signatures survive route-origin decoy replacement
-using the OBS-064 cached symbolic path traces.
+This patched version avoids repeatedly scanning the large OBS-064 trace tables.
+It first compacts the OBS-064 cache into path-level signature counts:
 
-OBS-064 created a reusable per-path symbolic substrate:
+    path_id, layer, signature_value, count
 
-    path_id
-      -> generator assignments
-      -> generator compositions
-      -> proto edges
-      -> proto relations
+Each decoy run then aggregates only the selected/replacement path IDs from this
+compact table.
 
-OBS-065 consumes that cache and evaluates rank-banded non-exact decoy
-replacement controls without rebuilding symbolic traces from raw routes.
+Optional multiprocessing is available via --n-workers. Full replacement
+signatures are optional via --write-replacement-signatures and are off by
+default because they can be large.
 
-Core question
--------------
-Do proto-groupoid signatures survive route-origin decoy replacement, and at
-which structural resolution do they fail?
-
-Layers
+Inputs
 ------
-- generator_completed
-- composition
-- proto_edge
-- proto_sector_edge
-- proto_relation
-- proto_sector_relation
+OBS-064 cache directory, containing:
 
-Interpretive failure modes
---------------------------
-- vocabulary_survives_typed_action_fails:
-    generator survives but proto_edge fails
-
-- typed_edge_survives_relation_fails:
-    proto_edge survives but proto_relation fails
-
-- sector_survives_state_fails:
-    proto_sector_edge survives but proto_edge fails, or
-    proto_sector_relation survives but proto_relation fails
-
-- broad_survival:
-    relevant fine/coarse layers all survive
+  obs064_all_path_profile.csv
+  obs064_path_generator_assignments.csv
+  obs064_path_generator_compositions.csv
+  obs064_path_proto_edges.csv
+  obs064_path_proto_relations.csv
 
 Outputs
 -------
-outputs/obs065_proto_groupoid_decoy_survival/
+  obs065_path_signature_counts.csv
   obs065_ranked_nonexact_decoy_candidates.csv
   obs065_replacement_pairs.csv
   obs065_replacement_runs.csv
   obs065_proto_signature_baseline.csv
-  obs065_proto_signature_replacement.csv
   obs065_proto_layer_survival_drift.csv
   obs065_proto_survival_summary.csv
   obs065_cross_layer_failure_modes.csv
   obs065_proto_anchor_candidates.csv
   obs065_proto_groupoid_decoy_survival_report.md
+
+Optional:
+  obs065_proto_signature_replacement.csv
 """
 
 from __future__ import annotations
 
 import argparse
+import math
+import multiprocessing as mp
+import os
 import re
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from typing import Iterable
 
@@ -88,42 +71,45 @@ MATCH_FEATURES = [
     "mean_response_strength",
 ]
 
+LAYER_ORDER = [
+    "generator_completed",
+    "composition",
+    "proto_edge",
+    "proto_sector_edge",
+    "proto_relation",
+    "proto_sector_relation",
+]
+
 LAYER_SPECS = [
     {
         "layer": "generator_completed",
-        "source": "generator_assignments",
+        "cache_file": "obs064_path_generator_assignments.csv",
         "value_col": "generator_completed",
-        "count_col": "n_generators",
     },
     {
         "layer": "composition",
-        "source": "generator_compositions",
+        "cache_file": "obs064_path_generator_compositions.csv",
         "value_col": "composition",
-        "count_col": "n_compositions",
     },
     {
         "layer": "proto_edge",
-        "source": "proto_edges",
+        "cache_file": "obs064_path_proto_edges.csv",
         "value_col": "proto_edge",
-        "count_col": "n_proto_edges",
     },
     {
         "layer": "proto_sector_edge",
-        "source": "proto_edges",
+        "cache_file": "obs064_path_proto_edges.csv",
         "value_col": "proto_sector_edge",
-        "count_col": "n_proto_sector_edges",
     },
     {
         "layer": "proto_relation",
-        "source": "proto_relations",
+        "cache_file": "obs064_path_proto_relations.csv",
         "value_col": "proto_relation",
-        "count_col": "n_proto_relations",
     },
     {
         "layer": "proto_sector_relation",
-        "source": "proto_relations",
+        "cache_file": "obs064_path_proto_relations.csv",
         "value_col": "proto_sector_relation",
-        "count_col": "n_proto_sector_relations",
     },
 ]
 
@@ -145,6 +131,8 @@ class Config:
     strong_anchor_survival: float = 0.80
     weak_anchor_survival: float = 0.60
     anchor_component_survival_threshold: float = 0.75
+    n_workers: int = 1
+    write_replacement_signatures: bool = False
 
 
 def read_csv_numeric(path: str | Path, text_cols: Iterable[str]) -> pd.DataFrame:
@@ -198,6 +186,38 @@ def safe_mean(s: pd.Series) -> float:
     return float(x.mean()) if x.notna().any() else float("nan")
 
 
+def safe_quantile(s: pd.Series, q: float) -> float:
+    x = pd.to_numeric(s, errors="coerce").dropna()
+    return float(x.quantile(q)) if len(x) else float("nan")
+
+
+def selected_origin_ids(profile: pd.DataFrame) -> set[str]:
+    return set(profile.loc[profile["route_class"].isin(CLASS_ORDER), "path_id"].astype(str))
+
+
+def selected_path_class_map(profile: pd.DataFrame) -> dict[str, str]:
+    selected = profile[profile["route_class"].isin(CLASS_ORDER)].copy()
+    return {str(row["path_id"]): str(row["route_class"]) for _, row in selected.iterrows()}
+
+
+def replacement_path_class_map(profile: pd.DataFrame, pairs: pd.DataFrame, replace_class: str) -> dict[str, str]:
+    base = selected_path_class_map(profile)
+
+    selected_ids = set(profile.loc[profile["route_class"] == replace_class, "path_id"].astype(str))
+    for pid in selected_ids:
+        base.pop(pid, None)
+
+    matched = pairs[
+        (pairs["route_class"] == replace_class)
+        & (pairs["match_status"].astype(str).str.startswith("matched"))
+    ].copy()
+
+    for _, row in matched.iterrows():
+        base[str(row["decoy_path_id"])] = replace_class
+
+    return base
+
+
 def feature_scale_table(profile: pd.DataFrame) -> dict[str, tuple[float, float]]:
     out = {}
     for col in MATCH_FEATURES:
@@ -233,33 +253,6 @@ def raw_feature_max_abs_delta(row: dict | pd.Series) -> float:
         if pd.notna(val):
             deltas.append(abs(float(val)))
     return max(deltas) if deltas else float("inf")
-
-
-def selected_origin_ids(profile: pd.DataFrame) -> set[str]:
-    return set(profile.loc[profile["route_class"].isin(CLASS_ORDER), "path_id"].astype(str))
-
-
-def selected_path_class_map(profile: pd.DataFrame) -> dict[str, str]:
-    selected = profile[profile["route_class"].isin(CLASS_ORDER)].copy()
-    return {str(row["path_id"]): str(row["route_class"]) for _, row in selected.iterrows()}
-
-
-def replacement_path_class_map(profile: pd.DataFrame, pairs: pd.DataFrame, replace_class: str) -> dict[str, str]:
-    base = selected_path_class_map(profile)
-
-    selected_ids = set(profile.loc[profile["route_class"] == replace_class, "path_id"].astype(str))
-    for pid in selected_ids:
-        base.pop(pid, None)
-
-    matched = pairs[
-        (pairs["route_class"] == replace_class)
-        & (pairs["match_status"].astype(str).str.startswith("matched"))
-    ].copy()
-
-    for _, row in matched.iterrows():
-        base[str(row["decoy_path_id"])] = replace_class
-
-    return base
 
 
 def build_decoy_candidate_pool(profile: pd.DataFrame, cfg: Config) -> pd.DataFrame:
@@ -449,139 +442,200 @@ def select_band_pairs(
     return pd.DataFrame(rows)
 
 
-def get_layer_source(layer_spec: dict[str, str], tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
-    return tables[layer_spec["source"]]
+def precompute_pair_plans(profile: pd.DataFrame, ranked: pd.DataFrame, cfg: Config) -> tuple[pd.DataFrame, pd.DataFrame]:
+    rng = np.random.default_rng(cfg.random_seed)
+    bands = parse_rank_bands(cfg.rank_bands)
+    pair_frames = []
+    run_rows = []
 
+    for band_cfg in bands:
+        band_name = str(band_cfg["band"])
+        rank_min = int(band_cfg["rank_min"])
+        rank_max = band_cfg["rank_max"]
+        rank_max_int = int(rank_max) if rank_max is not None else None
 
-def distribution_for_map(
-    source_df: pd.DataFrame,
-    path_class_map: dict[str, str],
-    value_col: str,
-    count_col: str,
-    *,
-    run_id: str,
-    band: str,
-    iteration: int,
-    replacement_route_class: str,
-) -> pd.DataFrame:
-    if len(source_df) == 0 or not path_class_map:
-        return pd.DataFrame()
-
-    pids = set(path_class_map.keys())
-    work = source_df[source_df["path_id"].astype(str).isin(pids)].copy()
-    if len(work) == 0:
-        return pd.DataFrame()
-
-    work["analysis_route_class"] = work["path_id"].astype(str).map(path_class_map)
-    work = work[work["analysis_route_class"].isin(CLASS_ORDER)].copy()
-
-    rows = []
-
-    for route_class, grp in work.groupby("analysis_route_class", sort=False):
-        counts = (
-            grp.groupby(value_col, as_index=False)
-            .agg(
-                count=(value_col, "size"),
-                n_paths=("path_id", "nunique"),
+        for iteration in range(cfg.n_iter):
+            pairs = select_band_pairs(
+                ranked,
+                profile,
+                band_name=band_name,
+                rank_min=rank_min,
+                rank_max=rank_max_int,
+                rng=rng,
+                allow_decoy_reuse=cfg.allow_decoy_reuse,
             )
-            .sort_values("count", ascending=False)
-            .reset_index(drop=True)
-        )
+            pairs["iteration"] = iteration
+            pair_frames.append(pairs)
 
-        total = int(counts["count"].sum())
+            for cls in CLASS_ORDER:
+                matched = pairs[
+                    (pairs["route_class"] == cls)
+                    & (pairs["match_status"] == "matched_band_nonexact")
+                ].copy()
+                run_id = f"{band_name}_iter_{iteration:04d}_replace_{cls}"
+                run_rows.append(
+                    {
+                        "run_id": run_id,
+                        "band": band_name,
+                        "rank_min": rank_min,
+                        "rank_max": rank_max_int if rank_max_int is not None else np.nan,
+                        "iteration": iteration,
+                        "replacement_route_class": cls,
+                        "matched_pairs": int(len(matched)),
+                        "unmatched_pairs": int(8 - len(matched)),
+                        "mean_decoy_rank": float(matched["eligible_decoy_rank"].mean()) if len(matched) else np.nan,
+                        "min_decoy_rank": float(matched["eligible_decoy_rank"].min()) if len(matched) else np.nan,
+                        "max_decoy_rank": float(matched["eligible_decoy_rank"].max()) if len(matched) else np.nan,
+                        "mean_matching_distance": float(matched["matching_distance"].mean()) if len(matched) else np.nan,
+                        "max_matching_distance": float(matched["matching_distance"].max()) if len(matched) else np.nan,
+                        "mean_max_abs_raw_feature_delta": float(matched["max_abs_raw_feature_delta"].mean()) if len(matched) else np.nan,
+                    }
+                )
 
-        for rank, (_, row) in enumerate(counts.iterrows(), start=1):
-            rows.append(
-                {
-                    "run_id": run_id,
-                    "band": band,
-                    "iteration": iteration,
-                    "replacement_route_class": replacement_route_class,
-                    "route_class": route_class,
-                    value_col: row[value_col],
-                    count_col: int(row["count"]),
-                    "n_paths": int(row["n_paths"]),
-                    "share": float(row["count"] / total) if total else 0.0,
-                    "rank": rank,
-                }
-            )
-
-    return pd.DataFrame(rows)
+    pairs_all = pd.concat(pair_frames, ignore_index=True) if pair_frames else pd.DataFrame()
+    runs = pd.DataFrame(run_rows)
+    return pairs_all, runs
 
 
-def build_all_layer_signatures_for_map(
-    tables: dict[str, pd.DataFrame],
-    path_class_map: dict[str, str],
-    *,
-    run_id: str,
-    band: str,
-    iteration: int,
-    replacement_route_class: str,
-) -> pd.DataFrame:
+def build_path_signature_counts(cache_dir: Path) -> pd.DataFrame:
     frames = []
 
-    for spec in LAYER_SPECS:
-        src = get_layer_source(spec, tables)
-        sig = distribution_for_map(
-            src,
-            path_class_map,
-            spec["value_col"],
-            spec["count_col"],
-            run_id=run_id,
-            band=band,
-            iteration=iteration,
-            replacement_route_class=replacement_route_class,
-        )
+    loaded_files: dict[str, pd.DataFrame] = {}
 
-        if len(sig):
-            sig = sig.rename(columns={spec["value_col"]: "signature_value", spec["count_col"]: "n_items"})
-            sig["layer"] = spec["layer"]
-            frames.append(sig)
+    for spec in LAYER_SPECS:
+        cache_file = str(spec["cache_file"])
+        layer = str(spec["layer"])
+        value_col = str(spec["value_col"])
+        path = cache_dir / cache_file
+
+        if cache_file not in loaded_files:
+            # Read only the needed columns across all specs for this file.
+            if cache_file == "obs064_path_generator_assignments.csv":
+                usecols = ["path_id", "generator_completed", "proto_edge", "proto_sector_edge"]
+            elif cache_file == "obs064_path_generator_compositions.csv":
+                usecols = ["path_id", "composition"]
+            elif cache_file == "obs064_path_proto_edges.csv":
+                usecols = ["path_id", "proto_edge", "proto_sector_edge"]
+            elif cache_file == "obs064_path_proto_relations.csv":
+                usecols = ["path_id", "proto_relation", "proto_sector_relation"]
+            else:
+                usecols = None
+            loaded_files[cache_file] = pd.read_csv(path, usecols=usecols)
+
+        df = loaded_files[cache_file][["path_id", value_col]].copy()
+        df = df.dropna(subset=["path_id", value_col])
+        df["path_id"] = df["path_id"].astype(str)
+        df["signature_value"] = df[value_col].astype(str)
+        df["layer"] = layer
+
+        counts = (
+            df.groupby(["path_id", "layer", "signature_value"], as_index=False)
+            .size()
+            .rename(columns={"size": "count"})
+        )
+        frames.append(counts)
 
     if not frames:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=["path_id", "layer", "signature_value", "count"])
 
-    return pd.concat(frames, ignore_index=True)
+    out = pd.concat(frames, ignore_index=True)
+    out = (
+        out.groupby(["path_id", "layer", "signature_value"], as_index=False)["count"]
+        .sum()
+        .sort_values(["path_id", "layer", "signature_value"])
+        .reset_index(drop=True)
+    )
+    return out
 
 
-def dist_map(sig: pd.DataFrame, run_id: str, route_class: str, layer: str) -> dict[str, float]:
-    sub = sig[
-        (sig["run_id"] == run_id)
-        & (sig["route_class"] == route_class)
-        & (sig["layer"] == layer)
+def aggregate_signature_for_map(
+    path_counts: pd.DataFrame,
+    path_class_map: dict[str, str],
+    *,
+    run_id: str,
+    band: str,
+    iteration: int,
+    replacement_route_class: str,
+) -> pd.DataFrame:
+    if len(path_counts) == 0 or not path_class_map:
+        return pd.DataFrame(columns=[
+            "run_id", "band", "iteration", "replacement_route_class",
+            "route_class", "layer", "signature_value", "n_items", "share", "rank"
+        ])
+
+    pids = set(path_class_map.keys())
+    sub = path_counts[path_counts["path_id"].astype(str).isin(pids)].copy()
+    if len(sub) == 0:
+        return pd.DataFrame(columns=[
+            "run_id", "band", "iteration", "replacement_route_class",
+            "route_class", "layer", "signature_value", "n_items", "share", "rank"
+        ])
+
+    sub["route_class"] = sub["path_id"].astype(str).map(path_class_map)
+    sub = sub[sub["route_class"].isin(CLASS_ORDER)].copy()
+
+    grouped = (
+        sub.groupby(["route_class", "layer", "signature_value"], as_index=False)["count"]
+        .sum()
+        .rename(columns={"count": "n_items"})
+    )
+
+    totals = (
+        grouped.groupby(["route_class", "layer"], as_index=False)["n_items"]
+        .sum()
+        .rename(columns={"n_items": "total_items"})
+    )
+
+    grouped = grouped.merge(totals, on=["route_class", "layer"], how="left")
+    grouped["share"] = grouped["n_items"] / grouped["total_items"].replace(0, np.nan)
+    grouped["share"] = grouped["share"].fillna(0.0)
+
+    grouped = grouped.sort_values(
+        ["route_class", "layer", "share", "signature_value"],
+        ascending=[True, True, False, True],
+    ).reset_index(drop=True)
+
+    grouped["rank"] = grouped.groupby(["route_class", "layer"]).cumcount() + 1
+
+    grouped["run_id"] = run_id
+    grouped["band"] = band
+    grouped["iteration"] = iteration
+    grouped["replacement_route_class"] = replacement_route_class
+
+    cols = [
+        "run_id",
+        "band",
+        "iteration",
+        "replacement_route_class",
+        "route_class",
+        "layer",
+        "signature_value",
+        "n_items",
+        "share",
+        "rank",
     ]
+    return grouped[cols].copy()
+
+
+def dist_map(sig: pd.DataFrame, route_class: str, layer: str) -> dict[str, float]:
+    sub = sig[(sig["route_class"] == route_class) & (sig["layer"] == layer)]
     return {str(row["signature_value"]): float(row["share"]) for _, row in sub.iterrows()}
 
 
-def top_values(sig: pd.DataFrame, run_id: str, route_class: str, layer: str, k: int = 3) -> list[str]:
-    sub = sig[
-        (sig["run_id"] == run_id)
-        & (sig["route_class"] == route_class)
-        & (sig["layer"] == layer)
-    ].sort_values("share", ascending=False)
-
+def top_values(sig: pd.DataFrame, route_class: str, layer: str, k: int = 3) -> list[str]:
+    sub = sig[(sig["route_class"] == route_class) & (sig["layer"] == layer)].sort_values("rank")
     return [str(x) for x in sub["signature_value"].head(k).tolist()]
 
 
-def n_items(sig: pd.DataFrame, run_id: str, route_class: str, layer: str) -> int:
-    sub = sig[
-        (sig["run_id"] == run_id)
-        & (sig["route_class"] == route_class)
-        & (sig["layer"] == layer)
-    ]
-
+def n_items(sig: pd.DataFrame, route_class: str, layer: str) -> int:
+    sub = sig[(sig["route_class"] == route_class) & (sig["layer"] == layer)]
     if len(sub) == 0:
         return 0
-
     return int(pd.to_numeric(sub["n_items"], errors="coerce").sum())
 
 
-def top_margin(sig: pd.DataFrame, run_id: str, route_class: str, layer: str) -> dict[str, object]:
-    sub = sig[
-        (sig["run_id"] == run_id)
-        & (sig["route_class"] == route_class)
-        & (sig["layer"] == layer)
-    ].sort_values("share", ascending=False).reset_index(drop=True)
+def top_margin(sig: pd.DataFrame, route_class: str, layer: str) -> dict[str, object]:
+    sub = sig[(sig["route_class"] == route_class) & (sig["layer"] == layer)].sort_values("rank").reset_index(drop=True)
 
     if len(sub) == 0:
         return {
@@ -620,7 +674,7 @@ def top_overlap(a: list[str], b: list[str], k: int = 3) -> int:
     return len(set(a[:k]) & set(b[:k]))
 
 
-def build_layer_drift(
+def build_layer_drift_for_signature(
     baseline_sig: pd.DataFrame,
     replacement_sig: pd.DataFrame,
     *,
@@ -632,18 +686,16 @@ def build_layer_drift(
     rows = []
 
     for cls in CLASS_ORDER:
-        for spec in LAYER_SPECS:
-            layer = spec["layer"]
+        for layer in LAYER_ORDER:
+            p = dist_map(baseline_sig, cls, layer)
+            q = dist_map(replacement_sig, cls, layer)
 
-            p = dist_map(baseline_sig, "baseline", cls, layer)
-            q = dist_map(replacement_sig, run_id, cls, layer)
-
-            base_top3 = top_values(baseline_sig, "baseline", cls, layer, k=3)
-            repl_top3 = top_values(replacement_sig, run_id, cls, layer, k=3)
+            base_top3 = top_values(baseline_sig, cls, layer, k=3)
+            repl_top3 = top_values(replacement_sig, cls, layer, k=3)
 
             base_top1 = base_top3[0] if base_top3 else ""
             repl_top1 = repl_top3[0] if repl_top3 else ""
-            margin = top_margin(baseline_sig, "baseline", cls, layer)
+            margin = top_margin(baseline_sig, cls, layer)
 
             rows.append(
                 {
@@ -654,8 +706,8 @@ def build_layer_drift(
                     "evaluated_route_class": cls,
                     "is_replaced_class": int(cls == replacement_route_class),
                     "layer": layer,
-                    "baseline_n_items": n_items(baseline_sig, "baseline", cls, layer),
-                    "replacement_n_items": n_items(replacement_sig, run_id, cls, layer),
+                    "baseline_n_items": n_items(baseline_sig, cls, layer),
+                    "replacement_n_items": n_items(replacement_sig, cls, layer),
                     "distribution_tv_distance": total_variation(p, q),
                     "top1_baseline": base_top1,
                     "top1_replacement": repl_top1,
@@ -676,96 +728,90 @@ def build_layer_drift(
     return pd.DataFrame(rows)
 
 
-def run_controls(
+# Globals for worker processes. This avoids sending the large compact table with every task.
+_WORKER_PROFILE = None
+_WORKER_PATH_COUNTS = None
+_WORKER_BASELINE_SIG = None
+_WORKER_PAIRS = None
+_WORKER_WRITE_SIG = False
+
+
+def _init_worker(profile: pd.DataFrame, path_counts: pd.DataFrame, baseline_sig: pd.DataFrame, pairs: pd.DataFrame, write_sig: bool) -> None:
+    global _WORKER_PROFILE, _WORKER_PATH_COUNTS, _WORKER_BASELINE_SIG, _WORKER_PAIRS, _WORKER_WRITE_SIG
+    _WORKER_PROFILE = profile
+    _WORKER_PATH_COUNTS = path_counts
+    _WORKER_BASELINE_SIG = baseline_sig
+    _WORKER_PAIRS = pairs
+    _WORKER_WRITE_SIG = write_sig
+
+
+def _run_one_task(task: dict[str, object]) -> tuple[pd.DataFrame, pd.DataFrame | None]:
+    global _WORKER_PROFILE, _WORKER_PATH_COUNTS, _WORKER_BASELINE_SIG, _WORKER_PAIRS, _WORKER_WRITE_SIG
+
+    band = str(task["band"])
+    iteration = int(task["iteration"])
+    replace_class = str(task["replacement_route_class"])
+    run_id = str(task["run_id"])
+
+    pairs_i = _WORKER_PAIRS[
+        (_WORKER_PAIRS["band"].astype(str) == band)
+        & (pd.to_numeric(_WORKER_PAIRS["iteration"], errors="coerce").astype(int) == iteration)
+    ].copy()
+
+    repl_map = replacement_path_class_map(_WORKER_PROFILE, pairs_i, replace_class)
+
+    replacement_sig = aggregate_signature_for_map(
+        _WORKER_PATH_COUNTS,
+        repl_map,
+        run_id=run_id,
+        band=band,
+        iteration=iteration,
+        replacement_route_class=replace_class,
+    )
+
+    drift = build_layer_drift_for_signature(
+        _WORKER_BASELINE_SIG,
+        replacement_sig,
+        run_id=run_id,
+        band=band,
+        iteration=iteration,
+        replacement_route_class=replace_class,
+    )
+
+    if _WORKER_WRITE_SIG:
+        return drift, replacement_sig
+    return drift, None
+
+
+def run_controls_optimized(
     profile: pd.DataFrame,
-    ranked: pd.DataFrame,
-    tables: dict[str, pd.DataFrame],
+    path_counts: pd.DataFrame,
     baseline_sig: pd.DataFrame,
+    pairs: pd.DataFrame,
+    runs: pd.DataFrame,
     cfg: Config,
-):
-    rng = np.random.default_rng(cfg.random_seed)
-    bands = parse_rank_bands(cfg.rank_bands)
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    tasks = runs[["run_id", "band", "iteration", "replacement_route_class"]].to_dict("records")
 
-    run_rows = []
-    pair_rows = []
-    sig_rows = []
-    drift_rows = []
+    if cfg.n_workers <= 1:
+        _init_worker(profile, path_counts, baseline_sig, pairs, cfg.write_replacement_signatures)
+        outputs = [_run_one_task(t) for t in tasks]
+    else:
+        ctx = mp.get_context("spawn")
+        with ctx.Pool(
+            processes=cfg.n_workers,
+            initializer=_init_worker,
+            initargs=(profile, path_counts, baseline_sig, pairs, cfg.write_replacement_signatures),
+        ) as pool:
+            outputs = list(pool.imap_unordered(_run_one_task, tasks, chunksize=10))
 
-    for band_cfg in bands:
-        band_name = str(band_cfg["band"])
-        rank_min = int(band_cfg["rank_min"])
-        rank_max = band_cfg["rank_max"]
-        rank_max_int = int(rank_max) if rank_max is not None else None
+    drift_frames = [x[0] for x in outputs if x[0] is not None and len(x[0])]
+    sig_frames = [x[1] for x in outputs if x[1] is not None and len(x[1])]
 
-        for iteration in range(cfg.n_iter):
-            pairs = select_band_pairs(
-                ranked,
-                profile,
-                band_name=band_name,
-                rank_min=rank_min,
-                rank_max=rank_max_int,
-                rng=rng,
-                allow_decoy_reuse=cfg.allow_decoy_reuse,
-            )
-            pairs["iteration"] = iteration
-            pair_rows.append(pairs)
+    drift = pd.concat(drift_frames, ignore_index=True) if drift_frames else pd.DataFrame()
+    repl_sig = pd.concat(sig_frames, ignore_index=True) if sig_frames else pd.DataFrame()
 
-            for cls in CLASS_ORDER:
-                run_id = f"{band_name}_iter_{iteration:04d}_replace_{cls}"
-                repl_map = replacement_path_class_map(profile, pairs, cls)
-
-                repl_sig = build_all_layer_signatures_for_map(
-                    tables,
-                    repl_map,
-                    run_id=run_id,
-                    band=band_name,
-                    iteration=iteration,
-                    replacement_route_class=cls,
-                )
-
-                sig_rows.append(repl_sig)
-
-                matched = pairs[
-                    (pairs["route_class"] == cls)
-                    & (pairs["match_status"] == "matched_band_nonexact")
-                ].copy()
-
-                run_rows.append(
-                    {
-                        "run_id": run_id,
-                        "band": band_name,
-                        "rank_min": rank_min,
-                        "rank_max": rank_max_int if rank_max_int is not None else np.nan,
-                        "iteration": iteration,
-                        "replacement_route_class": cls,
-                        "matched_pairs": int(len(matched)),
-                        "unmatched_pairs": int(8 - len(matched)),
-                        "mean_decoy_rank": float(matched["eligible_decoy_rank"].mean()) if len(matched) else np.nan,
-                        "min_decoy_rank": float(matched["eligible_decoy_rank"].min()) if len(matched) else np.nan,
-                        "max_decoy_rank": float(matched["eligible_decoy_rank"].max()) if len(matched) else np.nan,
-                        "mean_matching_distance": float(matched["matching_distance"].mean()) if len(matched) else np.nan,
-                        "max_matching_distance": float(matched["matching_distance"].max()) if len(matched) else np.nan,
-                        "mean_max_abs_raw_feature_delta": float(matched["max_abs_raw_feature_delta"].mean()) if len(matched) else np.nan,
-                    }
-                )
-
-                drift_rows.append(
-                    build_layer_drift(
-                        baseline_sig,
-                        repl_sig,
-                        run_id=run_id,
-                        band=band_name,
-                        iteration=iteration,
-                        replacement_route_class=cls,
-                    )
-                )
-
-    runs = pd.DataFrame(run_rows)
-    pairs_all = pd.concat(pair_rows, ignore_index=True) if pair_rows else pd.DataFrame()
-    repl_sig_all = pd.concat(sig_rows, ignore_index=True) if sig_rows else pd.DataFrame()
-    drift = pd.concat(drift_rows, ignore_index=True) if drift_rows else pd.DataFrame()
-
-    return runs, pairs_all, repl_sig_all, drift
+    return drift, repl_sig
 
 
 def summarize_survival(runs: pd.DataFrame, drift: pd.DataFrame) -> pd.DataFrame:
@@ -811,7 +857,7 @@ def summarize_survival(runs: pd.DataFrame, drift: pd.DataFrame) -> pd.DataFrame:
     if len(out):
         band_order = {str(b["band"]): i for i, b in enumerate(parse_rank_bands("1-10,51-250,all"))}
         class_order = {c: i for i, c in enumerate(CLASS_ORDER)}
-        layer_order = {spec["layer"]: i for i, spec in enumerate(LAYER_SPECS)}
+        layer_order = {layer: i for i, layer in enumerate(LAYER_ORDER)}
         out["band_order"] = out["band"].map(lambda x: band_order.get(str(x), 999))
         out["class_order"] = out["replacement_route_class"].map(lambda x: class_order.get(str(x), 999))
         out["layer_order"] = out["layer"].map(lambda x: layer_order.get(str(x), 999))
@@ -877,31 +923,6 @@ def build_cross_layer_failure_modes(summary: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def signature_share(sig: pd.DataFrame, run_id: str, route_class: str, layer: str, signature_value: str) -> float:
-    sub = sig[
-        (sig["run_id"] == run_id)
-        & (sig["route_class"] == route_class)
-        & (sig["layer"] == layer)
-        & (sig["signature_value"].astype(str) == str(signature_value))
-    ]
-    if len(sub) == 0:
-        return 0.0
-    return float(pd.to_numeric(sub["share"], errors="coerce").sum())
-
-
-def signature_rank(sig: pd.DataFrame, run_id: str, route_class: str, layer: str, signature_value: str) -> int:
-    sub = sig[
-        (sig["run_id"] == run_id)
-        & (sig["route_class"] == route_class)
-        & (sig["layer"] == layer)
-    ].sort_values("share", ascending=False).reset_index(drop=True)
-
-    hits = sub.index[sub["signature_value"].astype(str) == str(signature_value)].tolist()
-    if not hits:
-        return 9999
-    return int(hits[0] + 1)
-
-
 def parse_proto_relation_components(proto_relation: str) -> list[str]:
     if " ; " in str(proto_relation):
         return [x.strip() for x in str(proto_relation).split(" ; ", 1)]
@@ -941,18 +962,42 @@ def sectorize_proto_relation(proto_relation: str) -> str:
     return " ; ".join(out)
 
 
-def build_proto_anchor_candidates(
+def signature_share(sig: pd.DataFrame, route_class: str, layer: str, signature_value: str) -> float:
+    sub = sig[
+        (sig["route_class"] == route_class)
+        & (sig["layer"] == layer)
+        & (sig["signature_value"].astype(str) == str(signature_value))
+    ]
+    if len(sub) == 0:
+        return 0.0
+    return float(pd.to_numeric(sub["share"], errors="coerce").sum())
+
+
+def signature_rank(sig: pd.DataFrame, route_class: str, layer: str, signature_value: str) -> int:
+    sub = sig[
+        (sig["route_class"] == route_class)
+        & (sig["layer"] == layer)
+    ].sort_values("rank").reset_index(drop=True)
+
+    hits = sub.index[sub["signature_value"].astype(str) == str(signature_value)].tolist()
+    if not hits:
+        return 9999
+    return int(hits[0] + 1)
+
+
+def build_proto_anchor_candidates_from_drift(
     baseline_sig: pd.DataFrame,
-    replacement_sig: pd.DataFrame,
+    path_counts: pd.DataFrame,
+    profile: pd.DataFrame,
+    pairs: pd.DataFrame,
     runs: pd.DataFrame,
     cfg: Config,
 ) -> pd.DataFrame:
     relation_base = baseline_sig[
-        (baseline_sig["run_id"] == "baseline")
-        & (baseline_sig["layer"] == "proto_relation")
+        (baseline_sig["layer"] == "proto_relation")
     ].copy()
 
-    if len(relation_base) == 0 or len(replacement_sig) == 0:
+    if len(relation_base) == 0:
         return pd.DataFrame()
 
     relation_base = (
@@ -963,6 +1008,8 @@ def build_proto_anchor_candidates(
 
     rows = []
 
+    # Only anchor-test replaced-class runs to keep this lightweight and aligned
+    # with survival summaries.
     for _, base_row in relation_base.iterrows():
         route_class = str(base_row["route_class"])
         proto_relation = str(base_row["signature_value"])
@@ -971,42 +1018,48 @@ def build_proto_anchor_candidates(
         component_generators = parse_proto_relation_generators(proto_relation)
         sector_relation = sectorize_proto_relation(proto_relation)
 
-        for (band, repl_cls), run_grp in runs.groupby(["band", "replacement_route_class"], dropna=False):
-            run_ids = run_grp["run_id"].astype(str).tolist()
+        runs_for_class = runs[runs["replacement_route_class"] == route_class].copy()
 
+        for (band, repl_cls), run_grp in runs_for_class.groupby(["band", "replacement_route_class"], dropna=False):
             relation_survived = []
             sector_relation_survived = []
             relation_shares = []
-            sector_relation_shares = []
-
-            component_edge_survival_values = []
-            component_gen_survival_values = []
             component_edge_rank_survival_values = []
             component_gen_rank_survival_values = []
 
-            for run_id in run_ids:
-                rel_share = signature_share(replacement_sig, run_id, route_class, "proto_relation", proto_relation)
+            for _, run_row in run_grp.iterrows():
+                run_id = str(run_row["run_id"])
+                iteration = int(run_row["iteration"])
+
+                pairs_i = pairs[
+                    (pairs["band"].astype(str) == str(band))
+                    & (pd.to_numeric(pairs["iteration"], errors="coerce").astype(int) == iteration)
+                ].copy()
+
+                repl_map = replacement_path_class_map(profile, pairs_i, route_class)
+                repl_sig = aggregate_signature_for_map(
+                    path_counts,
+                    repl_map,
+                    run_id=run_id,
+                    band=str(band),
+                    iteration=iteration,
+                    replacement_route_class=route_class,
+                )
+
+                rel_share = signature_share(repl_sig, route_class, "proto_relation", proto_relation)
+                sec_share = signature_share(repl_sig, route_class, "proto_sector_relation", sector_relation)
                 relation_shares.append(rel_share)
                 relation_survived.append(int(rel_share > 0))
-
-                sec_share = signature_share(replacement_sig, run_id, route_class, "proto_sector_relation", sector_relation)
-                sector_relation_shares.append(sec_share)
                 sector_relation_survived.append(int(sec_share > 0))
 
                 for edge in component_edges:
-                    base_edge_rank = signature_rank(baseline_sig, "baseline", route_class, "proto_edge", edge)
-                    repl_edge_rank = signature_rank(replacement_sig, run_id, route_class, "proto_edge", edge)
-                    edge_share = signature_share(replacement_sig, run_id, route_class, "proto_edge", edge)
-
-                    component_edge_survival_values.append(int(edge_share > 0))
+                    base_edge_rank = signature_rank(baseline_sig, route_class, "proto_edge", edge)
+                    repl_edge_rank = signature_rank(repl_sig, route_class, "proto_edge", edge)
                     component_edge_rank_survival_values.append(int(base_edge_rank == repl_edge_rank))
 
                 for gen in component_generators:
-                    base_gen_rank = signature_rank(baseline_sig, "baseline", route_class, "generator_completed", gen)
-                    repl_gen_rank = signature_rank(replacement_sig, run_id, route_class, "generator_completed", gen)
-                    gen_share = signature_share(replacement_sig, run_id, route_class, "generator_completed", gen)
-
-                    component_gen_survival_values.append(int(gen_share > 0))
+                    base_gen_rank = signature_rank(baseline_sig, route_class, "generator_completed", gen)
+                    repl_gen_rank = signature_rank(repl_sig, route_class, "generator_completed", gen)
                     component_gen_rank_survival_values.append(int(base_gen_rank == repl_gen_rank))
 
             relation_survival_rate = float(np.mean(relation_survived)) if relation_survived else np.nan
@@ -1017,20 +1070,12 @@ def build_proto_anchor_candidates(
                 if relation_shares
                 else np.nan
             )
-
-            component_edge_survival_rate = (
-                float(np.mean(component_edge_survival_values)) if component_edge_survival_values else np.nan
-            )
-            component_generator_survival_rate = (
-                float(np.mean(component_gen_survival_values)) if component_gen_survival_values else np.nan
-            )
             component_edge_rank_survival_rate = (
                 float(np.mean(component_edge_rank_survival_values)) if component_edge_rank_survival_values else np.nan
             )
             component_generator_rank_survival_rate = (
                 float(np.mean(component_gen_rank_survival_values)) if component_gen_rank_survival_values else np.nan
             )
-
             min_component_rank_survival = float(
                 np.nanmin([component_edge_rank_survival_rate, component_generator_rank_survival_rate])
             )
@@ -1069,8 +1114,6 @@ def build_proto_anchor_candidates(
                     "sector_relation_survival_rate": sector_relation_survival_rate,
                     "mean_relation_share_replacement": mean_relation_share,
                     "mean_abs_relation_share_drift": mean_abs_relation_share_drift,
-                    "component_edge_survival_rate": component_edge_survival_rate,
-                    "component_generator_survival_rate": component_generator_survival_rate,
                     "component_edge_rank_survival_rate": component_edge_rank_survival_rate,
                     "component_generator_rank_survival_rate": component_generator_rank_survival_rate,
                     "min_component_rank_survival_rate": min_component_rank_survival,
@@ -1087,111 +1130,6 @@ def build_proto_anchor_candidates(
         ).reset_index(drop=True)
 
     return out
-
-
-def load_trace_cache(cache_dir: Path) -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:
-    profile = read_csv_numeric(
-        cache_dir / "obs064_all_path_profile.csv",
-        text_cols={"corpus", "path_id", "route_class", "path_family", "start_node_id", "end_node_id"},
-    )
-
-    assignments = read_csv_numeric(
-        cache_dir / "obs064_path_generator_assignments.csv",
-        text_cols={
-            "path_id",
-            "route_class",
-            "path_family",
-            "motif_class",
-            "generator_word",
-            "generator",
-            "generator_resolved",
-            "generator_completed",
-            "generator_family",
-            "proto_source",
-            "proto_mid",
-            "proto_target",
-            "proto_source_sector",
-            "proto_mid_sector",
-            "proto_target_sector",
-            "proto_edge",
-            "proto_sector_edge",
-            "state_a",
-            "state_b",
-            "state_c",
-        },
-    )
-
-    compositions = read_csv_numeric(
-        cache_dir / "obs064_path_generator_compositions.csv",
-        text_cols={
-            "path_id",
-            "route_class",
-            "path_family",
-            "generator_1",
-            "generator_2",
-            "generator_family_1",
-            "generator_family_2",
-            "composition",
-            "composition_family",
-            "proto_source_1",
-            "proto_target_1",
-            "proto_source_2",
-            "proto_target_2",
-            "proto_relation",
-            "proto_sector_relation",
-        },
-    )
-
-    proto_edges = read_csv_numeric(
-        cache_dir / "obs064_path_proto_edges.csv",
-        text_cols={
-            "path_id",
-            "route_class",
-            "path_family",
-            "motif_class",
-            "generator_word",
-            "generator_completed",
-            "generator_family",
-            "proto_source",
-            "proto_mid",
-            "proto_target",
-            "proto_source_sector",
-            "proto_mid_sector",
-            "proto_target_sector",
-            "proto_edge",
-            "proto_sector_edge",
-        },
-    )
-
-    proto_relations = read_csv_numeric(
-        cache_dir / "obs064_path_proto_relations.csv",
-        text_cols={
-            "path_id",
-            "route_class",
-            "path_family",
-            "generator_1",
-            "generator_2",
-            "generator_family_1",
-            "generator_family_2",
-            "composition",
-            "composition_family",
-            "proto_relation",
-            "proto_sector_relation",
-            "proto_source_1",
-            "proto_target_1",
-            "proto_source_2",
-            "proto_target_2",
-        },
-    )
-
-    tables = {
-        "generator_assignments": assignments,
-        "generator_compositions": compositions,
-        "proto_edges": proto_edges,
-        "proto_relations": proto_relations,
-    }
-
-    return profile, tables
 
 
 def summarize_selected(profile: pd.DataFrame) -> pd.DataFrame:
@@ -1219,6 +1157,7 @@ def build_report(
     cfg: Config,
     profile: pd.DataFrame,
     ranked: pd.DataFrame,
+    path_counts: pd.DataFrame,
     runs: pd.DataFrame,
     baseline_sig: pd.DataFrame,
     summary: pd.DataFrame,
@@ -1237,14 +1176,20 @@ def build_report(
         "",
         "OBS-065 tests whether proto-groupoid signatures survive route-origin decoy replacement using the OBS-064 cached symbolic trace substrate.",
         "",
-        "Unlike OBS-062/063, this study does not rebuild symbolic traces inside each decoy run. It aggregates cached per-path fragments by selected/decoy path maps.",
+        "This optimized version aggregates compact per-path signature counts rather than repeatedly scanning the full OBS-064 trace tables.",
+        "",
+        "## Optimization status",
+        "",
+        f"- path signature count rows: {len(path_counts)}",
+        f"- n_workers: {cfg.n_workers}",
+        f"- write_replacement_signatures: {cfg.write_replacement_signatures}",
         "",
         "## Tested layers",
         "",
     ]
 
-    for spec in LAYER_SPECS:
-        lines.append(f"- `{spec['layer']}`")
+    for layer in LAYER_ORDER:
+        lines.append(f"- `{layer}`")
     lines.append("")
 
     lines.extend(
@@ -1305,7 +1250,7 @@ def build_report(
     lines.append("")
 
     lines.extend(["## Baseline top signatures", ""])
-    for layer in [spec["layer"] for spec in LAYER_SPECS]:
+    for layer in LAYER_ORDER:
         lines.extend([f"### {layer}", ""])
         for cls in CLASS_ORDER:
             sub = baseline_sig[
@@ -1362,7 +1307,10 @@ def build_report(
 
     lines.extend(["## Proto-anchor candidates", ""])
     if len(anchors):
-        anchor_view = anchors[anchors["anchor_class"].isin(["strong_proto_anchor", "weak_proto_anchor", "sector_anchor"])].copy()
+        anchor_view = anchors[
+            anchors["anchor_class"].isin(["strong_proto_anchor", "weak_proto_anchor", "sector_anchor"])
+        ].copy()
+
         if len(anchor_view) == 0:
             lines.append("- No proto-anchor candidates detected under configured thresholds.")
         else:
@@ -1415,7 +1363,7 @@ def build_report(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run OBS-065 proto-groupoid decoy survival controls.")
+    parser = argparse.ArgumentParser(description="Run optimized OBS-065 proto-groupoid decoy survival controls.")
     parser.add_argument("--trace-cache-dir", default=Config.trace_cache_dir)
     parser.add_argument("--outdir", default=Config.outdir)
     parser.add_argument("--corpus-label", default=Config.corpus_label)
@@ -1428,6 +1376,8 @@ def main() -> None:
     parser.add_argument("--branch-decoy-same-family", action="store_true")
     parser.add_argument("--max-candidates-per-selected", type=int, default=Config.max_candidates_per_selected)
     parser.add_argument("--anchor-top-k", type=int, default=Config.anchor_top_k)
+    parser.add_argument("--n-workers", type=int, default=Config.n_workers)
+    parser.add_argument("--write-replacement-signatures", action="store_true")
     args = parser.parse_args()
 
     cfg = Config(
@@ -1443,20 +1393,36 @@ def main() -> None:
         branch_decoy_same_family=bool(args.branch_decoy_same_family),
         max_candidates_per_selected=max(int(args.max_candidates_per_selected), 25),
         anchor_top_k=max(int(args.anchor_top_k), 1),
+        n_workers=max(int(args.n_workers), 1),
+        write_replacement_signatures=bool(args.write_replacement_signatures),
     )
 
     cache_dir = Path(cfg.trace_cache_dir)
     outdir = Path(cfg.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    profile, tables = load_trace_cache(cache_dir)
+    print("Loading OBS-064 profile...")
+    profile = read_csv_numeric(
+        cache_dir / "obs064_all_path_profile.csv",
+        text_cols={"corpus", "path_id", "route_class", "path_family", "start_node_id", "end_node_id"},
+    )
+    profile["path_id"] = profile["path_id"].astype(str)
 
+    print("Building compact path signature counts...")
+    path_counts = build_path_signature_counts(cache_dir)
+    path_counts["path_id"] = path_counts["path_id"].astype(str)
+
+    print("Building non-exact decoy candidate ranks...")
     candidate_pool = build_decoy_candidate_pool(profile, cfg)
     ranked = build_ranked_nonexact_candidates(profile, candidate_pool, cfg)
 
+    print("Precomputing replacement pair plans...")
+    pairs, runs = precompute_pair_plans(profile, ranked, cfg)
+
+    print("Building baseline signature...")
     baseline_map = selected_path_class_map(profile)
-    baseline_sig = build_all_layer_signatures_for_map(
-        tables,
+    baseline_sig = aggregate_signature_for_map(
+        path_counts,
         baseline_map,
         run_id="baseline",
         band="baseline",
@@ -1464,19 +1430,26 @@ def main() -> None:
         replacement_route_class="baseline",
     )
 
-    runs, pairs, replacement_sig, drift = run_controls(
+    print(f"Running optimized controls with n_workers={cfg.n_workers}...")
+    drift, replacement_sig = run_controls_optimized(
         profile,
-        ranked,
-        tables,
+        path_counts,
         baseline_sig,
+        pairs,
+        runs,
         cfg,
     )
 
+    print("Summarizing survival...")
     summary = summarize_survival(runs, drift)
     failure_modes = build_cross_layer_failure_modes(summary)
-    anchors = build_proto_anchor_candidates(
+
+    print("Building proto-anchor candidates...")
+    anchors = build_proto_anchor_candidates_from_drift(
         baseline_sig,
-        replacement_sig,
+        path_counts,
+        profile,
+        pairs,
         runs,
         cfg,
     )
@@ -1489,6 +1462,7 @@ def main() -> None:
             .head(cfg.max_candidates_per_selected)
         )
 
+    path_counts_csv = outdir / "obs065_path_signature_counts.csv"
     ranked_csv = outdir / "obs065_ranked_nonexact_decoy_candidates.csv"
     pairs_csv = outdir / "obs065_replacement_pairs.csv"
     runs_csv = outdir / "obs065_replacement_runs.csv"
@@ -1500,21 +1474,26 @@ def main() -> None:
     anchors_csv = outdir / "obs065_proto_anchor_candidates.csv"
     report_md = outdir / "obs065_proto_groupoid_decoy_survival_report.md"
 
+    print("Writing outputs...")
+    path_counts.to_csv(path_counts_csv, index=False)
     ranked_to_write.to_csv(ranked_csv, index=False)
     pairs.to_csv(pairs_csv, index=False)
     runs.to_csv(runs_csv, index=False)
     baseline_sig.to_csv(baseline_sig_csv, index=False)
-    replacement_sig.to_csv(replacement_sig_csv, index=False)
     drift.to_csv(drift_csv, index=False)
     summary.to_csv(summary_csv, index=False)
     failure_modes.to_csv(failure_modes_csv, index=False)
     anchors.to_csv(anchors_csv, index=False)
+
+    if cfg.write_replacement_signatures:
+        replacement_sig.to_csv(replacement_sig_csv, index=False)
 
     report_md.write_text(
         build_report(
             cfg,
             profile,
             ranked,
+            path_counts,
             runs,
             baseline_sig,
             summary,
@@ -1524,11 +1503,13 @@ def main() -> None:
         encoding="utf-8",
     )
 
+    print(path_counts_csv)
     print(ranked_csv)
     print(pairs_csv)
     print(runs_csv)
     print(baseline_sig_csv)
-    print(replacement_sig_csv)
+    if cfg.write_replacement_signatures:
+        print(replacement_sig_csv)
     print(drift_csv)
     print(summary_csv)
     print(failure_modes_csv)
