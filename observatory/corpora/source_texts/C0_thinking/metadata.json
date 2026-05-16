@@ -1,0 +1,8 @@
+{
+  "corpus": "C0_thinking",
+  "model_label": "GPT-5.2 Thinking",
+  "prompt": "Explain how understanding emerges.",
+  "n_expected": 50,
+  "source_capture_method": "manual GUI Copy button to markdown file",
+  "notes": "Clean baseline corpus from fresh GPT-5.2 Thinking responses. Runtime JSON should be generated from these markdown sources."
+}

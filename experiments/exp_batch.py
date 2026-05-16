@@ -162,6 +162,46 @@ def update_manifest_row(paths: BatchPaths, job_id: str, **updates) -> None:
         write_manifest_rows(paths, rows)
 
 
+def prepare_manifest_for_launch(
+    paths: BatchPaths,
+    jobs: list[tuple[str, float, float, int, int, int]],
+) -> None:
+    """
+    Normalize retryable manifest rows at the start of a launch.
+
+    The source of truth for completed jobs is index.csv. Any job still present
+    in the launch list is retryable, even if an earlier interrupted process left
+    it marked as running or failed in the manifest.
+
+    Historical failures are preserved in the JSONL event log.
+    """
+    rows = load_manifest_rows(paths)
+    if not rows:
+        return
+
+    retry_job_ids = {
+        build_job_id(corpus_key, r, alpha, iters, W, seed)
+        for corpus_key, r, alpha, iters, W, seed in jobs
+    }
+
+    changed = False
+    for row in rows:
+        if row.get("job_id") not in retry_job_ids:
+            continue
+        if row.get("status") == "done":
+            continue
+
+        row["status"] = "pending"
+        row["started_at"] = ""
+        row["finished_at"] = ""
+        row["duration_sec"] = ""
+        row["error"] = ""
+        changed = True
+
+    if changed:
+        write_manifest_rows(paths, rows)
+
+
 def bootstrap_manifest(
     paths: BatchPaths,
     jobs: list[tuple[str, float, float, int, int, int]],
@@ -502,6 +542,16 @@ def parse_args():
     parser.add_argument("--max-workers", type=int, default=6)
     parser.add_argument("--max-in-flight", type=int, default=None)
     parser.add_argument("--max-jobs", type=int, default=None)
+    parser.add_argument(
+        "--max-tasks-per-child",
+        type=int,
+        default=1,
+        help=(
+            "Recycle worker processes after this many jobs. "
+            "Use 1 for long memory-heavy campaigns to prevent native/model memory growth. "
+            "Set higher only after stability is verified."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -512,6 +562,16 @@ def main():
     corpus_key = args.corpus_key
     campaign = args.campaign
     run_name = f"texts_{corpus_key}_{campaign}"
+
+    if corpus_key not in CORPORA:
+        known = ", ".join(sorted(CORPORA))
+        raise KeyError(f"Unknown corpus key: {corpus_key!r}. Known corpora: {known}")
+
+    if args.max_workers < 1:
+        raise ValueError("--max-workers must be >= 1")
+
+    if args.max_tasks_per_child is not None and args.max_tasks_per_child < 1:
+        raise ValueError("--max-tasks-per-child must be >= 1")
 
     paths = BatchPaths(
         root=campaign_root(args.base_out_dir, corpus_key, campaign),
@@ -527,7 +587,11 @@ def main():
     iters = args.iters
     W = args.W
     max_workers = args.max_workers
-    max_in_flight = args.max_in_flight or (max_workers * 2)
+
+    # Keep the queue shallow for long-running memory-heavy jobs. This makes
+    # worker recycling easier to reason about and avoids stale over-submission.
+    max_in_flight = args.max_in_flight or max_workers
+    max_in_flight = max(1, min(max_in_flight, max_workers * 2))
 
     spec = build_run_spec(
         corpus_key=corpus_key,
@@ -550,12 +614,16 @@ def main():
     total = len(jobs)
 
     bootstrap_manifest(paths, jobs, iters, W)
+    prepare_manifest_for_launch(paths, jobs)
     write_progress_snapshot(paths, start_time)
 
     print("Corpus:", corpus_key)
     print("Campaign:", campaign)
     print("Output root:", paths.root)
     print("Jobs remaining in this launch:", total)
+    print("Max workers:", max_workers)
+    print("Max in flight:", max_in_flight)
+    print("Max tasks per child:", args.max_tasks_per_child)
 
     if not jobs:
         print("All jobs already complete for this launch.")
@@ -564,7 +632,13 @@ def main():
     done = 0
     job_iter = iter(jobs)
 
-    with ProcessPoolExecutor(max_workers=max_workers) as pool:
+    pool_kwargs = {
+        "max_workers": max_workers,
+    }
+    if args.max_tasks_per_child is not None:
+        pool_kwargs["max_tasks_per_child"] = args.max_tasks_per_child
+
+    with ProcessPoolExecutor(**pool_kwargs) as pool:
         in_flight = {}
 
         for _ in range(min(max_in_flight, total)):
