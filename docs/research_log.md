@@ -1108,3 +1108,171 @@ Instrument is stable but provisional; lacks inter-rater validation, full statist
 
 ---
 
+## OBS-055 — Downstream inherited-family survival control specification
+
+**Date:** 2026-05-07
+**State:** Downstream inherited-family survival controls specified
+
+* Question: How should downstream inherited-family survival be tested under route-origin perturbation?
+* Method: Defined the downstream validation framework for motif, generator, proto-groupoid, gateway, and canonical-family survival under controlled origin replacement.
+* Artifacts: Control specification layer referenced by later OBS-056–OBS-067 studies.
+* Result: Established the validation ladder separating provenance, origin sensitivity, decoy replacement, and downstream survival testing.
+* Guardrail: Specification study only; no survival claims or downstream robustness results established.
+
+---
+
+## OBS-056 — Route-class provenance chain stabilization
+
+**Date:** 2026-05-07
+**State:** Route-class provenance stabilization established for C and Cp
+
+* Question: Where does route_class originate, and how does it propagate downstream?
+* Method: Traced provenance from OBS-022 scene-route metadata through OBS-030 route-class assignment into downstream family/gateway artifacts.
+* Artifacts: Provenance-trace audit outputs over C and Cp artifact stores.
+* Result: Established that downstream route-class structure is inherited from a small selected origin substrate (8 / 8 / 8 paths per class in C and Cp).
+* Guardrail: Provenance audit only; did not establish route-class validity, robustness, or downstream survival.
+
+---
+
+## OBS-057 — Leave-one-out origin-substrate stability
+
+**Date:** 2026-05-07
+**State:** Route-class origin substrate leave-one-out stability established for C and Cp
+
+* Question: Is the small OBS-022 / OBS-030 origin substrate dominated by single selected paths?
+* Method: Removed one selected origin path at a time and recomputed OBS-030 transition-signature distributions.
+* Artifacts: obs057_origin_path_profile.csv, obs057_leave_one_out_drift.csv, transition-signature and transition-distribution summaries.
+* Result: Dominant transition signatures remained stable under leave-one-out deletion across all classes in C and Cp.
+* Guardrail: Origin-level only; did not establish matched-decoy robustness, downstream survival, or cross-corpus equivalence.
+
+---
+
+## OBS-058 — Profile-exact matched-decoy survival
+
+**Date:** 2026-05-07
+**State:** Profile-exact matched-decoy route-origin survival established across C and Cp
+
+* Question: Are selected origin paths uniquely necessary, or replaceable by profile-equivalent decoys?
+* Method: Replaced selected paths with distinct non-selected profile-exact decoys matched on path-profile features.
+* Artifacts: obs058_matched_decoy_pairs.csv, baseline/replacement transition signatures, drift summaries.
+* Result: All dominant route-origin transition signatures survived full profile-exact replacement across C and Cp.
+* Guardrail: Established profile-exact decoy survival only; not arbitrary-decoy or downstream survival.
+
+---
+
+## OBS-059 — Nearest non-exact decoy survival
+
+**Date:** 2026-05-07
+**State:** Nearest non-exact decoy dominant-signature survival established across C and Cp
+
+* Question: Do dominant transition signatures survive after excluding profile-exact twins?
+* Method: Replaced selected origin paths with nearest eligible non-exact decoys using deterministic nearest-neighbor matching.
+* Artifacts: obs059_matched_nonexact_decoy_pairs.csv, replacement drift summaries, transition-distribution reports.
+* Result: Dominant top-1 transition signatures survived across all route classes in C and Cp despite nonzero distribution drift.
+* Guardrail: Demonstrated dominant-signature survival only; full transition-distribution invariance was not established.
+
+---
+
+## OBS-060 — Rank-k local robustness and ensemble non-exchangeability
+
+**Date:** 2026-05-07
+**State:** Non-exact decoy ensemble route-origin controls executed across C and Cp
+
+* Question: Does robustness extend beyond nearest-neighbor replacement into broader non-exact ensembles?
+* Method: Tested deterministic rank-k decoys (k=1,2,3,5,10) and broad random non-exact ensemble replacements.
+* Artifacts: Rank-k replacement summaries and random ensemble survival-rate tables.
+* Result: Deterministic local rank-k replacement preserved dominant transition signatures, while broad random ensembles revealed strong class- and corpus-dependent non-exchangeability.
+* Guardrail: Origin-substrate ensemble study only; no downstream motif/proto/gateway survival claims.
+
+---
+
+## OBS-061 — Distance-banded robustness-radius mapping
+
+**Date:** 2026-05-08
+**State:** Distance-banded non-exact decoy ensembles executed across C and Cp
+
+* Question: Over what decoy-distance scale do route-origin signatures remain stable?
+* Method: Sampled random non-exact decoys from ranked candidate bands: 1–10, 11–50, 51–250, 251–1000, and all non-exact candidates.
+* Artifacts: Distance-banded survival-rate summaries and drift metrics across 250 iterations per band.
+* Result: All route classes survived through rank 11–50, but broader bands showed class- and corpus-specific robustness-radius decay.
+* Guardrail: Origin-level robustness-radius map only; downstream symbolic layers not yet tested.
+
+---
+
+## OBS-062 — Downstream motif/generator survival controls
+
+**Date:** 2026-05-08
+**State:** Downstream motif-generator survival controls executed across C and Cp
+
+* Question: Do downstream motif and generator layers survive route-origin decoy replacement?
+* Method: Rebuilt motifs, completed generators, and generator compositions under controlled non-exact decoy replacement.
+* Artifacts: Motif-class, completed-generator, and generator-composition survival summaries.
+* Result: Motif classes were highly robust; completed generators were partially robust and corpus-sensitive; generator compositions were the most origin-sensitive layer.
+* Guardrail: Did not test proto-groupoid, gateway, or canonical-family survival.
+
+---
+
+## OBS-063 — Generator compression sensitivity audit
+
+**Date:** 2026-05-08
+**State:** Generator compression sensitivity audit executed across C and Cp
+
+* Question: Why are completed-generator and composition layers more fragile than motif classes?
+* Method: Audited the symbolic compression chain: motif class → reduced word → generator → completed generator → composition.
+* Artifacts: Margin audits, reduced-word change diagnostics, anchor-composition analyses.
+* Result: Sensitivity arose from low-margin generator tie breaks, coarse motif compression, and composition-level algebraic anchors.
+* Guardrail: Diagnostic audit only; did not revise generator rules or introduce soft assignments.
+
+---
+
+## OBS-064 — Proto-groupoid symbolic trace cache
+
+**Date:** 2026-05-08
+**State:** Proto-groupoid symbolic trace cache built for C and Cp
+
+* Question: Can symbolic extraction be separated from decoy-control aggregation for efficient downstream studies?
+* Method: Built reusable cached symbolic traces from scene routes through motifs, generators, compositions, proto-edges, and proto-relations.
+* Artifacts: Cached per-path symbolic tables covering generator, composition, proto-edge, proto-relation, and sector-relation layers.
+* Result: Reproduced OBS-062/063 symbolic baselines while exposing explicit proto-groupoid-ready structures for downstream controls.
+* Guardrail: Infrastructure/cache study only; did not test proto-groupoid survival.
+
+---
+
+## OBS-065 — Proto-groupoid decoy survival controls
+
+**Date:** 2026-05-09
+**State:** Proto-groupoid decoy survival controls completed for C and Cp
+
+* Question: Do proto-groupoid signatures survive route-origin decoy replacement?
+* Method: Evaluated survival across generator, composition, proto-edge, proto-sector-edge, proto-relation, and proto-sector-relation layers under non-exact decoys.
+* Artifacts: Proto survival summaries, cross-layer failure modes, proto-anchor candidate tables.
+* Result: Proto-groupoid survival was layer-specific and finite; sector-level algebra was often more robust than reduced-state relations; fine proto-relations were broadly fragile but contained algebraic anchors.
+* Guardrail: Did not establish gateway/canonical-family survival or revise generator rules.
+
+---
+
+## OBS-066 — Gateway and canonical-family survival controls
+
+**Date:** 2026-05-09
+**State:** Gateway and canonical-family decoy survival controls completed for C and Cp
+
+* Question: Do gateway/canonical-family summaries survive after proto-groupoid recomputation under decoy replacement?
+* Method: Evaluated gateway events, gateway relations, canonical-family relations, and anchor-family summaries under the OBS-065 replacement regimes.
+* Artifacts: Gateway survival summaries, canonical-family relation summaries, anchor-family diagnostics, cross-layer consequence modes.
+* Result: Seam-centered classes often preserved coarse gateway/canonical relations despite fine proto drift, while branch_exit remained relation-order sensitive; broad all-nonexact decoys still degraded many downstream layers.
+* Guardrail: Gateway/canonical layers were treated as coarse projections, not independent predictive models or causal mechanisms.
+
+---
+
+## OBS-067 — Proto-to-gateway/canonical survival coupling meta-analysis
+
+**Date:** 2026-05-12  
+**State:** Proto-to-gateway/canonical survival coupling meta-analysis completed for C and Cp
+
+- **Question:** How are proto-groupoid survival and downstream gateway/canonical-family survival coupled across replacement regimes?
+- **Method:** Joined OBS-065 and OBS-066 regime-level summary artifacts into a coupling ledger over corpus × rank band × replacement class.
+- **Artifacts:** `obs067_layer_coupling_table.csv`, `obs067_projection_absorption_modes.csv`, `obs067_proto_sufficiency_table.csv`, `obs067_anchor_transfer_table.csv`, `obs067_cross_corpus_contrast.csv`, and `obs067_proto_gateway_coupling_meta_report.md`, joined from OBS-065/066 summary inputs.
+- **Result:** Proto survival was neither necessary nor sufficient for downstream survival; gateway/canonical projection sometimes absorbed fine proto drift, sometimes failed jointly, and anchor-family survival formed a partially independent coupling axis.
+- **Guardrail:** Meta-analysis only; did not rerun decoy experiments, recompute symbolic traces, or establish causal gateway mechanisms.
+
+---
