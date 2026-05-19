@@ -33,7 +33,8 @@ texts_Cp = load_corpus("Cp")
 texts_Cp2 = load_corpus("Cp2")
 texts_Cp3 = load_corpus("Cp3")
 texts_Cp4 = load_corpus("Cp4")
-
+texts_C0_instant = load_corpus("C0_instant")
+texts_C0_thinking = load_corpus("C0_thinking")
 
 __all__ = [
     "load_registry",
@@ -43,4 +44,6 @@ __all__ = [
     "texts_Cp2",
     "texts_Cp3",
     "texts_Cp4",
+    "texts_C0_instant",
+    "texts_C0_thinking",
 ]

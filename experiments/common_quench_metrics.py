@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 
-from pam.corpora import texts_C, texts_Cp, texts_Cp2, texts_Cp3, texts_Cp4
+from pam.corpora import texts_C, texts_Cp, texts_Cp2, texts_Cp3, texts_Cp4, texts_C0_instant, texts_C0_thinking
 from pam.types import RunParams
 from pam.engine.core import run_quench
 from pam.metrics.entropy import compute_entropy_series
@@ -17,6 +17,8 @@ CORPORA = {
     "Cp2": texts_Cp2,
     "Cp3": texts_Cp3,
     "Cp4": texts_Cp4,
+    "C0_instant": texts_C0_instant,
+    "C0_thinking": texts_C0_thinking
 }
 
 
