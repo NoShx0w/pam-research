@@ -24,3 +24,5 @@ snapshots/
 observatory/derived/**
 !observatory/derived/
 !observatory/derived/README.md
+metadata/*.duckdb
+metadata/*.duckdb.wal
