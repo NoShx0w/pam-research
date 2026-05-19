@@ -7,7 +7,7 @@ OBS-069 — Scale-space observable diffusion pilot
 Purpose
 -------
 Construct a PAM scale-space robustness branch by diffusing observable fields
-over the canonical Fisher/geodesic neighborhood graph.
+over the canonical-MDS pilot graph.
 
 This script does not smooth figures and does not replace the canonical pipeline.
 It creates scale-parameterized observable fields X(t), then writes simple
