@@ -1276,3 +1276,44 @@ Instrument is stable but provisional; lacks inter-rater validation, full statist
 - **Guardrail:** Meta-analysis only; did not rerun decoy experiments, recompute symbolic traces, or establish causal gateway mechanisms.
 
 ---
+
+## OBS-068 — Proto-groupoid returnability / partial-inverse specification
+
+**Date:** 2026-05-16
+**State:** Proto-groupoid returnability and partial-inverse design specified; execution deferred
+
+* Question: Can proto-groupoid “invertibility” be operationalized as bounded-cost returnability to anchor/canonical families rather than strict algebraic reversal?
+* Method: Specified a minimax bottleneck-cost returnability framework over reduced symbolic transition graphs, including return bottleneck cost, return path length, residual drift classes, and directional asymmetry diagnostics.
+* Artifacts: Proposed outputs include obs068_proto_inverse_edges.csv, obs068_returnability_summary.csv, obs068_proto_inverse_class_summary.csv, and obs068_proto_inverse_report.md.
+* Result: Defined a projection-aware proto-inverse framework in which symbolic moves are evaluated by bounded-cost returnability to canonical/anchor-family equivalence classes rather than exact state reversal.
+* Guardrail: Specification-only study; no returnability execution performed. Returnability is scoped to observed reduced symbolic artifact graphs and declared edge-cost estimators, not the full latent transition space of the model.
+
+---
+
+## OBS-069 — Scale-space observable diffusion pilot
+
+**Date:** 2026-05-16
+**State:** Canonical-MDS scale-space observable diffusion pilot executed; Fisher/geodesic distance recovery and full multiscale geometry recomputation deferred
+
+* Question: Which node-level observable salience structures persist under graph diffusion, and which reorganize as local texture?
+* Method: Joined canonical FIM, MDS, curvature, and response-operator outputs into a 75-node observable table keyed by (r, alpha); built a self-tuning kNN graph from canonical MDS-coordinate distances; applied log/robust scaling to heavy-tailed fields; excluded unstable scalar curvature; and diffused observables over an 8-step geometric scale ladder.
+* Artifacts: outputs/obs069_inputs/obs069_canonical_node_table_pilot.csv, obs069_canonical_node_table_pilot_log_robust_scaled.csv, obs069_mds_distance_pilot.csv, outputs/obs069_scale_space_canonical_mds_pilot_log_robust_no_curvature/obs069_scale_ladder.csv, obs069_diffused_observables_t*.csv, obs069_observable_drift_summary.csv, obs069_topk_persistence_summary.csv, obs069_top10_nodes_by_scale.csv, and obs069_scale_space_report.md.
+* Result: Observable variance decreased monotonically across scale while a seam-centered salience core persisted. Base top nodes node_0058 and node_0057 at r=0.25, alpha≈0.133–0.141, distance_to_seam=0, and high Lazarus/response strength remained top-ranked at t=10; nearby seam nodes at r=0.20 were absorbed into the persistent core while less seam-local or low-Lazarus nodes dropped out.
+* Quantitative summary: Final top-k Jaccard vs base was 0.428571 (top-5), 0.666667 (top-10), and 0.37931 (top-20). Mean observable variance decreased from 2.3144 at t=0.1 to 0.195112 at t=10.
+* Guardrail: Pilot graph uses canonical MDS-coordinate distance rather than the original Fisher/geodesic dissimilarity matrix. Scalar curvature was excluded from the interpretable run due to instability/outlier dominance. OBS-069 does not yet recompute FIM geometry, seams, attractors, Lazarus fields, or symbolic route structures at each scale.
+
+---
+
+## OBS-070 — Cp2 full-grid freeze-inactivity validation
+
+**Date:** 2026-05-17  
+**State:** Cp2 `full_v2` campaign completed and validated; freeze macrostate inactive across full grid.
+
+- **Question:** Was the Cp2 smoke-test NaN behavior a localized pipeline failure, or a full-campaign measurement result caused by absence of freeze-state variation?
+- **Method:** Completed the Cp2 `full_v2` campaign over the full 5 × 15 × 10 grid, validated row/job/trajectory consistency, and summarized freeze/entropy diagnostics by `(r, alpha)`.
+- **Artifacts:** `outputs/corpora/Cp2/campaigns/full_v2/index.csv`, `trajectories/*.npz`, manifest/progress logs, and `outputs/corpora/Cp2/campaigns/full_v2/cp2_full_v2_validation_summary.csv`.
+- **Result:** The campaign completed all `750 / 750` planned jobs with `750` unique index rows, `750` trajectory files, and `0` failures. Across all 750 runs, `piF_mean = 0.0`; consequently `corr0`, `best_corr`, and `delta_r2_freeze` are undefined/NaN for all rows, while entropy-derived summaries remain finite.
+- **Interpretation:** The original Cp2 NaNs were not residual pipeline errors after patching. They reflect that the current freeze macrostate observable is inactive for Cp2 across the tested grid. Cp2 therefore suppresses the freeze-coupling measurement channel under the current corpus/operator and parameterization.
+- **Guardrail:** This does not imply Cp2 has no structure, no phase behavior, or no meaningful geometry. It means the specific freeze macrostate observable is inactive under the current definition. Cp2 must be compared to C/Cp using entropy geometry, transition alternatives, route structure, response fields, scale-space behavior, or revised macrostate diagnostics rather than freeze-coupling metrics alone.
+
+---
