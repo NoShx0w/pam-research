@@ -26,3 +26,5 @@ observatory/derived/**
 !observatory/derived/README.md
 metadata/*.duckdb
 metadata/*.duckdb.wal
+metadata/*.parquet
+metadata/**/*.parquet

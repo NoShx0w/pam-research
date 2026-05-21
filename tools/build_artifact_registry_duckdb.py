@@ -5,6 +5,8 @@ import argparse
 import csv
 import hashlib
 import json
+import socket
+from datetime import datetime, timezone
 from pathlib import Path
 
 import duckdb
@@ -12,6 +14,10 @@ import pandas as pd
 
 
 ARTIFACT_SUFFIXES = {".csv", ".json", ".md", ".npz", ".npy"}
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def sha1_file(path: Path, max_bytes: int | None = None) -> str:
@@ -64,7 +70,7 @@ def infer_campaign_from_path(path: Path) -> tuple[str | None, str | None, str]:
       outputs/index.csv
       outputs/trajectories/*.npz
 
-    Legacy corpus/campaign are assigned later from CLI args because they are not
+    Legacy corpus/campaign are assigned from CLI args because they are not
     encoded in the root paths themselves.
     """
     parts = list(path.parts)
@@ -77,7 +83,6 @@ def infer_campaign_from_path(path: Path) -> tuple[str | None, str | None, str]:
         pass
 
     if "trajectories" in parts or path.name == "index.csv":
-        # Could be legacy or campaign; campaign would have matched above.
         return None, None, "legacy_or_unknown"
 
     return None, None, "unknown"
@@ -98,6 +103,8 @@ def scan_artifacts(
     *,
     legacy_corpus: str | None,
     legacy_campaign: str | None,
+    host_label: str,
+    scan_timestamp: str,
 ) -> pd.DataFrame:
     rows = []
 
@@ -112,11 +119,12 @@ def scan_artifacts(
         if layout == "legacy_or_unknown":
             try:
                 rel_to_root = path.relative_to(root)
-                if (
-                    rel_to_root.parts == ("index.csv",)
-                    or len(rel_to_root.parts) >= 2
+                is_legacy_index = rel_to_root.parts == ("index.csv",)
+                is_legacy_trajectory = (
+                    len(rel_to_root.parts) >= 2
                     and rel_to_root.parts[0] == "trajectories"
-                ):
+                )
+                if is_legacy_index or is_legacy_trajectory:
                     corpus = legacy_corpus
                     campaign = legacy_campaign
                     layout = "legacy_root"
@@ -129,6 +137,8 @@ def scan_artifacts(
 
         rows.append(
             {
+                "host_label": host_label,
+                "scan_timestamp": scan_timestamp,
                 "path": str(path),
                 "suffix": path.suffix,
                 "size_bytes": path.stat().st_size,
@@ -146,7 +156,12 @@ def scan_artifacts(
     return pd.DataFrame(rows)
 
 
-def load_campaign_runs(outputs_root: Path) -> pd.DataFrame:
+def load_campaign_runs(
+    outputs_root: Path,
+    *,
+    host_label: str,
+    scan_timestamp: str,
+) -> pd.DataFrame:
     """
     Load progress snapshots from new campaign layout.
     """
@@ -171,16 +186,23 @@ def load_campaign_runs(outputs_root: Path) -> pd.DataFrame:
         except Exception:
             pass
 
-        traj_dir = root / "trajectories"
+        # Resolve relative roots against the current working directory.
+        resolved_root = root
+        if not resolved_root.is_absolute():
+            resolved_root = Path.cwd() / resolved_root
+
+        traj_dir = resolved_root / "trajectories"
         trajectory_count = len(list(traj_dir.glob("*.npz"))) if traj_dir.exists() else 0
 
-        index_path = root / "index.csv"
+        index_path = resolved_root / "index.csv"
         index_rows = None
         if index_path.exists():
             index_rows, _ = csv_shape_and_columns(index_path)
 
         rows.append(
             {
+                "host_label": host_label,
+                "scan_timestamp": scan_timestamp,
                 "corpus": corpus,
                 "campaign": campaign,
                 "layout": "campaign",
@@ -213,6 +235,8 @@ def load_legacy_campaign_run(
     *,
     legacy_corpus: str | None,
     legacy_campaign: str | None,
+    host_label: str,
+    scan_timestamp: str,
 ) -> pd.DataFrame:
     """
     Register root-layout legacy campaign:
@@ -237,19 +261,20 @@ def load_legacy_campaign_run(
 
     trajectory_count = len(list(traj_dir.glob("*.npz"))) if traj_dir.exists() else 0
 
-    # Infer total/done from index rows where possible.
     done = index_rows if index_rows is not None else trajectory_count
     total = done
 
     row = {
+        "host_label": host_label,
+        "scan_timestamp": scan_timestamp,
         "corpus": legacy_corpus,
         "campaign": legacy_campaign,
         "layout": "legacy_root",
         "root": str(outputs_root),
         "run_name": f"{legacy_corpus}_{legacy_campaign}",
-        "host": None,
+        "host": socket.gethostname(),
         "pid": None,
-        "updated_at": None,
+        "updated_at": scan_timestamp,
         "total": total,
         "done": done,
         "failed": None,
@@ -268,7 +293,12 @@ def load_legacy_campaign_run(
     return pd.DataFrame([row])
 
 
-def load_index_metrics_campaign_layout(outputs_root: Path) -> pd.DataFrame:
+def load_index_metrics_campaign_layout(
+    outputs_root: Path,
+    *,
+    host_label: str,
+    scan_timestamp: str,
+) -> pd.DataFrame:
     frames = []
 
     for index_path in outputs_root.glob("corpora/*/campaigns/*/index.csv"):
@@ -288,6 +318,8 @@ def load_index_metrics_campaign_layout(outputs_root: Path) -> pd.DataFrame:
         except Exception:
             pass
 
+        df.insert(0, "scan_timestamp", scan_timestamp)
+        df.insert(0, "host_label", host_label)
         df.insert(0, "layout", "campaign")
         df.insert(0, "campaign", campaign)
         df.insert(0, "corpus_root", corpus)
@@ -305,6 +337,8 @@ def load_index_metrics_legacy_layout(
     *,
     legacy_corpus: str | None,
     legacy_campaign: str | None,
+    host_label: str,
+    scan_timestamp: str,
 ) -> pd.DataFrame:
     if not legacy_corpus or not legacy_campaign:
         return pd.DataFrame()
@@ -318,8 +352,8 @@ def load_index_metrics_legacy_layout(
     except Exception:
         return pd.DataFrame()
 
-    # Do not overwrite the original corpus column if present. Add corpus_root
-    # and campaign as registry metadata.
+    df.insert(0, "scan_timestamp", scan_timestamp)
+    df.insert(0, "host_label", host_label)
     df.insert(0, "layout", "legacy_root")
     df.insert(0, "campaign", legacy_campaign)
     df.insert(0, "corpus_root", legacy_corpus)
@@ -333,13 +367,21 @@ def load_all_campaign_runs(
     *,
     legacy_corpus: str | None,
     legacy_campaign: str | None,
+    host_label: str,
+    scan_timestamp: str,
 ) -> pd.DataFrame:
     frames = [
-        load_campaign_runs(outputs_root),
+        load_campaign_runs(
+            outputs_root,
+            host_label=host_label,
+            scan_timestamp=scan_timestamp,
+        ),
         load_legacy_campaign_run(
             outputs_root,
             legacy_corpus=legacy_corpus,
             legacy_campaign=legacy_campaign,
+            host_label=host_label,
+            scan_timestamp=scan_timestamp,
         ),
     ]
     frames = [f for f in frames if not f.empty]
@@ -353,13 +395,21 @@ def load_all_index_metrics(
     *,
     legacy_corpus: str | None,
     legacy_campaign: str | None,
+    host_label: str,
+    scan_timestamp: str,
 ) -> pd.DataFrame:
     frames = [
-        load_index_metrics_campaign_layout(outputs_root),
+        load_index_metrics_campaign_layout(
+            outputs_root,
+            host_label=host_label,
+            scan_timestamp=scan_timestamp,
+        ),
         load_index_metrics_legacy_layout(
             outputs_root,
             legacy_corpus=legacy_corpus,
             legacy_campaign=legacy_campaign,
+            host_label=host_label,
+            scan_timestamp=scan_timestamp,
         ),
     ]
     frames = [f for f in frames if not f.empty]
@@ -374,10 +424,33 @@ def normalize_empty_frame(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
     return pd.DataFrame(columns=columns)
 
 
-def main() -> None:
+def export_parquet_tables(
+    *,
+    con: duckdb.DuckDBPyConnection,
+    export_dir: Path,
+    host_label: str,
+) -> None:
+    export_dir.mkdir(parents=True, exist_ok=True)
+
+    targets = {
+        "artifact_files": export_dir / f"{host_label}_artifact_files.parquet",
+        "campaign_runs": export_dir / f"{host_label}_campaign_runs.parquet",
+        "index_metrics": export_dir / f"{host_label}_index_metrics.parquet",
+    }
+
+    for table, path in targets.items():
+        con.execute(
+            f"copy {table} to ? (format parquet)",
+            [str(path)],
+        )
+        print("exported", path)
+
+
+def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser()
     ap.add_argument("--outputs-root", default="outputs")
     ap.add_argument("--db", default="metadata/pam_artifacts.duckdb")
+
     ap.add_argument(
         "--legacy-corpus",
         default=None,
@@ -391,33 +464,67 @@ def main() -> None:
         default="canonical_legacy",
         help="Campaign label for legacy root-layout artifacts.",
     )
-    args = ap.parse_args()
+
+    ap.add_argument(
+        "--host-label",
+        default=socket.gethostname(),
+        help="Stable source label for this scan, e.g. macbook or macmini.",
+    )
+    ap.add_argument(
+        "--export-dir",
+        default="metadata/registry_exports",
+        help="Directory for optional parquet registry exports.",
+    )
+    ap.add_argument(
+        "--export-parquet",
+        action="store_true",
+        help="Export artifact_files, campaign_runs, and index_metrics to parquet files.",
+    )
+
+    return ap.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
 
     outputs_root = Path(args.outputs_root)
     db_path = Path(args.db)
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
+    scan_timestamp = utc_now_iso()
+    host_label = args.host_label
+
+    legacy_campaign = args.legacy_campaign if args.legacy_corpus else None
+
     artifact_df = scan_artifacts(
         outputs_root,
         legacy_corpus=args.legacy_corpus,
-        legacy_campaign=args.legacy_campaign if args.legacy_corpus else None,
+        legacy_campaign=legacy_campaign,
+        host_label=host_label,
+        scan_timestamp=scan_timestamp,
     )
 
     campaigns_df = load_all_campaign_runs(
         outputs_root,
         legacy_corpus=args.legacy_corpus,
-        legacy_campaign=args.legacy_campaign if args.legacy_corpus else None,
+        legacy_campaign=legacy_campaign,
+        host_label=host_label,
+        scan_timestamp=scan_timestamp,
     )
 
     index_df = load_all_index_metrics(
         outputs_root,
         legacy_corpus=args.legacy_corpus,
-        legacy_campaign=args.legacy_campaign if args.legacy_corpus else None,
+        legacy_campaign=legacy_campaign,
+        host_label=host_label,
+        scan_timestamp=scan_timestamp,
     )
 
     artifact_df = normalize_empty_frame(
         artifact_df,
         [
+            "host_label",
+            "scan_timestamp",
             "path",
             "suffix",
             "size_bytes",
@@ -435,6 +542,8 @@ def main() -> None:
     campaigns_df = normalize_empty_frame(
         campaigns_df,
         [
+            "host_label",
+            "scan_timestamp",
             "corpus",
             "campaign",
             "layout",
@@ -459,12 +568,16 @@ def main() -> None:
         ],
     )
 
+    # Preserve the dynamic schema of index_metrics because different campaign
+    # generations may contain slightly different metric columns.
     con = duckdb.connect(str(db_path))
     con.execute("create or replace table artifact_files as select * from artifact_df")
     con.execute("create or replace table campaign_runs as select * from campaigns_df")
     con.execute("create or replace table index_metrics as select * from index_df")
 
     print("wrote", db_path)
+    print("host_label:", host_label)
+    print("scan_timestamp:", scan_timestamp)
     print("artifact_files:", len(artifact_df))
     print("campaign_runs:", len(campaigns_df))
     print("index_metrics:", len(index_df))
@@ -474,14 +587,21 @@ def main() -> None:
         print(
             con.execute(
                 """
-                select corpus, campaign, layout, done, failed, pending,
+                select host_label, corpus, campaign, layout, done, failed, pending,
                        trajectory_count, index_rows
                 from campaign_runs
-                order by corpus, campaign, layout
+                order by host_label, corpus, campaign, layout
                 """
             )
             .fetchdf()
             .to_string(index=False)
+        )
+
+    if args.export_parquet:
+        export_parquet_tables(
+            con=con,
+            export_dir=Path(args.export_dir),
+            host_label=host_label,
         )
 
 
