@@ -28,3 +28,6 @@ metadata/*.duckdb
 metadata/*.duckdb.wal
 metadata/*.parquet
 metadata/**/*.parquet
+
+# Aider local state
+.aider*
