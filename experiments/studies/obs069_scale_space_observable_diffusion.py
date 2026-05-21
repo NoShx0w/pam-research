@@ -20,12 +20,14 @@ Given:
     X ∈ R^(N × D)
         observable matrix over N parameter/corpus nodes
 
-    D_F ∈ R^(N × N)
-        canonical Fisher/geodesic dissimilarity matrix over the same nodes
+    D ∈ R^(N × N)
+        input dissimilarity / distance matrix over the same nodes.
+        This may be the canonical Fisher/geodesic matrix when available,
+        or a declared pilot graph distance such as canonical-MDS distance.
 
 Build a local self-tuning affinity graph:
 
-    W_ij = exp(-D_F(i,j)^2 / (2 sigma_i sigma_j))
+    W_ij = exp(-D(i,j)^2 / (2 sigma_i sigma_j))
 
 for j in kNN(i), symmetrize W, compute:
 
