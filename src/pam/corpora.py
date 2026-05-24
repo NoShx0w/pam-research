@@ -20,12 +20,20 @@ def load_corpus(name: str) -> list[str]:
     registry = load_registry()
     if name not in registry:
         raise KeyError(f"Unknown corpus '{name}'")
+
     path = CORPORA_ROOT / registry[name]
     with path.open("r", encoding="utf-8") as f:
         data = json.load(f)
+
     if not isinstance(data, list):
         raise ValueError(f"Corpus file for '{name}' must contain a JSON list.")
+
     return [str(x) for x in data]
+
+
+def load_all_corpora() -> dict[str, list[str]]:
+    registry = load_registry()
+    return {name: load_corpus(name) for name in registry}
 
 
 texts_C = load_corpus("C")
@@ -39,6 +47,7 @@ texts_C0_thinking = load_corpus("C0_thinking")
 __all__ = [
     "load_registry",
     "load_corpus",
+    "load_all_corpora",
     "texts_C",
     "texts_Cp",
     "texts_Cp2",

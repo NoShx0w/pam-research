@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 
-from pam.corpora import texts_C, texts_Cp, texts_Cp2, texts_Cp3, texts_Cp4, texts_C0_instant, texts_C0_thinking
+from pam.corpora import load_all_corpora
 from pam.types import RunParams
 from pam.engine.core import run_quench
 from pam.metrics.entropy import compute_entropy_series
@@ -11,15 +11,7 @@ from pam.metrics.regression import granger_delta_r2, fit_minimal_models
 from pam.measurement.builders import build_injector, build_tip, macro_fn_factory
 
 
-CORPORA = {
-    "C": texts_C,
-    "Cp": texts_Cp,
-    "Cp2": texts_Cp2,
-    "Cp3": texts_Cp3,
-    "Cp4": texts_Cp4,
-    "C0_instant": texts_C0_instant,
-    "C0_thinking": texts_C0_thinking
-}
+CORPORA = load_all_corpora()
 
 
 def safe_lag_corr(x, y, *, max_lag: int = 80):
