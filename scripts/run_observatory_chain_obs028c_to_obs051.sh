@@ -17,6 +17,7 @@ set -euo pipefail
 # - OBS-050 is treated as canonical / cross-corpus qualitatively stable
 # - OBS-051 is treated as provisional / corpus-sensitive
 # - This script is intentionally explicit rather than clever
+# - All path-sensitive study calls receive explicit scoped inputs/outputs.
 
 if [[ -z "${PYTHON_BIN:-}" ]]; then
   if [[ -x ".venv/bin/python" ]]; then
@@ -38,6 +39,28 @@ export PYTHONPATH="${PYTHONPATH:-src}"
 
 OUTPUTS_ROOT="${OUTPUTS_ROOT:-outputs}"
 SCALE_ROOT="${SCALE_ROOT:-outputs/scales/100000}"
+
+# ---------------------------------------------------------------------------
+# Scoped artifact directories
+# ---------------------------------------------------------------------------
+
+SCENE_BUNDLE_DIR="$OUTPUTS_ROOT/obs022_scene_bundle"
+OBS024_HOTSPOT_DIR="$OUTPUTS_ROOT/obs024_family_hotspot_occupancy"
+
+RESPONSE_COMPLEX_DIR="$OUTPUTS_ROOT/fim_response_complex_compatibility"
+RESPONSE_DECOMP_DIR="$OUTPUTS_ROOT/fim_response_operator_decomposition"
+
+OBS025_ANISOTROPY_DIR="$OUTPUTS_ROOT/obs025_anisotropy_vs_relational_obstruction"
+OBS025_TWO_FIELD_DIR="$OUTPUTS_ROOT/obs025_two_field_seam_panel"
+OBS026_OCCUPANCY_DIR="$OUTPUTS_ROOT/obs026_family_two_field_occupancy"
+OBS028_EMBEDDING_DIR="$OUTPUTS_ROOT/obs028_embedding_comparison"
+OBS028B_DIFFUSION_DIR="$OUTPUTS_ROOT/obs028b_diffusion_mode_analysis"
+OBS028C_BUNDLE_DIR="$OUTPUTS_ROOT/obs028c_canonical_seam_bundle"
+
+FAMILY_SUBSTRATE_DIR="$SCALE_ROOT/family_substrate"
+
+OBS050_DIR="$OUTPUTS_ROOT/obs050_structural_coupling_persistence"
+OBS051_DIR="$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows"
 
 RUN_OBS028C_PREREQS="${RUN_OBS028C_PREREQS:-1}"
 RUN_OBS028C="${RUN_OBS028C:-1}"
@@ -82,6 +105,19 @@ print_config() {
   echo "PYTHONPATH=$PYTHONPATH"
   echo "OUTPUTS_ROOT=$OUTPUTS_ROOT"
   echo "SCALE_ROOT=$SCALE_ROOT"
+  echo "SCENE_BUNDLE_DIR=$SCENE_BUNDLE_DIR"
+  echo "OBS024_HOTSPOT_DIR=$OBS024_HOTSPOT_DIR"
+  echo "RESPONSE_COMPLEX_DIR=$RESPONSE_COMPLEX_DIR"
+  echo "RESPONSE_DECOMP_DIR=$RESPONSE_DECOMP_DIR"
+  echo "OBS025_ANISOTROPY_DIR=$OBS025_ANISOTROPY_DIR"
+  echo "OBS025_TWO_FIELD_DIR=$OBS025_TWO_FIELD_DIR"
+  echo "OBS026_OCCUPANCY_DIR=$OBS026_OCCUPANCY_DIR"
+  echo "OBS028_EMBEDDING_DIR=$OBS028_EMBEDDING_DIR"
+  echo "OBS028B_DIFFUSION_DIR=$OBS028B_DIFFUSION_DIR"
+  echo "OBS028C_BUNDLE_DIR=$OBS028C_BUNDLE_DIR"
+  echo "FAMILY_SUBSTRATE_DIR=$FAMILY_SUBSTRATE_DIR"
+  echo "OBS050_DIR=$OBS050_DIR"
+  echo "OBS051_DIR=$OBS051_DIR"
   echo "RUN_OBS028C_PREREQS=$RUN_OBS028C_PREREQS"
   echo "RUN_OBS028C=$RUN_OBS028C"
   echo "RUN_FAMILY_SUBSTRATE=$RUN_FAMILY_SUBSTRATE"
@@ -93,49 +129,87 @@ print_config() {
 
 run_obs028c_prereqs() {
   log "OBS-028c prerequisite chain"
-  run_py experiments/studies/fim_response_complex_compatibility.py
-  run_py experiments/studies/fim_response_operator_decomposition.py
-  run_py experiments/studies/obs025_anisotropy_vs_relational_obstruction.py
-  run_py experiments/studies/obs025_two_field_seam_panel.py
-  run_py experiments/studies/obs026_family_two_field_occupancy.py
-  run_py experiments/studies/obs028_embedding_comparison.py
-  run_py experiments/studies/obs028b_diffusion_mode_analysis.py
 
-  verify_nonempty "$OUTPUTS_ROOT/fim_response_complex_compatibility/response_complex_compatibility_summary.txt"
-  verify_nonempty "$OUTPUTS_ROOT/fim_response_operator_decomposition/response_operator_decomposition_summary.txt"
-  verify_nonempty "$OUTPUTS_ROOT/obs025_anisotropy_vs_relational_obstruction/obs025_anisotropy_vs_relational_obstruction_summary.txt"
-  verify_nonempty "$OUTPUTS_ROOT/obs025_two_field_seam_panel/obs025_two_field_seam_panel_summary.txt"
-  verify_nonempty "$OUTPUTS_ROOT/obs026_family_two_field_occupancy/obs026_family_two_field_occupancy_summary.txt"
-  verify_nonempty "$OUTPUTS_ROOT/obs028_embedding_comparison/obs028_embedding_comparison_summary.txt"
-  verify_nonempty "$OUTPUTS_ROOT/obs028b_diffusion_mode_analysis/obs028b_diffusion_mode_analysis_summary.txt"
+  run_py experiments/studies/fim_response_complex_compatibility.py \
+    --nodes-csv "$SCENE_BUNDLE_DIR/scene_nodes.csv" \
+    --seam-csv "$SCENE_BUNDLE_DIR/scene_seam.csv" \
+    --outdir "$RESPONSE_COMPLEX_DIR"
+
+  run_py experiments/studies/fim_response_operator_decomposition.py \
+    --nodes-csv "$SCENE_BUNDLE_DIR/scene_nodes.csv" \
+    --compatibility-nodes-csv "$RESPONSE_COMPLEX_DIR/response_complex_compatibility_nodes.csv" \
+    --seam-csv "$SCENE_BUNDLE_DIR/scene_seam.csv" \
+    --outdir "$RESPONSE_DECOMP_DIR"
+
+  run_py experiments/studies/obs025_anisotropy_vs_relational_obstruction.py \
+    --anisotropy-csv "$RESPONSE_DECOMP_DIR/response_operator_decomposition_nodes.csv" \
+    --seam-csv "$SCENE_BUNDLE_DIR/scene_seam.csv" \
+    --outdir "$OBS025_ANISOTROPY_DIR"
+
+  run_py experiments/studies/obs025_two_field_seam_panel.py \
+    --nodes-csv "$OBS025_ANISOTROPY_DIR/obs025_anisotropy_vs_relational_obstruction_nodes.csv" \
+    --seam-csv "$SCENE_BUNDLE_DIR/scene_seam.csv" \
+    --outdir "$OBS025_TWO_FIELD_DIR"
+
+  run_py experiments/studies/obs026_family_two_field_occupancy.py \
+    --nodes-csv "$OBS025_ANISOTROPY_DIR/obs025_anisotropy_vs_relational_obstruction_nodes.csv" \
+    --routes-csv "$SCENE_BUNDLE_DIR/scene_routes.csv" \
+    --outdir "$OBS026_OCCUPANCY_DIR"
+
+  run_py experiments/studies/obs028_embedding_comparison.py \
+    --nodes-csv "$SCENE_BUNDLE_DIR/scene_nodes.csv" \
+    --edges-csv "$SCENE_BUNDLE_DIR/scene_edges.csv" \
+    --routes-csv "$SCENE_BUNDLE_DIR/scene_routes.csv" \
+    --outdir "$OBS028_EMBEDDING_DIR"
+
+  run_py experiments/studies/obs028b_diffusion_mode_analysis.py \
+    --nodes-csv "$SCENE_BUNDLE_DIR/scene_nodes.csv" \
+    --edges-csv "$SCENE_BUNDLE_DIR/scene_edges.csv" \
+    --routes-csv "$SCENE_BUNDLE_DIR/scene_routes.csv" \
+    --outdir "$OBS028B_DIFFUSION_DIR"
+
+  verify_nonempty "$RESPONSE_COMPLEX_DIR/response_complex_compatibility_summary.txt"
+  verify_nonempty "$RESPONSE_DECOMP_DIR/response_operator_decomposition_summary.txt"
+  verify_nonempty "$OBS025_ANISOTROPY_DIR/obs025_anisotropy_vs_relational_obstruction_summary.txt"
+  verify_nonempty "$OBS025_TWO_FIELD_DIR/obs025_two_field_seam_panel_summary.txt"
+  verify_nonempty "$OBS026_OCCUPANCY_DIR/obs026_family_two_field_occupancy_summary.txt"
+  verify_nonempty "$OBS028_EMBEDDING_DIR/obs028_embedding_comparison_summary.txt"
+  verify_nonempty "$OBS028B_DIFFUSION_DIR/obs028b_diffusion_mode_analysis_summary.txt"
 }
 
 run_obs028c() {
   log "OBS-028c canonical seam bundle"
-  run_py experiments/studies/obs028c_export_canonical_seam_bundle.py
 
-  verify_nonempty "$OUTPUTS_ROOT/obs028c_canonical_seam_bundle/seam_nodes.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs028c_canonical_seam_bundle/seam_family_summary.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs028c_canonical_seam_bundle/seam_embedding_summary.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs028c_canonical_seam_bundle/seam_metadata.txt"
+  run_py experiments/studies/obs028c_export_canonical_seam_bundle.py \
+    --scene-nodes-csv "$SCENE_BUNDLE_DIR/scene_nodes.csv" \
+    --decomposition-csv "$RESPONSE_DECOMP_DIR/response_operator_decomposition_nodes.csv" \
+    --outdir "$OBS028C_BUNDLE_DIR"
+
+  verify_nonempty "$OBS028C_BUNDLE_DIR/seam_nodes.csv"
+  verify_nonempty "$OBS028C_BUNDLE_DIR/seam_family_summary.csv"
+  verify_nonempty "$OBS028C_BUNDLE_DIR/seam_embedding_summary.csv"
+  verify_nonempty "$OBS028C_BUNDLE_DIR/seam_metadata.txt"
 }
 
 run_family_substrate() {
   log "scale-conditioned family substrate"
+
   run_py experiments/toy/build_scale_family_substrate.py \
     --scale-root "$SCALE_ROOT" \
-    --outputs-root "$OUTPUTS_ROOT"
+    --outputs-root "$OUTPUTS_ROOT" \
+    --outdir "$FAMILY_SUBSTRATE_DIR"
 
-  verify_nonempty "$SCALE_ROOT/family_substrate/path_nodes_for_family.csv"
-  verify_nonempty "$SCALE_ROOT/family_substrate/path_node_diagnostics.csv"
-  verify_nonempty "$SCALE_ROOT/family_substrate/path_diagnostics.csv"
-  verify_nonempty "$SCALE_ROOT/family_substrate/path_family_assignments.csv"
-  verify_nonempty "$SCALE_ROOT/family_substrate/path_family_summary.csv"
-  verify_nonempty "$SCALE_ROOT/family_substrate/family_substrate_metadata.txt"
+  verify_nonempty "$FAMILY_SUBSTRATE_DIR/path_nodes_for_family.csv"
+  verify_nonempty "$FAMILY_SUBSTRATE_DIR/path_node_diagnostics.csv"
+  verify_nonempty "$FAMILY_SUBSTRATE_DIR/path_diagnostics.csv"
+  verify_nonempty "$FAMILY_SUBSTRATE_DIR/path_family_assignments.csv"
+  verify_nonempty "$FAMILY_SUBSTRATE_DIR/path_family_summary.csv"
+  verify_nonempty "$FAMILY_SUBSTRATE_DIR/family_substrate_metadata.txt"
 }
 
 run_scene_prep() {
   log "OBS-022 scene input preparation"
+
   run_py experiments/toy/prepare_obs022_scene_inputs.py \
     --scale-root "$SCALE_ROOT" \
     --outputs-root "$OUTPUTS_ROOT" \
@@ -143,82 +217,75 @@ run_scene_prep() {
     --run-canonical-seam-bundle \
     --run-pass2-annotations
 
-  verify_nonempty "$OUTPUTS_ROOT/obs022_scene_bundle/scene_nodes.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs022_scene_bundle/scene_edges.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs022_scene_bundle/scene_seam.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs022_scene_bundle/scene_hubs.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs022_scene_bundle/scene_routes.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs022_scene_bundle/scene_glyphs.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs022_scene_bundle/scene_metadata.txt"
+  verify_nonempty "$SCENE_BUNDLE_DIR/scene_nodes.csv"
+  verify_nonempty "$SCENE_BUNDLE_DIR/scene_edges.csv"
+  verify_nonempty "$SCENE_BUNDLE_DIR/scene_seam.csv"
+  verify_nonempty "$SCENE_BUNDLE_DIR/scene_hubs.csv"
+  verify_nonempty "$SCENE_BUNDLE_DIR/scene_routes.csv"
+  verify_nonempty "$SCENE_BUNDLE_DIR/scene_glyphs.csv"
+  verify_nonempty "$SCENE_BUNDLE_DIR/scene_metadata.txt"
 
-  verify_nonempty "$OUTPUTS_ROOT/obs024_family_hotspot_occupancy/family_hotspot_occupancy_summary.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs024_family_hotspot_occupancy/obs024_family_hotspot_occupancy_summary.txt"
-  verify_nonempty "$OUTPUTS_ROOT/obs028c_canonical_seam_bundle/seam_metadata.txt"
+  verify_nonempty "$OBS024_HOTSPOT_DIR/family_hotspot_occupancy_summary.csv"
+  verify_nonempty "$OBS024_HOTSPOT_DIR/obs024_family_hotspot_occupancy_summary.txt"
+  verify_nonempty "$OBS028C_BUNDLE_DIR/seam_metadata.txt"
 }
 
 run_obs050() {
   log "OBS-050 structural coupling persistence"
-  run_py experiments/studies/obs050_structural_coupling_persistence.py
 
-  verify_nonempty "$OUTPUTS_ROOT/obs050_structural_coupling_persistence/structural_coupling_segments.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs050_structural_coupling_persistence/structural_coupling_seam_band_summary.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs050_structural_coupling_persistence/structural_coupling_coupled_vs_decoupled_summary.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs050_structural_coupling_persistence/obs050_structural_coupling_persistence_summary.txt"
+  run_py experiments/studies/obs050_structural_coupling_persistence.py \
+    --substrate-root "$FAMILY_SUBSTRATE_DIR" \
+    --outdir "$OBS050_DIR"
+
+  verify_nonempty "$OBS050_DIR/structural_coupling_segments.csv"
+  verify_nonempty "$OBS050_DIR/structural_coupling_seam_band_summary.csv"
+  verify_nonempty "$OBS050_DIR/structural_coupling_coupled_vs_decoupled_summary.csv"
+  verify_nonempty "$OBS050_DIR/obs050_structural_coupling_persistence_summary.txt"
 }
 
 run_obs051_pass() {
   local seam_band="$1"
   log "OBS-051 local divergence (${seam_band})"
+
   run_py experiments/studies/obs051_local_divergence_in_coupled_windows.py \
+    --nodes-csv "$FAMILY_SUBSTRATE_DIR/path_node_diagnostics.csv" \
+    --family-csv "$FAMILY_SUBSTRATE_DIR/path_family_assignments.csv" \
+    --outdir "$OBS051_DIR" \
     --seam-band-filter "$seam_band" \
     --min-initial-distance "$OBS051_MIN_INITIAL_DISTANCE"
 
-  verify_nonempty "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_window_divergence.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_outcome_summary.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_family_summary.csv"
-  verify_nonempty "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_local_divergence_summary.txt"
+  verify_nonempty "$OBS051_DIR/obs051_window_divergence.csv"
+  verify_nonempty "$OBS051_DIR/obs051_outcome_summary.csv"
+  verify_nonempty "$OBS051_DIR/obs051_family_summary.csv"
+  verify_nonempty "$OBS051_DIR/obs051_local_divergence_summary.txt"
 
   cp \
-    "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_window_divergence.csv" \
-    "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_window_divergence_${seam_band}.csv"
+    "$OBS051_DIR/obs051_window_divergence.csv" \
+    "$OBS051_DIR/obs051_window_divergence_${seam_band}.csv"
 
   cp \
-    "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_outcome_summary.csv" \
-    "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_outcome_summary_${seam_band}.csv"
+    "$OBS051_DIR/obs051_outcome_summary.csv" \
+    "$OBS051_DIR/obs051_outcome_summary_${seam_band}.csv"
 
   cp \
-    "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_family_summary.csv" \
-    "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_family_summary_${seam_band}.csv"
+    "$OBS051_DIR/obs051_family_summary.csv" \
+    "$OBS051_DIR/obs051_family_summary_${seam_band}.csv"
 
   cp \
-    "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_local_divergence_summary.txt" \
-    "$OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows/obs051_local_divergence_summary_${seam_band}.txt"
+    "$OBS051_DIR/obs051_local_divergence_summary.txt" \
+    "$OBS051_DIR/obs051_local_divergence_summary_${seam_band}.txt"
 }
 
-main() {
-  print_config
+verify_scene_route_basis() {
+  log "OBS-022 route-class basis verification"
 
-  if [[ "$RUN_OBS028C_PREREQS" == "1" ]]; then
-    run_obs028c_prereqs
-  fi
-
-  if [[ "$RUN_OBS028C" == "1" ]]; then
-    run_obs028c
-  fi
-
-  if [[ "$RUN_FAMILY_SUBSTRATE" == "1" ]]; then
-    run_family_substrate
-  fi
-
-  if [[ "$RUN_SCENE_PREP" == "1" ]]; then
-    run_scene_prep
-    verify_nonempty "$OUTPUTS_ROOT/obs022_scene_bundle/scene_routes.csv"
-
-    "$PYTHON_BIN" - <<'PY'
+  OUTPUTS_ROOT="$OUTPUTS_ROOT" "$PYTHON_BIN" - <<'PY'
+import os
 import pandas as pd
 from pathlib import Path
 
-p = Path("outputs/obs022_scene_bundle/scene_routes.csv")
+outputs_root = Path(os.environ.get("OUTPUTS_ROOT", "outputs"))
+p = outputs_root / "obs022_scene_bundle" / "scene_routes.csv"
 df = pd.read_csv(p)
 
 required = {"path_id", "step", "path_family", "is_branch_away", "is_representative"}
@@ -248,6 +315,27 @@ print(f"  reorganization_heavy representative paths: {n_reorg_rep}")
 if n_branch == 0 or n_stable_rep == 0 or n_reorg_rep == 0:
     raise SystemExit("ERROR: OBS-022 route-class basis incomplete.")
 PY
+}
+
+main() {
+  print_config
+
+  if [[ "$RUN_OBS028C_PREREQS" == "1" ]]; then
+    run_obs028c_prereqs
+  fi
+
+  if [[ "$RUN_OBS028C" == "1" ]]; then
+    run_obs028c
+  fi
+
+  if [[ "$RUN_FAMILY_SUBSTRATE" == "1" ]]; then
+    run_family_substrate
+  fi
+
+  if [[ "$RUN_SCENE_PREP" == "1" ]]; then
+    run_scene_prep
+    verify_nonempty "$SCENE_BUNDLE_DIR/scene_routes.csv"
+    verify_scene_route_basis
   fi
 
   if [[ "$RUN_OBS050" == "1" ]]; then
@@ -261,12 +349,12 @@ PY
   fi
 
   log "observatory chain complete"
-  echo "OBS-028c outputs: $OUTPUTS_ROOT/obs028c_canonical_seam_bundle"
-  echo "Family substrate:   $SCALE_ROOT/family_substrate"
-  echo "OBS-022 bundle:     $OUTPUTS_ROOT/obs022_scene_bundle"
-  echo "OBS-024 outputs:    $OUTPUTS_ROOT/obs024_family_hotspot_occupancy"
-  echo "OBS-050 outputs:    $OUTPUTS_ROOT/obs050_structural_coupling_persistence"
-  echo "OBS-051 outputs:    $OUTPUTS_ROOT/obs051_local_divergence_in_coupled_windows"
+  echo "OBS-028c outputs: $OBS028C_BUNDLE_DIR"
+  echo "Family substrate:   $FAMILY_SUBSTRATE_DIR"
+  echo "OBS-022 bundle:     $SCENE_BUNDLE_DIR"
+  echo "OBS-024 outputs:    $OBS024_HOTSPOT_DIR"
+  echo "OBS-050 outputs:    $OBS050_DIR"
+  echo "OBS-051 outputs:    $OBS051_DIR"
 }
 
 main "$@"
