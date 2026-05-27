@@ -1317,3 +1317,17 @@ Instrument is stable but provisional; lacks inter-rater validation, full statist
 - **Guardrail:** This does not imply Cp2 has no structure, no phase behavior, or no meaningful geometry. It means the specific freeze macrostate observable is inactive under the current definition. Cp2 must be compared to C/Cp using entropy geometry, transition alternatives, route structure, response fields, scale-space behavior, or revised macrostate diagnostics rather than freeze-coupling metrics alone.
 
 ---
+
+## OBS-071 — C vs Cp2 scoped observatory-chain comparison
+
+**Date:** 2026-05-27
+**State:** C vs Cp2 comparison completed over registry-visible observatory-chain artifacts; OBS-050 replicated qualitatively, OBS-051 bounded-recovery direction preserved with corpus-dependent band structure
+
+* Question: Does the scoped Cp2 entropy-geometry observatory chain reproduce the structural seam-coupling and local bounded-recovery patterns previously observed in the canonical C observatory chain?
+* Method: Added experiments/studies/compare_corpus_observatory_chain.py as a file-first comparison script over already-produced artifacts, comparing C outputs/ against Cp2 outputs/corpora/Cp2/campaigns/full_v2/pipeline/ at scale 100000 without recomputing geometry, paths, families, coupling, or divergence.
+* Artifacts: outputs/comparisons/C_vs_Cp2_observatory_chain/corpus_root_manifest.csv, obs050_coupling_comparison.csv, obs051_banded_comparison.csv, family_substrate_comparison.csv, obs028c_seam_bundle_comparison.csv, node_field_comparison.csv, and comparison_summary.md; artifact availability check found 38 checked artifacts and 0 missing.
+* Result: OBS-050 qualitatively replicated: recovering roughness-escalation segments were more often seam-coupled than nonrecovering segments in both C and Cp2. The contrast was weaker in Cp2 because nonrecovering segments were also more often seam-coupled.
+* Result: OBS-051 bounded-recovery direction was preserved but band-localized in Cp2. C showed a broad bounded-recovery signal across all/core/near coupled bands, while Cp2 showed a strong core-band signal and weak or nearly neutral near-band behavior.
+* Guardrail: Corpus/root-specific artifact comparison only. OBS-050 is the stronger canonical replication result; OBS-051 remains provisional because its expression is seam-band dependent. Cp2 near-band boundedness should not be overclaimed, and the comparison does not imply a universal claim about all corpora or model modes.
+
+---
