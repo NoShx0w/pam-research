@@ -1331,3 +1331,32 @@ Instrument is stable but provisional; lacks inter-rater validation, full statist
 * Guardrail: Corpus/root-specific artifact comparison only. OBS-050 is the stronger canonical replication result; OBS-051 remains provisional because its expression is seam-band dependent. Cp2 near-band boundedness should not be overclaimed, and the comparison does not imply a universal claim about all corpora or model modes.
 
 ---
+
+## OBS-072 — Cp2 nonrecovering seam-drift diagnostic
+
+**Date:** 2026-05-27
+**State:** Cp2 nonrecovering seam-coupled baseline drift isolated as a localized false-recovery compression mode; C0_instant control confirms the effect is Cp2-specific relative to the current C-like controls
+
+* Question: Why are Cp2 nonrecovering segments more often seam-coupled than C-like controls, and is the drift broad or localized by route family, seam band, posture, or grid locus?
+* Method: Added experiments/studies/obs072_cp2_nonrecovering_seam_drift.py to compare registry-visible OBS-050/051 artifacts plus path-node diagnostics, family assignments, Lazarus scores, criticality surfaces, and response-operator outputs between C0_instant and Cp2 at scale 100000; v2 enriched OBS-050 segments using path_id + center_step joins into path_node_diagnostics.csv.
+* Artifacts: outputs/obs072_C0_instant_vs_Cp2_nonrecovering_seam_drift/ including comparison summaries and enriched segment diagnostics; upstream inputs included structural_coupling_segments.csv, path_node_diagnostics.csv, path_family_assignments.csv, scene_nodes.csv, lazarus_scores.csv, criticality_surface.csv, and response_operator_nodes.csv.
+* Result: C0_instant reproduced the canonical C-like OBS-050 baseline, while Cp2 preserved an elevated nonrecovering seam-coupled baseline (0.082165 vs 0.037701). The Cp2 excess was highly localized: approximately 90.5% of Cp2 nonrecovering coupled segments belonged to off_seam_reorganizing | near | compression near r=0.2, alpha≈0.1329.
+* Result: Cp2 nonrecovering coupled segments were more seam-adjacent, more Lazarus-loaded, and more critical than decoupled counterparts, but not response-strength elevated. The profile matched a localized compressive near-seam “false-recovery” mode rather than broad bounded recovery.
+* Guardrail: OBS-072 is a strong diagnostic result but the interpretation remains provisional. It does not determine whether the underlying cause is tokenizer behavior, embedding geometry, corpus entropy, or response-generation regime. The comparison is corpus/root-specific (C0_instant vs Cp2) and should be read alongside OBS-071 and future OBS-073 controls.
+
+---
+
+## OBS-073 — Continuous-field groupoid reduction
+
+**Date:** 2026-06-01
+**State:** Continuous-field reduction of the OBS-072 Cp2 false-recovery locus established under seam/grid blinding and label-shuffle null control; broader symbolic route-family recovery remains supported but shortcut-sensitive; cross-corpus recovery-channel transfer remains provisional
+
+* Question: Can symbolic/proto-groupoid route classes be reduced to continuous field geometry, and does the OBS-072 Cp2 false-recovery compression locus remain separable after seam/grid blinding and shuffled-label null controls?
+* Method: Built path-level continuous-field feature tables from existing observatory-chain artifacts (path_node_diagnostics, path_diagnostics, path_family_assignments, OBS-050 structural-coupling segments, OBS-051 divergence summaries) for C0_instant and Cp2 at scale 100000. Reduced node trajectories into summary/path-shape features and evaluated symbolic targets using random-forest probes, cross-corpus transfer tests, seam/grid shortcut-removal variants, and label-shuffle null controls.
+* Artifacts: outputs/obs073_continuous_field_groupoid_reduction_v5_full/ including obs073_feature_table.csv, obs073_target_manifest.csv, obs073_feature_manifest.csv, obs073_model_scores.csv, obs073_feature_importance_gini.csv, obs073_feature_importance_permutation.csv, obs073_confusion_matrices.csv, obs073_label_shuffle_summary.csv, obs073_label_shuffle_runs.csv, and obs073_summary.md.
+* Result: The OBS-072 Cp2 false-recovery compression locus remained highly separable from true bounded recovery under full seam/grid blinding: balanced_accuracy = 0.991727, macro_F1 = 0.9852, n_rows = 8851, with shuffled-label null controls collapsing to chance (shuffle BA mean ≈ 0.499, empirical p = 0.01).
+* Result: The strongest blinded features were dominated by continuous dynamical quantities rather than direct seam/location proxies: criticality_last_minus_first, holonomy/obstruction statistics, angular path deformation, and field-flow displacement features. This supports a field-dynamical interpretation of the Cp2 false-recovery mode rather than a pure seam-distance or hotspot shortcut.
+* Result: Broader symbolic reductions showed a layered profile. outcome_group remained strongly portable under blinding; coupling_class and path_family retained meaningful but weaker cross-corpus transfer; recovery_channel remained highly corpus-conditioned despite strong within-corpus separability.
+* Guardrail: OBS-073 does not claim universal reducibility of all symbolic classes to continuous fields. Results are model-specific, corpus-specific, artifact-root-specific, and within-Cp2 for the strongest OBS-072 locus result. Cross-corpus recovery-channel transfer remained poor, so recovery-channel labels should not yet be treated as universal groupoid generators.
+
+---
