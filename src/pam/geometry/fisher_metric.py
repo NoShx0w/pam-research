@@ -189,29 +189,34 @@ def render_principal_direction(theta_df: pd.DataFrame, valid_df: pd.DataFrame, t
 
 
 def run_fisher_metric(
-    index_csv: str | Path,
-    outdir: str | Path,
+    index_csv: str | Path = "outputs/index.csv",
+    outdir: str | Path = "outputs/fim",
     corpus: str | None = None,
     observables: Sequence[str] | None = None,
     ridge_eps: float = 1e-8,
 ):
-    args = parse_args()
-    outdir = Path(args.outdir)
+    outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_csv(args.index_csv)
-    required = GROUP_COLS + ["seed"] + list(args.observables)
+    index_csv = Path(index_csv)
+
+    if observables is None:
+        observables = DEFAULT_OBSERVABLES
+    observables = list(observables)
+
+    df = pd.read_csv(index_csv)
+    required = GROUP_COLS + ["seed"] + observables
     ensure_columns(df, required)
 
-    if args.corpus is not None:
-        df = df[df["corpus"] == args.corpus].copy()
+    if corpus is not None:
+        df = df[df["corpus"] == corpus].copy()
 
     df = df.dropna(subset=required).copy()
     if df.empty:
         raise ValueError("No valid rows remain after filtering.")
 
-    sigma, sigma_inv = estimate_noise_covariance(df, args.observables, args.ridge_eps)
-    agg = aggregate_surface(df, args.observables)
+    sigma, sigma_inv = estimate_noise_covariance(df, observables, ridge_eps)
+    agg = aggregate_surface(df, observables)
 
     r_values = np.sort(agg["r"].unique())
     a_values = np.sort(agg["alpha"].unique())
@@ -220,10 +225,7 @@ def run_fisher_metric(
     dr_grids = {}
     da_grids = {}
 
-    if observables is None:
-        observables = DEFAULT_OBSERVABLES
-
-    for obs in args.observables:
+    for obs in observables:
         p = pivot_surface(agg, f"{obs}_mean")
         p = p.reindex(index=r_values, columns=a_values)
         mean_grids[obs] = p
@@ -247,8 +249,8 @@ def run_fisher_metric(
 
     for i in range(nr):
         for j in range(na):
-            grad_r = np.array([dr_grids[obs][i, j] for obs in args.observables], dtype=float)
-            grad_a = np.array([da_grids[obs][i, j] for obs in args.observables], dtype=float)
+            grad_r = np.array([dr_grids[obs][i, j] for obs in observables], dtype=float)
+            grad_a = np.array([da_grids[obs][i, j] for obs in observables], dtype=float)
 
             if not (np.all(np.isfinite(grad_r)) and np.all(np.isfinite(grad_a))):
                 continue
@@ -300,11 +302,11 @@ def run_fisher_metric(
     for name, arr in metrics.items():
         out_df[name] = arr.reshape(-1)
 
-    for obs in args.observables:
+    for obs in observables:
         out_df[f"{obs}_mean"] = mean_grids[obs].to_numpy(dtype=float).reshape(-1)
 
     out_df["n_seeds"] = (
-        agg.pivot_table(index="r", columns="alpha", values=f"{args.observables[0]}_count", aggfunc="mean")
+        agg.pivot_table(index="r", columns="alpha", values=f"{observables[0]}_count", aggfunc="mean")
         .reindex(index=r_values, columns=a_values)
         .to_numpy(dtype=float)
         .reshape(-1)
@@ -316,9 +318,9 @@ def run_fisher_metric(
     meta_path = outdir / "fim_metadata.txt"
     with meta_path.open("w", encoding="utf-8") as f:
         f.write("PAM Fisher-type metric estimation\n")
-        f.write(f"index_csv={args.index_csv}\n")
-        f.write(f"corpus={args.corpus}\n")
-        f.write(f"observables={args.observables}\n")
+        f.write(f"index_csv={index_csv}\n")
+        f.write(f"corpus={corpus}\n")
+        f.write(f"observables={observables}\n")
         f.write("sigma=\n")
         f.write(np.array2string(sigma, precision=6, suppress_small=False))
         f.write("\n")
@@ -357,7 +359,14 @@ def run_fisher_metric(
 
 
 def main():
-    return run_fisher_metric()
+    args = parse_args()
+    return run_fisher_metric(
+        index_csv=args.index_csv,
+        outdir=args.outdir,
+        corpus=args.corpus,
+        observables=args.observables,
+        ridge_eps=args.ridge_eps,
+    )
 
 
 if __name__ == "__main__":
