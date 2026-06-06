@@ -63,6 +63,7 @@ except Exception:
 
 @dataclass(frozen=True)
 class Config:
+    inputs_root: str | None = None
     nodes_csv: str = "outputs/obs022_scene_bundle/scene_nodes.csv"
     edges_csv: str = "outputs/obs022_scene_bundle/scene_edges.csv"
     routes_csv: str = "outputs/obs022_scene_bundle/scene_routes.csv"
@@ -79,6 +80,20 @@ CLASS_ORDER = [
     "stable_seam_corridor",
     "reorganization_heavy",
 ]
+
+
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+    if inputs_root is None:
+        return value
+    if value != default_value:
+        return value
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+    return str(Path(inputs_root) / rel)
+
 
 
 def safe_mean(s: pd.Series) -> float:
@@ -482,6 +497,14 @@ def build_summary(scores: pd.DataFrame, feature_cols: list[str]) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compare MDS against alternative observatory embeddings.")
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root. When provided, default scale_root "
+            "and outputs_root are resolved under this root."
+        ),
+    )
     parser.add_argument("--nodes-csv", default=Config.nodes_csv)
     parser.add_argument("--edges-csv", default=Config.edges_csv)
     parser.add_argument("--routes-csv", default=Config.routes_csv)
@@ -493,7 +516,12 @@ def main() -> None:
     parser.add_argument("--no-umap", action="store_true")
     args = parser.parse_args()
 
+    args.nodes_csv = resolve_input_path(args.nodes_csv, Config.nodes_csv, args.inputs_root)
+    args.edges_csv = resolve_input_path(args.edges_csv, Config.edges_csv, args.inputs_root)
+    args.routes_csv = resolve_input_path(args.routes_csv, Config.routes_csv, args.inputs_root)
+
     cfg = Config(
+        inputs_root=args.inputs_root,
         nodes_csv=args.nodes_csv,
         edges_csv=args.edges_csv,
         routes_csv=args.routes_csv,

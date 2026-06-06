@@ -39,6 +39,7 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class Config:
+    inputs_root: str | None = None
     nodes_csv: str = "outputs/obs023_local_direction_mismatch/local_direction_mismatch_nodes.csv"
     routes_csv: str = "outputs/obs022_scene_bundle/scene_routes.csv"
     seam_csv: str = "outputs/obs022_scene_bundle/scene_seam.csv"
@@ -53,6 +54,19 @@ CLASS_ORDER = [
     "stable_seam_corridor",
     "reorganization_heavy",
 ]
+
+
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+    if inputs_root is None:
+        return value
+    if value != default_value:
+        return value
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+    return str(Path(inputs_root) / rel)
 
 
 def safe_mean(s: pd.Series) -> float:
@@ -408,6 +422,14 @@ def render_figure(nodes: pd.DataFrame, seam: pd.DataFrame, node_df: pd.DataFrame
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build OBS-024 family hotspot occupancy analysis.")
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root. When provided, default scale_root "
+            "and outputs_root are resolved under this root."
+        ),
+    )
     parser.add_argument("--nodes-csv", default=Config.nodes_csv)
     parser.add_argument("--routes-csv", default=Config.routes_csv)
     parser.add_argument("--seam-csv", default=Config.seam_csv)
@@ -416,7 +438,12 @@ def main() -> None:
     parser.add_argument("--hotspot-quantile", type=float, default=Config.hotspot_quantile)
     args = parser.parse_args()
 
+    args.nodes_csv = resolve_input_path(args.nodes_csv, Config.nodes_csv, args.inputs_root)
+    args.routes_csv = resolve_input_path(args.routes_csv, Config.routes_csv, args.inputs_root)
+    args.seam_csv = resolve_input_path(args.seam_csv, Config.seam_csv, args.inputs_root)
+
     cfg = Config(
+        inputs_root=args.inputs_root,
         nodes_csv=args.nodes_csv,
         routes_csv=args.routes_csv,
         seam_csv=args.seam_csv,

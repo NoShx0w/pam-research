@@ -47,6 +47,7 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class Config:
+    inputs_root: str | None = None
     scene_nodes_csv: str = "outputs/obs022_scene_bundle/scene_nodes.csv"
     mismatch_csv: str = "outputs/obs023_local_direction_mismatch/local_direction_mismatch_nodes.csv"
     decomposition_csv: str = "outputs/fim_response_operator_decomposition/response_operator_decomposition_nodes.csv"
@@ -88,6 +89,19 @@ CLASS_ORDER = [
     "stable_seam_corridor",
     "reorganization_heavy",
 ]
+
+
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+    if inputs_root is None:
+        return value
+    if value != default_value:
+        return value
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+    return str(Path(inputs_root) / rel)
 
 
 def load_csv(path: str | Path) -> pd.DataFrame:
@@ -327,6 +341,14 @@ def write_metadata(cfg: Config, seam_nodes: pd.DataFrame, fam: pd.DataFrame, emb
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export canonical seam bundle.")
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root. When provided, default scale_root "
+            "and outputs_root are resolved under this root."
+        ),
+    )
     parser.add_argument("--scene-nodes-csv", default=Config.scene_nodes_csv)
     parser.add_argument("--mismatch-csv", default=Config.mismatch_csv)
     parser.add_argument("--decomposition-csv", default=Config.decomposition_csv)
@@ -340,7 +362,17 @@ def main() -> None:
     parser.add_argument("--hotspot-quantile", type=float, default=Config.hotspot_quantile)
     args = parser.parse_args()
 
+    args.scene_nodes_csv = resolve_input_path(args.scene_nodes_csv, Config.scene_nodes_csv, args.inputs_root)
+    args.mismatch_csv = resolve_input_path(args.mismatch_csv, Config.mismatch_csv, args.inputs_root)
+    args.decomposition_csv = resolve_input_path(args.decomposition_csv, Config.decomposition_csv, args.inputs_root)
+    args.obs025_csv = resolve_input_path(args.obs025_csv, Config.obs025_csv, args.inputs_root)
+    args.family_summary_csv = resolve_input_path(args.family_summary_csv, Config.family_summary_csv, args.inputs_root)
+    args.obs027_summary_txt = resolve_input_path(args.obs027_summary_txt, Config.obs027_summary_txt, args.inputs_root)
+    args.cembedding_scores_csv = resolve_input_path(args.embedding_scores_csv, Config.embedding_scores_csv, args.inputs_root)
+    args.diffusion_scores_csv = resolve_input_path(args.diffusion_scores_csv, Config.diffusion_scores_csv, args.inputs_root)
+
     cfg = Config(
+        inputs_root=args.inputs_root,
         scene_nodes_csv=args.scene_nodes_csv,
         mismatch_csv=args.mismatch_csv,
         decomposition_csv=args.decomposition_csv,

@@ -51,7 +51,17 @@ def main() -> None:
 
     project_root = Path(__file__).resolve().parents[2]
 
-    # 1) Build the scale-conditioned family substrate.
+
+    # 1) Run fim_response_operator
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/studies/fim_response_operator.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "fim_response_operator"),
+    ])
+
+
+    # 2) Build the scale-conditioned family substrate.
     run([
         cfg.python_bin,
         str(project_root / "experiments/toy/build_scale_family_substrate.py"),
@@ -59,13 +69,25 @@ def main() -> None:
         "--outputs-root", cfg.outputs_root,
     ])
 
-    # 2) Export the OBS-022 scene bundle.
+    # 3) Export the OBS-022 scene bundle.
     run([
         cfg.python_bin,
         str(project_root / "experiments/toy/export_obs022_scene_bundle.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "obs022_scene_bundle"),
     ])
 
-    # 3) Build hotspot occupancy study outputs.
+
+    # 4) Run obs023_local_direction_mismatch
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/toy/obs023_local_direction_mismatch.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "obs023_local_direction_mismatch"),
+    ])
+
+
+    # 5) Build hotspot occupancy study outputs.
     if cfg.run_hotspot_occupancy:
         require_optional_file(
             Path(cfg.outputs_root) / "obs023_local_direction_mismatch" / "local_direction_mismatch_nodes.csv",
@@ -74,9 +96,85 @@ def main() -> None:
         run([
             cfg.python_bin,
             str(project_root / "experiments/toy/obs024_family_hotspot_occupancy.py"),
+            "--inputs-root", cfg.outputs_root,
+            "--outdir", str(Path(cfg.outputs_root) / "obs024_family_hotspot_occupancy"),
         ])
 
-    # 4) Export canonical seam bundle.
+
+    # 6) Run obs023_transport_misalignment_figure.py
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/toy/obs023_transport_misalignment_figure.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "obs023_transport_misalignment"),
+    ])
+
+
+    # 7) Run fim_response_complex_compatibility.py
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/studies/fim_response_complex_compatibility.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "fim_response_complex_compatibility"),
+    ])
+
+
+    # 8) Run fim_response_operator_decomposition.py
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/studies/fim_response_operator_decomposition.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "fim_response_operator_decomposition"),
+    ])
+
+
+    # 9) Run obs025_anisotropy_vs_relational_obstruction.py
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/studies/obs025_anisotropy_vs_relational_obstruction.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "obs025_anisotropy_vs_relational_obstruction"),
+    ])
+
+
+    # 10) Run obs026_family_two_field_occupancy.py
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/studies/obs026_family_two_field_occupancy.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "obs026_family_two_field_occupancy"),
+    ])
+
+
+    # 11) Run obs027_seam_regime_synthesis.py
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/studies/obs027_seam_regime_synthesis.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "obs027_seam_regime_synthesis"),
+    ])
+
+
+    # 12) Run obs028_embedding_comparison.py
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/studies/obs028_embedding_comparison.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "obs028_embedding_comparison"),
+    ])
+
+
+    # 13) Run obs028b_diffusion_mode_analysis.py
+    run([
+        cfg.python_bin,
+        str(project_root / "experiments/studies/obs028b_diffusion_mode_analysis.py"),
+        "--inputs-root", cfg.outputs_root,
+        "--outdir", str(Path(cfg.outputs_root) / "obs028b_diffusion_mode_analysis"),
+    ])
+
+
+    # 12) Export canonical seam bundle.
+
     if cfg.run_canonical_seam_bundle:
         require_optional_file(
             Path(cfg.outputs_root) / "obs023_local_direction_mismatch" / "local_direction_mismatch_nodes.csv",
@@ -89,13 +187,17 @@ def main() -> None:
         run([
             cfg.python_bin,
             str(project_root / "experiments/studies/obs028c_export_canonical_seam_bundle.py"),
+            "--inputs-root", cfg.outputs_root,
+            "--outdir", str(Path(cfg.outputs_root) / "obs028c_canonical_seam_bundle"),
         ])
+
 
     # 5) Optionally mirror pass-2 canonical annotation artifacts.
     if cfg.run_pass2_annotations:
         run([
             cfg.python_bin,
             str(project_root / "experiments/canonicalize_pass2_annotations.py"),
+            "--inputs-root", cfg.outputs_root,
         ])
 
     print()

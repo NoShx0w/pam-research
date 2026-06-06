@@ -3,8 +3,16 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from dataclasses import dataclass
 
 import pandas as pd
+
+
+@dataclass(frozen=True)
+class Config:
+    inputs_root: str | None = None
+    
+
 
 
 REQUIRED_INPUT_COLS = [
@@ -18,9 +26,30 @@ REQUIRED_INPUT_COLS = [
 ]
 
 
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+    if inputs_root is None:
+        return value
+    if value != default_value:
+        return value
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+    return str(Path(inputs_root) / rel)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Prepare scaled probe paths for family stratification."
+    )
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root. When provided, default scale_root "
+            "and outputs_root are resolved under this root."
+        ),
     )
     parser.add_argument(
         "--paths-csv",
@@ -31,6 +60,11 @@ def main() -> None:
         default="outputs/scales/100000/fim_ops_scaled/scaled_probe_paths_for_family_clean.csv",
     )
     args = parser.parse_args()
+
+    cfg = Config(
+        inputs_root=args.inputs_root,
+    )
+
 
     paths_csv = Path(args.paths_csv)
     out_csv = Path(args.out_csv)

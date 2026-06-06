@@ -39,6 +39,7 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class Config:
+    inputs_root: str | None = None
     nodes_csv: str = "outputs/obs025_anisotropy_vs_relational_obstruction/obs025_anisotropy_vs_relational_obstruction_nodes.csv"
     routes_csv: str = "outputs/obs022_scene_bundle/scene_routes.csv"
     outdir: str = "outputs/obs026_family_two_field_occupancy"
@@ -57,6 +58,19 @@ HOTSPOT_ORDER = [
     "shared",
     "non_hotspot",
 ]
+
+
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+    if inputs_root is None:
+        return value
+    if value != default_value:
+        return value
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+    return str(Path(inputs_root) / rel)
 
 
 def safe_mean(s: pd.Series) -> float:
@@ -360,13 +374,25 @@ def render_figure(summary_df: pd.DataFrame, outpath: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compare family occupancy on the two-field seam structure.")
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root. When provided, default scale_root "
+            "and outputs_root are resolved under this root."
+        ),
+    )
     parser.add_argument("--nodes-csv", default=Config.nodes_csv)
     parser.add_argument("--routes-csv", default=Config.routes_csv)
     parser.add_argument("--outdir", default=Config.outdir)
     parser.add_argument("--include-other", action="store_true")
     args = parser.parse_args()
 
+    args.nodes_csv = resolve_input_path(args.nodes_csv, Config.nodes_csv, args.inputs_root)
+    args.routes_csv = resolve_input_path(args.routes_csv, Config.routes_csv, args.inputs_root)
+
     cfg = Config(
+        inputs_root=args.inputs_root,
         nodes_csv=args.nodes_csv,
         routes_csv=args.routes_csv,
         outdir=args.outdir,

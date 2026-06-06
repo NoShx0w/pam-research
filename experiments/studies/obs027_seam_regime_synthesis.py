@@ -38,6 +38,7 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class Config:
+    inputs_root: str | None = None
     nodes_csv: str = "outputs/obs025_anisotropy_vs_relational_obstruction/obs025_anisotropy_vs_relational_obstruction_nodes.csv"
     family_summary_csv: str = "outputs/obs026_family_two_field_occupancy/family_two_field_class_summary.csv"
     seam_csv: str = "outputs/obs022_scene_bundle/scene_seam.csv"
@@ -51,6 +52,19 @@ CLASS_ORDER = [
     "stable_seam_corridor",
     "reorganization_heavy",
 ]
+
+
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+    if inputs_root is None:
+        return value
+    if value != default_value:
+        return value
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+    return str(Path(inputs_root) / rel)
 
 
 def safe_corr(a: pd.Series, b: pd.Series) -> float:
@@ -298,6 +312,14 @@ def render_figure(cfg: Config, nodes: pd.DataFrame, fam: pd.DataFrame, seam: pd.
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Render OBS-027 seam-regime synthesis.")
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root. When provided, default scale_root "
+            "and outputs_root are resolved under this root."
+        ),
+    )
     parser.add_argument("--nodes-csv", default=Config.nodes_csv)
     parser.add_argument("--family-summary-csv", default=Config.family_summary_csv)
     parser.add_argument("--seam-csv", default=Config.seam_csv)
@@ -306,7 +328,12 @@ def main() -> None:
     parser.add_argument("--top-k-shared-labels", type=int, default=Config.top_k_shared_labels)
     args = parser.parse_args()
 
+    args.nodes_csv = resolve_input_path(args.nodes_csv, Config.nodes_csv, args.inputs_root)
+    args.family_summary_csv = resolve_input_path(args.family_summary_csv, Config.family_summary_csv, args.inputs_root)
+    args.seam_csv = resolve_input_path(args.seam_csv, Config.seam_csv, args.inputs_root)
+
     cfg = Config(
+        inputs_root=args.inputs_root,
         nodes_csv=args.nodes_csv,
         family_summary_csv=args.family_summary_csv,
         seam_csv=args.seam_csv,

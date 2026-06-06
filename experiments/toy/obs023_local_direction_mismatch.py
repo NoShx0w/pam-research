@@ -18,10 +18,28 @@ from pam.geometry.directional_field import DirectionalField
 
 @dataclass(frozen=True)
 class Config:
+    inputs_root: str | None = None
     nodes_csv: str = "outputs/obs022_scene_bundle/scene_nodes.csv"
     edges_csv: str = "outputs/obs022_scene_bundle/scene_edges.csv"
     outdir: str = "outputs/obs023_local_direction_mismatch"
     seam_threshold: float = 0.15
+
+
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+
+    if inputs_root is None:
+        return value
+
+    if value != default_value:
+        return value
+
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+
+    return str(Path(inputs_root) / rel)
 
 
 def safe_corr(a: pd.Series, b: pd.Series) -> float:
@@ -71,13 +89,26 @@ def build_summary(nodes: pd.DataFrame, seam_threshold: float) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="OBS-023 local vs neighbor directional mismatch.")
+
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root. When provided, default scale_root "
+            "and outputs_root are resolved under this root."
+        ),
+    )
     parser.add_argument("--nodes-csv", default=Config.nodes_csv)
     parser.add_argument("--edges-csv", default=Config.edges_csv)
     parser.add_argument("--outdir", default=Config.outdir)
     parser.add_argument("--seam-threshold", type=float, default=Config.seam_threshold)
     args = parser.parse_args()
 
+    args.nodes_csv = resolve_input_path(args.nodes_csv, Config.nodes_csv, args.inputs_root)
+    args.edges_csv = resolve_input_path(args.edges_csv, Config.edges_csv, args.inputs_root)
+
     cfg = Config(
+        inputs_root=args.inputs_root,
         nodes_csv=args.nodes_csv,
         edges_csv=args.edges_csv,
         outdir=args.outdir,

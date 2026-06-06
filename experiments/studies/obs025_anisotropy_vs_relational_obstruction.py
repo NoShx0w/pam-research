@@ -43,6 +43,7 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class Config:
+    inputs_root: str | None = None
     anisotropy_csv: str = "outputs/fim_response_operator_decomposition/response_operator_decomposition_nodes.csv"
     mismatch_csv: str = "outputs/obs023_local_direction_mismatch/local_direction_mismatch_nodes.csv"
     seam_csv: str = "outputs/obs022_scene_bundle/scene_seam.csv"
@@ -51,6 +52,19 @@ class Config:
     hotspot_quantile: float = 0.85
     top_k_overlap: int = 10
     top_k_labels: int = 8
+
+
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+    if inputs_root is None:
+        return value
+    if value != default_value:
+        return value
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+    return str(Path(inputs_root) / rel)
 
 
 def safe_corr(a: pd.Series, b: pd.Series) -> float:
@@ -397,6 +411,14 @@ def render_figure(cfg: Config, nodes: pd.DataFrame, seam: pd.DataFrame, outpath:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compare response anisotropy against relational obstruction.")
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root. When provided, default scale_root "
+            "and outputs_root are resolved under this root."
+        ),
+    )
     parser.add_argument("--anisotropy-csv", default=Config.anisotropy_csv)
     parser.add_argument("--mismatch-csv", default=Config.mismatch_csv)
     parser.add_argument("--seam-csv", default=Config.seam_csv)
@@ -407,7 +429,12 @@ def main() -> None:
     parser.add_argument("--top-k-labels", type=int, default=Config.top_k_labels)
     args = parser.parse_args()
 
+    args.anisotropy_csv = resolve_input_path(args.anisotropy_csv, Config.anisotropy_csv, args.inputs_root)
+    args.mismatch_csv = resolve_input_path(args.mismatch_csv, Config.mismatch_csv, args.inputs_root)
+    args.seam_csv = resolve_input_path(args.seam_csv, Config.seam_csv, args.inputs_root)
+
     cfg = Config(
+        inputs_root=args.inputs_root,
         anisotropy_csv=args.anisotropy_csv,
         mismatch_csv=args.mismatch_csv,
         seam_csv=args.seam_csv,

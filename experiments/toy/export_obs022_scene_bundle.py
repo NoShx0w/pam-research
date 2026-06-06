@@ -53,18 +53,18 @@ analysis beyond:
 from __future__ import annotations
 
 import argparse
+import numpy as np
+import pandas as pd
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
-
-import numpy as np
-import pandas as pd
+from pathlib import Path
 
 
 # ---------------------------------------------------------------------
 # config
 # ---------------------------------------------------------------------
-
 
 @dataclass(frozen=True)
 class Config:
@@ -135,6 +135,22 @@ NODE_PROXY_CANDIDATES = [
 # ---------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------
+
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+
+    if inputs_root is None:
+        return value
+
+    if value != default_value:
+        return value
+
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+
+    return str(Path(inputs_root) / rel)
 
 
 def read_csv_required(path: str | Path) -> pd.DataFrame:
@@ -1114,6 +1130,17 @@ def write_metadata(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export canonical OBS-022 scene bundle.")
+
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root used to resolve default input paths, "
+            "for example outputs/corpora/Cp3/campaigns/full_v1/pipeline. "
+            "Explicitly supplied input paths are left unchanged."
+        ),
+    )
+
     parser.add_argument("--fim-csv", default=Config.fim_csv)
     parser.add_argument("--phase-csv", default=Config.phase_csv)
     parser.add_argument("--edges-csv", default=Config.edges_csv)
@@ -1126,7 +1153,23 @@ def main() -> None:
     parser.add_argument("--top-hubs", type=int, default=Config.top_hubs)
     parser.add_argument("--glyph-top-k", type=int, default=Config.glyph_top_k)
     parser.add_argument("--reps-per-family", type=int, default=Config.reps_per_family)
+
     args = parser.parse_args()
+
+    args.fim_csv = resolve_input_path(args.fim_csv, Config.fim_csv, args.inputs_root)
+    args.phase_csv = resolve_input_path(args.phase_csv, Config.phase_csv, args.inputs_root)
+    args.edges_csv = resolve_input_path(args.edges_csv, Config.edges_csv, args.inputs_root)
+    args.seam_csv = resolve_input_path(args.seam_csv, Config.seam_csv, args.inputs_root)
+    args.response_csv = resolve_input_path(args.response_csv, Config.response_csv, args.inputs_root)
+    args.lazarus_csv = resolve_input_path(args.lazarus_csv, Config.lazarus_csv, args.inputs_root)
+    args.family_csv = resolve_input_path(args.family_csv, Config.family_csv, args.inputs_root)
+    args.path_nodes_csv = resolve_input_path(
+        args.path_nodes_csv,
+        Config.path_nodes_csv,
+        args.inputs_root,
+    )
+
+    # existing main body continues here
 
     cfg = Config(
         fim_csv=args.fim_csv,

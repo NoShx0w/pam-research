@@ -41,11 +41,25 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class Config:
+    inputs_root: str | None = None
     nodes_csv: str = "outputs/obs022_scene_bundle/scene_nodes.csv"
     seam_csv: str = "outputs/obs022_scene_bundle/scene_seam.csv"
     outdir: str = "outputs/fim_response_complex_compatibility"
     seam_threshold: float = 0.15
     top_k_labels: int = 10
+
+
+def resolve_input_path(value: str | None, default_value: str, inputs_root: str | None) -> str | None:
+    if value is None:
+        return None
+    if inputs_root is None:
+        return value
+    if value != default_value:
+        return value
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+    return str(Path(inputs_root) / rel)
 
 
 def safe_corr(a: pd.Series, b: pd.Series) -> float:
@@ -330,6 +344,14 @@ def render_panel(cfg: Config, nodes: pd.DataFrame, seam: pd.DataFrame, outpath: 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Test response-operator compatibility with candidate complex structures.")
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root. When provided, default scale_root "
+            "and outputs_root are resolved under this root."
+        ),
+    )
     parser.add_argument("--nodes-csv", default=Config.nodes_csv)
     parser.add_argument("--seam-csv", default=Config.seam_csv)
     parser.add_argument("--outdir", default=Config.outdir)
@@ -337,7 +359,11 @@ def main() -> None:
     parser.add_argument("--top-k-labels", type=int, default=Config.top_k_labels)
     args = parser.parse_args()
 
+    args.nodes_csv = resolve_input_path(args.nodes_csv, Config.nodes_csv, args.inputs_root)
+    args.seam_csv = resolve_input_path(args.seam_csv, Config.seam_csv, args.inputs_root)
+
     cfg = Config(
+        inputs_root=args.inputs_root,
         nodes_csv=args.nodes_csv,
         seam_csv=args.seam_csv,
         outdir=args.outdir,

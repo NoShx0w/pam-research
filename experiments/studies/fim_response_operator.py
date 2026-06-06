@@ -9,6 +9,30 @@ import numpy as np
 import pandas as pd
 
 
+def resolve_input_path(value: str, default_value: str, inputs_root: str | None) -> str:
+    """
+    Resolve legacy default input paths under an optional campaign/pipeline root.
+
+    Example:
+      inputs_root = outputs/corpora/Cp3/campaigns/full_v1/pipeline
+      default     = outputs/fim_mds/mds_coords.csv
+      resolved    = outputs/corpora/Cp3/campaigns/full_v1/pipeline/fim_mds/mds_coords.csv
+
+    Explicitly supplied paths are preserved.
+    """
+    if inputs_root is None:
+        return value
+
+    if value != default_value:
+        return value
+
+    rel = Path(default_value)
+    if rel.parts and rel.parts[0] == "outputs":
+        rel = Path(*rel.parts[1:])
+
+    return str(Path(inputs_root) / rel)
+
+
 def load_nodes(mds_csv: str | Path, phase_csv: str | Path, lazarus_csv: str | Path) -> pd.DataFrame:
     mds = pd.read_csv(mds_csv)
     phase = pd.read_csv(phase_csv)
@@ -279,7 +303,20 @@ def render_plots(node_df: pd.DataFrame, path_summary: pd.DataFrame, outdir: Path
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Construct and analyze a local response operator T = ∇L ⊗ ∇φ.")
+    parser = argparse.ArgumentParser(
+        description="Construct and analyze a local response operator T = ∇L ⊗ ∇φ."
+    )
+
+    parser.add_argument(
+        "--inputs-root",
+        default=None,
+        help=(
+            "Optional campaign/pipeline root used to resolve default input paths, "
+            "for example outputs/corpora/Cp3/campaigns/full_v1/pipeline. "
+            "Explicitly supplied input paths are left unchanged."
+        ),
+    )
+
     parser.add_argument("--mds-csv", default="outputs/fim_mds/mds_coords.csv")
     parser.add_argument("--phase-csv", default="outputs/fim_phase/signed_phase_coords.csv")
     parser.add_argument("--lazarus-csv", default="outputs/fim_lazarus/lazarus_scores.csv")
@@ -287,12 +324,36 @@ def main() -> None:
     parser.add_argument("--outdir", default="outputs/fim_response_operator")
     args = parser.parse_args()
 
+    args.mds_csv = resolve_input_path(
+        args.mds_csv,
+        "outputs/fim_mds/mds_coords.csv",
+        args.inputs_root,
+    )
+    args.phase_csv = resolve_input_path(
+        args.phase_csv,
+        "outputs/fim_phase/signed_phase_coords.csv",
+        args.inputs_root,
+    )
+    args.lazarus_csv = resolve_input_path(
+        args.lazarus_csv,
+        "outputs/fim_lazarus/lazarus_scores.csv",
+        args.inputs_root,
+    )
+    args.paths_csv = resolve_input_path(
+        args.paths_csv,
+        "outputs/fim_ops_scaled/scaled_probe_paths.csv",
+        args.inputs_root,
+    )
+
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
     nodes = load_nodes(args.mds_csv, args.phase_csv, args.lazarus_csv)
     op_nodes, node_summary = build_response_operator(nodes)
-    path_nodes, path_summary, path_agg = attach_operator_to_paths(load_paths(args.paths_csv), op_nodes)
+    path_nodes, path_summary, path_agg = attach_operator_to_paths(
+        load_paths(args.paths_csv),
+        op_nodes,
+    )
 
     op_nodes.to_csv(outdir / "response_operator_nodes.csv", index=False)
     node_summary.to_csv(outdir / "response_operator_node_summary.csv", index=False)
