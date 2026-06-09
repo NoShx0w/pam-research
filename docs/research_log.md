@@ -1360,3 +1360,39 @@ Instrument is stable but provisional; lacks inter-rater validation, full statist
 * Guardrail: OBS-073 does not claim universal reducibility of all symbolic classes to continuous fields. Results are model-specific, corpus-specific, artifact-root-specific, and within-Cp2 for the strongest OBS-072 locus result. Cross-corpus recovery-channel transfer remained poor, so recovery-channel labels should not yet be treated as universal groupoid generators.
 
 ---
+
+## OBS-074 — Lexical substrate / field-geometry bridge
+
+**Date:** 2026-06-04
+**State:** Corpus-level lexical-control bridge established for C / Cp / Cp2; continuous-field separability survives corpus lexical controls and seam/grid blinding; path-level lexical control remains unavailable because current corpus JSON artifacts do not resolve to path IDs; Cp3 reserved for incomplete-response / missing-step degeneracy analysis
+
+* Question: Do corpus-level lexical fingerprints explain the continuous-field separability observed in OBS-050–OBS-073, and does field-geometric signal survive lexical controls, seam blinding, and grid-location blinding?
+* Method: Compared three predictor families across C, Cp, and Cp2: (1) field-only observatory features, including seam/grid-blinded variants; (2) corpus-level lexical fingerprints computed from corpus JSON response text; and (3) combined lexical-plus-field models. Conducted a lexical join audit to determine whether path-level response text could be aligned to observatory path IDs.
+* Artifacts: obs074_summary.md, obs074_model_scores.csv, obs074_lexical_vs_field_read.csv, obs074_lexical_join_audit.csv, obs074_feature_importance_permutation.csv, plus bridge outputs under outputs/comparisons/obs074_lexical_field_bridge/C_Cp_Cp2_v3_smoke/.
+* Result: Corpus lexical fingerprints alone were consistently weaker than field geometry. Representative balanced accuracies (lexical_only vs field_no_direct_seam_no_grid) were: path_family (0.3068 vs 0.8257), coupling_class (0.5102 vs 0.8707), outcome_group (0.5462 vs 0.9246), coupled_outcome_group (0.6172 vs 0.9524), and recovery_channel_structural (0.7587 vs 0.9877). Adding lexical fingerprints did not eliminate the field signal.
+* Result: Blinded field-plus-lexical models remained strong after removing direct seam/proximity features and absolute grid-location features. Permutation importance remained dominated by field observables such as signed phase, path-angle dynamics, sector-change measures, and criticality-flow statistics.
+* Result: The lexical path join audit reported zero overlap (lexical_path_join_mode = none, lexical_path_overlap_rows = 0). Current corpus JSON artifacts cannot map individual response texts to the path IDs used by the field observatory chain, preventing meaningful path-level lexical controls.
+* Interpretation: OBS-074 narrows, but does not eliminate, the lexical-confound critique. The strongest supported statement is that continuous-field observables retain label-relevant structure beyond corpus-level lexical fingerprints. The stronger path-level lexical-control claim remains untested.
+* Relationship to OBS-073: OBS-073 established recoverability of symbolic/proto-groupoid labels from continuous field geometry. OBS-074 adds a corpus-level lexical-control layer and finds that field separability survives lexical controls, seam blinding, and grid-location blinding.
+* Guardrail: This is a corpus-level lexical-control study only. Lexical fingerprints may partly act as corpus-regime proxies rather than mechanistic linguistic explanations. No tokenizer-level, embedding-level, or path-resolved lexical claims are made. Path-level lexical confounds remain open pending response-text provenance linked to observatory path IDs.
+* Next Step: Build path-resolved response-text provenance and rerun lexical-only and lexical-plus-field controls at path level. Treat Cp3 separately as an incomplete-response / missing-step degeneracy study rather than folding it into OBS-074.
+
+---
+
+## OBS-075 — Cp3 directional asymmetry
+
+**Date:** 2026-06-06
+**State:** Directional-transfer asymmetry established for Cp3 against Cp2; broad-boundary/noisy-Cp3 interpretation weakened but not eliminated; endpoint/velocity ablation required and delegated to OBS-075b
+
+* Question: Does Cp3 behave like a generic noisy or broad-boundary training corpus, or does it show corpus-pair-specific directional transfer asymmetry, especially against Cp2 and especially for coupled/recovery targets?
+* Method: Compared existing OBS-073 transfer-score artifacts for Cp2 ↔ Cp3 and Cp ↔ Cp3 without recomputing geometry, labels, feature tables, or predictions. Directional asymmetry was defined as BA(Cp3 → B) - BA(B → Cp3), and Cp2-specificity was computed as the Cp3/Cp2 asymmetry minus the Cp3/Cp asymmetry.
+* Artifacts: outputs/comparisons/obs073_Cp2_vs_Cp3_v5_smoke/obs073_model_scores.csv, outputs/comparisons/obs073_Cp_vs_Cp3_v5_smoke/obs073_model_scores.csv, with outputs/comparisons/obs073_C_vs_Cp3_v5_smoke/obs073_summary.md used as secondary audit context.
+* Result: Cp3 transfer asymmetry was strongest against Cp2 for coupled/recovery targets. Examples included recovery_channel_no_grid with Cp2 specificity 0.6422, recovery_channel_structural with 0.6165, coupled_outcome_group with 0.5963, and coupled_outcome_group_no_grid with 0.5936.
+* Result: The anti-shortcut no_direct_seam_no_grid slice preserved positive Cp2 specificity for coupled/recovery targets, but at reduced magnitude: recovery_channel_no_direct_seam_no_grid retained specificity 0.2741, and coupled_outcome_group_no_direct_seam_no_grid retained 0.2119.
+* Result: The asymmetry was target-specific, not global. coupling_class was a counterexample, with negative Cp3→Cp2 asymmetry across full, no-grid, and no-direct-seam/no-grid variants.
+* Interpretation: OBS-075 weakens the simplest noisy-Cp3 or broad-boundary explanation because Cp3 does not transfer equivalently well to Cp. The strongest current reading is that Cp3’s transfer advantage is corpus-pair-specific and concentrated where coupled unresolved dynamics meet Cp2-style recovery structure.
+* Guardrail: OBS-075 is a comparison of existing OBS-073 artifacts, not a recomputation. It establishes directional transfer asymmetry, not causal mechanism. The conservative seam/grid-blinded slice still permits endpoint, velocity, path-length, tortuosity, turning, and last_minus_first proxies.
+* Next Step: OBS-075b must rerun the transfer tests after removing endpoint/velocity-like proxies and should compare random forests against lower-complexity models such as logistic regression, shallow random forests, and shallow decision trees.
+
+---
+

@@ -1,4 +1,4 @@
-# 057 — Multiscale Diffusion Robustness Design
+# 069 — Multiscale Diffusion Robustness Design
 
 Status: design note  
 Role: future robustness sandbox, not canonical replacement
