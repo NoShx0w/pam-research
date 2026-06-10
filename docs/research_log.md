@@ -1396,3 +1396,20 @@ Instrument is stable but provisional; lacks inter-rater validation, full statist
 
 ---
 
+## OBS-076 — Observable scale-space
+
+**Date:** 2026-06-10
+**State:** Observable scale-space established as a multiscale structural-field layer; Cp2/Cp3 factorization is classifier-visible from dynamic fields alone
+
+* Question: Do PAM observable structures persist, migrate, split, merge, or factorize when viewed across diffusion scale rather than as a single fixed manifold slice?
+* Method: Implemented a four-stage scale-space branch: OBS-076a diffused observable fields over a graph substrate, OBS-076b rebuilt observable-space geometry at each scale, OBS-076c tracked named structural supports across scale, and OBS-076d tested scale-conditioned Cp2/Cp3 separability using dynamic fields under a matched shared-14 observable contract.
+* Artifacts: OBS-076a outputs include obs076a_diffusion_bundle.npz, obs076a_scale_ladder.csv, obs076a_observable_drift_summary.csv, and obs076a_topk_persistence_summary.csv; OBS-076b outputs include obs076b_node_geometry_by_scale.csv and obs076b_scale_geometry_summary.csv; OBS-076c outputs include obs076c_object_membership_by_scale.csv, obs076c_object_persistence.csv, and obs076c_object_overlap_by_scale.csv; OBS-076d outputs include dynamic-field separability summaries for Cp2/Cp3.
+* Result: C preserved and coalesced high-energy support across scale, while Cp3 showed stronger high-energy support migration. Under the shared-14 substrate, C retained higher final-scale persistence (top5 Jaccard = 0.666667, top10 Jaccard = 0.666667) than Cp3 (top5 Jaccard = 0, top10 Jaccard = 0.111111).
+* Result: Rebuilt observable geometry showed C as more persistent than Cp3, while Cp3 reorganized faster without collapsing into noise. Cp3 retained moderate phase coherence despite faster pairwise, embedding, energy, density, and seam-proxy reorganization.
+* Result: Structural-object tracking showed a three-way pattern: C coalesced energy ≈ response ≈ Frobenius ≈ Lazarus; Cp2 factorized with energy ≈ negative phase and response ≈ Lazarus; Cp3 factorized differently with energy ≈ positive phase, response/Frobenius/Lazarus co-located but separate from energy, and seam ≈ negative phase.
+* Result: Cp2 and Cp3 were nearly perfectly separable using dynamic diffused fields alone. In OBS-076d, all_dynamic_only reached BA = 0.9867 at t = 0.100 and BA = 1.0000 from t ≥ 0.373, with final-scale axes dominated by response tensor, coupling, phase, and Lazarus-gradient features.
+* Interpretation: OBS-076 establishes observable scale-space as a provisional observatory layer. PAM structures are not only located on a single manifold slice; they exhibit multiscale persistence, migration, coalescence, and factorization.
+* Guardrail: OBS-076 does not establish physical skyrmions, topologically protected semantic tubes, winding numbers, formal singularities, path-label transfer asymmetry, linguistic syntax attribution, or hidden-state topology. Pinch-point geometry, intrinsic dimension, path-label projection, and path/text interpretation remain unimplemented.
+* Next Step: OBS-077 should begin from the OBS-076 scale-space stack with pinch-point geometry, intrinsic-dimension diagnostics, path-label projection, and later text/provenance joins.
+
+---
