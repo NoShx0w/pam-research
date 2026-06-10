@@ -1413,3 +1413,23 @@ Instrument is stable but provisional; lacks inter-rater validation, full statist
 * Next Step: OBS-077 should begin from the OBS-076 scale-space stack with pinch-point geometry, intrinsic-dimension diagnostics, path-label projection, and later text/provenance joins.
 
 ---
+
+## OBS-077 — Scale-space transition geometry
+
+**Date:** 2026-06-10
+**State:** Scale-space transition geometry connected to path-label cohorts and coupled-window divergence structure
+
+* Question: When scale-space structural supports persist, move, split, merge, or reassign support across diffusion scale, which path populations participate in those transitions, and what local coupled-window dynamics do they carry?
+* Method: Built a three-stage interpretation layer on top of OBS-076: OBS-077a detected support-transition and pinch-point geometry, OBS-077b projected path-label populations onto supports and transition cohorts, and OBS-077c joined those cohorts to OBS-051 coupled-window divergence/boundedness diagnostics.
+* Artifacts: OBS-077a outputs under obs077a_pinch_point_geometry_shared14_mds_pilot_v2; OBS-077b outputs under obs077b_path_label_projection_shared14_mds_pilot; OBS-077c outputs under obs077c_window_coupling_bridge_shared14_mds_pilot_v2; cross-corpus summaries include obs077b_C_Cp2_Cp3_path_projection_summary.md and obs077c_C_Cp2_Cp3_window_divergence_bridge_summary.md; project docs include docs/05_project/077b_path_label_projection.md and docs/05_project/077c_window_local_divergence_bridge.md.
+* Result (OBS-077a): Transition geometry revealed distinct support-transition modes: C: coalesced ridge deformation; Cp2: factor relocation; Cp3: support reassignment. C exhibited late support-stable deformation, Cp2 showed early energy/negative-phase relocation and response/Lazarus reorganization, and Cp3 showed mid-late response/Frobenius transition plus late energy intrinsic-dimension transition.
+* Result (OBS-077b): Path-level projection succeeded across all corpora (100,000 path-id overlap in each corpus). Transition cohorts recruited distinct path populations: C: recovery/stability recruitment; Cp2: response-ridge recovery sorting; Cp3: nonrecovering off-seam energy settlement.
+* Result (OBS-077c): Joining support cohorts to OBS-051 windows produced a three-way divergence signature: C: bounded recovery recruitment (divergence_z_sum = -0.829 for entrants into density_core 5→6); Cp2: high-divergence recovery sorting (+0.480 for entrants into response_ridge 4→5); Cp3: earlier divergence with later nonrecovering settlement (energy_ridge 6→7 entrants -0.314, while strongest divergence appeared in earlier supports such as coupling_negative 4→5 at +1.437).
+* Integrated Finding: The C/Cp2/Cp3 distinction is visible across three connected layers: scale-space transition geometry, path-label occupancy, and local coupled-window divergence/boundedness. The resulting signature is: C = bounded recovery recruitment, Cp2 = high-divergence recovery sorting, Cp3 = earlier divergence, later nonrecovering settlement.
+* Relation to OBS-076: OBS-076 established multiscale factorization; OBS-077 explains how those factors transition, which path populations occupy them, and what local dynamical signatures they carry.
+* Relation to OBS-075: OBS-077 does not directly explain transfer asymmetry, but provides a plausible substrate: Cp2 localizes recovery-compatible structure in high-divergence response-ridge entry events, while Cp3 localizes nonrecovering structure in late energy-ridge settlement after earlier divergence events.
+* Guardrail: OBS-077 is model-specific, corpus-specific, matched-contract-specific, and subset-specific where OBS-051 windows are involved. It does not establish formal attractors, topological defects, generated-text semantics, causal transfer mechanisms, or direct coupled_outcome_group localization.
+* Next Step: OBS-078 should test whether the C/Cp2/Cp3 distinction is recoverable directly from OBS-077 mechanistic features, including transition geometry, support overlap/shape metrics, path-label cohort enrichments, and window-local divergence/boundedness contrasts.
+
+---
+
