@@ -1433,3 +1433,82 @@ Instrument is stable but provisional; lacks inter-rater validation, full statist
 
 ---
 
+## OBS-078 — Mechanistic stability signature
+
+**Date:** 2026-06-11
+**State:** OBS-077 transition mechanism shown to be classifier-visible, compressible to a low-dimensional local stability signature, and localizable back onto the interpreted object/cohort structure
+
+* Question: Is the OBS-077 transition interpretation merely descriptive, or does it define a compact mechanistic signature that recovers the C/Cp2/Cp3 distinction under strict anti-leakage controls?
+* Method: Built a transition-signature feature table from OBS-077 pinch-point geometry, path-label projection, and window-divergence artifacts. OBS-078a tested strict mechanistic classification; OBS-078b performed minimal-feature ablation; OBS-078c localized the resulting minimal signature back onto cases, objects, cohorts, and transitions.
+* Artifacts: obs078a_feature_table.csv (168 rows, 111+ columns; C=49, Cp2=60, Cp3=59), classifier outputs under obs078a_mechanistic_signature_classifier_v2, plus OBS-078b ablation outputs and OBS-078c localization artifacts derived from the same feature table.
+* Result (OBS-078a): Strong strict-control separability remained after removing global path counts, rank identity, scale identity, object identity, cohort identity, dominant-family identity, and dominant-reason identity. Object-blind performance remained high: full_obs077_signature BA=0.919, paths_plus_windows BA=0.914, window_divergence_only BA=0.880, geometry_only BA=0.864, versus permutation baselines near chance (≈0.33–0.34).
+* Result (OBS-078b): The C/Cp2/Cp3 distinction compressed to a minimal three-feature stability signature: mean_lambda_local_mean, mean_delta_d_mean, and bounded_share_mean. This window_means_only panel achieved BA=0.866 using only three features. Expanded six-feature and nine-feature panels reached BA=0.912 and BA=0.925, respectively.
+* Result (OBS-078c): The minimal signature localized back onto the interpreted OBS-077 structure. Global case signatures separated C from Cp2/Cp3: C showed low instability and high bounded stability (instability_signature_z = -1.316, bounded_stability_signature_z = +2.655), while Cp2 (+0.477, -0.984) and Cp3 (+0.608, -1.204) occupied higher-instability, lower-boundedness regimes.
+* Result: Object localization matched the OBS-077 interpretation. C exhibited bounded stability across energy_ridge, response_ridge, frobenius_ridge, lazarus_concentration, and coupling_positive; Cp2 showed elevated instability in response/Frobenius/seam/coupling structures; Cp3 showed strongest instability around energy_ridge, density_core, and seam_proxy.
+* Result: Cohort localization reinforced the transition reading. Cp3 entered cohorts showed especially high instability (instability_signature_z ≈ +0.815, bounded_stability_z ≈ -1.530), supporting the OBS-077 interpretation of earlier entry-localized instability followed by later settlement.
+* Integrated Finding: OBS-078 establishes a three-step validation chain: OBS-078a demonstrated strict mechanistic separability, OBS-078b found a low-dimensional stability core, and OBS-078c localized that core back onto the original transition/cohort/object structure.
+* Interpretation: The dominant separation is a local stability regime: C = bounded stability, Cp2 = high-divergence recovery sorting, Cp3 = high-displacement instability and settlement. The richer OBS-077 interpretation compresses to divergence, displacement, and boundedness dynamics.
+* Relation to OBS-077: OBS-077 supplied the mechanistic interpretation; OBS-078 shows that interpretation is classifier-visible, strict-control robust, compressible, and localizable rather than purely descriptive.
+* Relation to OBS-075: OBS-078 does not directly explain transfer asymmetry, but provides a compact mechanistic substrate suggesting that corpus differences may be grounded in local divergence/boundedness regimes.
+* Guardrail: Results are model-specific, corpus-specific, artifact-specific, matched-contract-specific, and provisional with respect to causal transfer claims. OBS-078 does not establish universality, direct localization of OBS-075 target labels, generated-text causality, attractor structure, or topological mechanisms.
+* Next Step: OBS-079 should test robustness of the three-feature stability core under alternate normalizations, leave-object-out and leave-transition-out validation, resampling, held-out transition subsets, bootstrap confidence intervals, and alternate observable contracts.
+
+---
+
+## OBS-079 — Stability core robustness
+
+**Date:** 2026-06-11
+**State:** OBS-078 low-dimensional local stability core shown to be structurally robust, bootstrap-stable, and pairwise anatomized across C / Cp2 / Cp3
+
+* Question: Does the OBS-078 three-feature local stability core survive structural perturbation, resampling, and pairwise decomposition?
+* Method: Tested the OBS-078 stability core (mean_lambda_local_mean, mean_delta_d_mean, bounded_share_mean) using three robustness passes: OBS-079a leave-structure-out validation, OBS-079b bootstrap confidence intervals, and OBS-079c pairwise stability classifiers.
+* Artifacts: Uses outputs/comparisons/obs078a_mechanistic_signature_classifier_v2/obs078a_feature_table.csv, derived from OBS-077 pinch-point transition geometry, path-label projection, and coupled-window divergence/boundedness bridge artifacts.
+* Result (OBS-079a): The three-feature stability core remained predictive under held-out structures. Primary-valid leave-object-out, leave-cohort-out, leave-transition-out, and combined leave-structure schemes stayed well above dummy baselines (≈0.333), with representative mean BA values from 0.828 to 0.938 depending on scheme/model.
+* Result (OBS-079b): Bootstrap CIs confirmed stable case-level separation. C remained bounded and low-instability (instability_signature_z = -1.316, CI [-1.562, -1.088]; bounded_stability_signature_z = +2.655, CI [+2.197, +3.144]), while Cp2 and Cp3 remained higher-instability and lower-boundedness.
+* Result (OBS-079b): Pairwise bootstrap contrasts robustly separated C from Cp2 and Cp3. C vs Cp2 had instability diff = -1.793 and bounded-stability diff = +3.639; C vs Cp3 had instability diff = -1.925 and bounded-stability diff = +3.859. Cp2 vs Cp3 was subtler but still separated by displacement, boundedness, instability, and bounded-stability axes.
+* Result (OBS-079c): Pairwise classifiers anatomized different stability axes: C vs Cp2 = divergence / boundedness split; C vs Cp3 = boundedness-dominant split; Cp2 vs Cp3 = displacement / lambda-delta split.
+* Integrated Finding: OBS-079 upgrades OBS-078 from “the stability core classifies the observed table” to “the stability core survives held-out structures, bootstrap resampling, and pairwise decomposition.”
+* Interpretation: The robust case-level skeleton is: C = bounded stability, Cp2 = high-divergence / low-boundedness sorting, Cp3 = high-displacement / low-boundedness instability-settlement.
+* Relation to OBS-078: OBS-078 established that the stability core is classifier-visible, compressible, and localizable. OBS-079 establishes that it is structurally robust, measurement-stable, and pairwise interpretable.
+* Guardrail: OBS-079 remains model-specific, corpus-specific, artifact-specific, matched-contract-specific, and strict-control-specific. It does not prove OBS-075 transfer causality, generated-text semantic causality, formal attractor basins, topology, or robustness beyond the tested matched shared-14 MDS-pilot contract.
+* Next Step: OBS-080 should test contract sensitivity: alternate normalizations, rank transforms, leave-scale-band-out validation, alternate shared observable subsets, matched downsampling, group-level bootstraps, and additional corpora where available.
+
+---
+
+## OBS-080 — Stability core contract-sensitivity
+
+**Date:** 2026-06-13
+**State:** OBS-078/079 local stability core shown to be contract-stable across numeric transforms, scale-band restrictions, feature-family projections, and structural resampling
+
+* Question: Does the OBS-078/079 three-feature local stability core persist under alternate measurement contracts, or is it an artifact of the original OBS-078 feature contract?
+* Method: Tested the core (mean_lambda_local_mean, mean_delta_d_mean, bounded_share_mean) across four contract families: OBS-080a numeric transforms, OBS-080b scale-band restrictions, OBS-080c feature-family projections, and OBS-080d structural-resampling contracts.
+* Artifacts: Uses outputs/comparisons/obs078a_mechanistic_signature_classifier_v2/obs078a_feature_table.csv; outputs under outputs/comparisons/obs080a_stability_core_transform_sensitivity/, obs080b_stability_core_scale_band_sensitivity/, obs080c_feature_family_contract_sensitivity/, and obs080d_structural_resampling_contract_sensitivity/.
+* Result (OBS-080a): The stability core was transform-stable across raw, standard_z, robust_median_iqr, rank_percentile, quantile_normal, minmax, and signed_log1p_abs. Three-way best BA remained near 0.899–0.916, and pairwise results stayed strongly above permutation baselines.
+* Result (OBS-080b): The core was scale-band stable but scale-position sensitive. C-vs-Cp2 and C-vs-Cp3 stayed strong across meaningful non-empty bands, while Cp2-vs-Cp3 was strongest in middle / mid-to-coarse / all-but-early transition corridors.
+* Result (OBS-080c): The three-feature core was sufficient but not exclusive. stability_core_3 reached three-way BA 0.916, while stability_plus_geometry reached 0.973; Cp2-vs-Cp3 sharpened under geometry-enriched and broader strict numeric contracts.
+* Result (OBS-080d): Structural resampling confirmed recomposition stability. C-vs-Cp2 and C-vs-Cp3 remained near-ceiling across row, object, cohort, transition, object-cohort, and object-transition bootstraps. Cp2-vs-Cp3 remained the sensitive diagnostic pair but survived under the compact core and sharpened under geometry-enriched contracts.
+* Integrated Finding: The OBS-078/079 local stability core is contract-stable, sufficient, and redundantly supported by broader transition geometry.
+* Interpretation: The compact core is best read as a reusable local stability invariant: C = bounded stability, Cp2 = high-divergence / low-boundedness sorting, Cp3 = high-displacement / low-boundedness instability-settlement.
+* Guardrail: OBS-080 is a contract-sensitivity study over the OBS-078a feature table. It does not establish external generalization, causal control, model-independent universality, new corpus-level transfer, or formal topological invariance.
+* Next Step: OBS-081 should define a Reusable Invariance Registry, distinguishing stable reusable invariants from context-sensitive / geometry-supported invariants.
+
+---
+
+## OBS-081 — Reusable Invariance Registry
+
+**Date:** 2026-06-13
+**State:** Reusable Invariance Registry established as the first operational RIG layer over PAM transition relations
+
+* Question: Can OBS-080 contract-sensitivity be converted into explicit reusable-invariant records with carrier roles, geometry-needed levels, failure localizations, and repair annotations?
+* Method: Synthesized OBS-080a–d outputs into relation × carrier registry records using experiments/studies/obs081_rig_invariance_registry.py.
+* Artifacts: Outputs under outputs/rig_registry/: rig_input_manifest.csv, rig_relation_registry.csv, rig_survival_matrix.csv, rig_failure_localization.csv, rig_geometry_needed_ladder.csv, rig_repair_recommendations.csv, and rig_registry_report.md.
+* Result: OBS-081 establishes the first operational Reusable Invariance Geometry layer. Contract-stability is now indexed as navigable invariant records containing relation, carrier, carrier role, RIG status, geometry-needed level, localized repair pressure, and repair recommendation.
+* Registry status counts: redundant_reusable_invariant = 16, weak_redundant_carrier = 4, stable_reusable_invariant = 2, context_sensitive_reusable_invariant = 2. No rows were classified as accidental or insufficient after v2 recalibration.
+* Core records: C_vs_Cp2__stability_core_3 and C_vs_Cp3__stability_core_3 are stable reusable invariants under the compact local stability core. Cp2_vs_Cp3__stability_core_3 and three_way__stability_core_3 are context-sensitive reusable invariants.
+* Geometry-needed result: All four primary tasks are Level 1: compact core sufficient. Enriched geometry is not required for survival, but sharpens Cp2-vs-Cp3 and three-way precision.
+* Interpretation: The compact stability core is now registered as a reusable invariant carrier, while geometry, enriched-geometry, non-window, strict numeric, and path-share carriers are recorded as redundant or weak-redundant supports.
+* Guardrail: OBS-081 is registry synthesis over OBS-080 artifacts. It does not establish external generalization, causal control, intervention success, model-independent universality, or formal topological invariance.
+* Next Step: OBS-082 should build a RIG Navigator / invariance console for browsing stable invariants, context-sensitive invariants, weak redundant carriers, failure localizations, geometry-needed levels, and repair recommendations.
+
+---
+
