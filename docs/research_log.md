@@ -1512,25 +1512,40 @@ Instrument is stable but provisional; lacks inter-rater validation, full statist
 
 ---
 
-## OBS-082 — RIG Intervention-Readiness Audit
+## OBS-082 — RIG intervention-readiness audit
 
 **Date:** 2026-06-16
-**State:** OBS-081 reusable-invariance records audited for intervention-readiness; registry classified as diagnostic and intervention-adjacent, but no current records reach candidate- or hypothesis-ready status.
+**State:** RIG intervention-readiness audit completed; registry records are scoreable and diagnostic, but not yet hypothesis-ready
 
-* Question: Which OBS-081 relation × carrier records are mature enough to define conservative, testable intervention hypotheses within the current PAM artifact lineage?
-* Method: Audited OBS-081 registry records using six readiness dimensions: invariance strength, failure localization, repair specificity, geometry sufficiency, carrier convergence, and negative-control contrast. Scores were computed from direct OBS-080d carrier evidence (score_basis = obs080d_carrier_mean_ba) rather than categorical registry status.
-* Artifacts: Inputs from outputs/rig_registry/rig_relation_registry.csv, rig_survival_matrix.csv, rig_failure_localization.csv, rig_geometry_needed_ladder.csv, and rig_repair_recommendations.csv. Outputs under outputs/rig_registry/obs082_intervention_readiness/: obs082_input_manifest.csv, obs082_relation_readiness_scores.csv, obs082_candidate_intervention_hypotheses.csv, obs082_negative_control_contrasts.csv, obs082_failure_mode_inventory.csv, obs082_blockers.csv, and obs082_report.md.
-* Result summary: All 24 / 24 registry records were scoreable; 0 were blocked. Readiness distribution: Class A = 0, Class B = 0, Class C = 24, Class D = 0, Class X = 0.
-* Main finding: The OBS-081 registry contains strong diagnostic reusable-invariance evidence with high invariance strength, carrier convergence, and geometry sufficiency. However, no records reach intervention readiness because limiting dimensions are systematic: weak_negative_control_contrast = 24 / 24, generic_repair_specificity = 24 / 24, and diffuse_failure_localization = 23 / 24.
-* Interpretation: Registered reusable invariance is not equivalent to intervention-ready invariance. Contract survival establishes that a relation is robust, but actionable intervention hypotheses additionally require explicit negative-control separation, localized failure modes, and concrete repair directions.
-* RIG maturity ladder:
-    * Level 1 — Invariant: a relation survives tested perturbations.
-    * Level 2 — Diagnostic invariant: a relation describes and organizes regime structure.
-    * Level 3 — Actionable invariant: a relation has sufficient contrast, localization, and repair specificity to justify a conservative intervention hypothesis.
-    OBS-082 places the current OBS-081 registry at Level 2.
-* Relation to OBS-081: OBS-081 established reusable-invariance records over relation × carrier pairs. OBS-082 introduces a stricter criterion: whether those records contain enough localized and contrastive evidence to support future intervention design.
-* Guardrail: OBS-082 does not perform interventions and does not establish causal control, causal sufficiency, external generalization, or universal invariants. The absence of Class A/B records should be interpreted as a conservative readiness boundary, not as a failure of the registry.
-* Next Step: OBS-083 should focus on RIG negative-control and failure-localization strengthening: constructing matched negative controls, relation-specific contrasts, carrier-specific stress tests, contract-family failure localization, and more specific repair annotations to determine whether current diagnostic invariants can mature into candidate-ready intervention hypotheses.
+* Question: Which OBS-081 relation × carrier records have sufficient invariant strength, failure localization, repair specificity, geometry sufficiency, carrier convergence, and negative-control contrast to support conservative, testable intervention hypotheses within the current PAM artifact lineage?
+* Method: Audited all OBS-081 registry records using six readiness dimensions: D1 invariance strength, D2 failure localization, D3 repair specificity, D4 geometry sufficiency, D5 carrier convergence, and D6 negative-control contrast. Composite readiness scores used direct OBS-080d structural-resampling evidence (score_basis = obs080d_carrier_mean_ba), while rig_status remained descriptive metadata rather than primary evidence.
+* Artifacts: Generated under outputs/rig_registry/obs082_intervention_readiness/: obs082_input_manifest.csv, obs082_relation_readiness_scores.csv, obs082_candidate_intervention_hypotheses.csv, obs082_negative_control_contrasts.csv, obs082_failure_mode_inventory.csv, obs082_blockers.csv, and obs082_report.md.
+* Result: All 24 OBS-081 relation × carrier records were successfully scored. There were no missing artifacts and no blocked records (Class X = 0).
+* Readiness classification:
+    * Class A (hypothesis-ready): 0 / 24
+    * Class B (candidate-ready): 0 / 24
+    * Class C (diagnostic-only): 24 / 24
+    * Class D (registry-only): 0 / 24
+    * Class X (blocked / insufficient evidence): 0 / 24
+* Main limiting factors: The registry exhibits strong invariant survival evidence but lacks the contrast and localization necessary for intervention design. The dominant limitations were:
+    * weak negative-control contrast: 24 / 24
+    * generic repair specificity: 24 / 24
+    * diffuse failure localization: 23 / 24
+* Interpretation: OBS-082 establishes a maturity distinction between registered reusable invariance and intervention-ready reusable invariance. The current registry reaches a diagnostic level: it reliably describes regime structure and invariant survival, but does not yet provide sufficiently localized failure modes, matched contrasts, or repair pathways to justify intervention hypotheses.
+* Maturity ladder:
+    * Level 1 — Registered invariant: relation survives perturbation under tested contracts.
+    * Level 2 — Diagnostic invariant: relation provides reliable structural characterization of the observed regimes.
+    * Level 3 — Actionable invariant: relation has sufficient negative controls, failure localization, and repair specificity to define a conservative intervention hypothesis.
+    The current OBS-081 registry reaches Level 2, but no relation reaches Level 3.
+* Guardrail: OBS-082 does not demonstrate controllability, causal sufficiency, successful interventions, external generalization, or universal invariance. It is restricted to the OBS-081 registry, OBS-080 contract family, OBS-078/079/080 stability-core lineage, the C/Cp2/Cp3 comparison family, and current repository-generated artifacts.
+* Next Step: OBS-083 should focus on strengthening intervention evidence rather than attempting interventions. Priority directions are:
+    * constructing stronger matched negative-control relations,
+    * improving failure localization,
+    * increasing repair/enrichment specificity,
+    * separating current diagnostic records into candidate-ready versus purely descriptive invariants.
+
+Canonical OBS-082 result:
+The RIG registry is scoreable and diagnostically useful, but not yet intervention-ready. The next scientific step is not intervention execution, but improving the contrast, localization, and repair evidence required for legitimate intervention hypotheses.
 
 ---
 
