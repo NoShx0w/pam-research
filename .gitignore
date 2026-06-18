@@ -17,12 +17,23 @@ outputs/
 plots/
 snapshots/
 
+# Ignore generated outputs by default
+outputs/*
+
 # IDE
 .vscode/
 .idea/
 
 # macOS
 .DS_Store
+
+# Ignore generated outputs by default
+outputs/*
+
+# Keep canonical RIG observatory artifacts
+!outputs/rig_registry/
+!outputs/rig_registry/**/*.csv
+!outputs/rig_registry/**/*.md
 
 observatory/derived/**
 !observatory/derived/
