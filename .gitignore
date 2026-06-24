@@ -17,9 +17,6 @@ outputs/
 plots/
 snapshots/
 
-# Ignore generated outputs by default
-outputs/*
-
 # IDE
 .vscode/
 .idea/
