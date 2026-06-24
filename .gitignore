@@ -13,7 +13,6 @@ venv/
 *.key
 
 # experiment outputs
-outputs/
 plots/
 snapshots/
 
