@@ -1549,3 +1549,25 @@ The RIG registry is scoreable and diagnostically useful, but not yet interventio
 
 ---
 
+## OBS-083 — RIG negative-control and failure-localization strengthening
+
+**Date:** 2026-07-10
+**State:** RIG negative-control and failure-localization strengthening completed; diagnostic-only registry refined into contrast-limited and localization-limited subclasses
+
+* Question: Can the 24 OBS-081/OBS-082 diagnostic-only relation × carrier records be separated into finer subclasses by strengthening matched negative-control contrast, failure localization, and repair-specificity evidence?
+* Method: Read the OBS-081 registry and OBS-082 readiness artifacts from outputs/rig_registry/, then constructed matched relation, carrier, contract, and geometry-needed controls; failure-localization diagnostics; repair-specificity tables; readiness deltas; blocker refinements; and diagnostic subclass assignments. Conservative prior-aware gates capped contrast-derived localization as proxy evidence and required direct failure-site artifacts for strong localization.
+* Artifacts: Generated under outputs/rig_registry/obs083_negative_control_localization/, including matched-control design and contrast tables, the failure-localization matrix, repair-specificity sharpening table, diagnostic subclass assignments, OBS-082 readiness deltas, blocker refinements, and the OBS-083 report.
+* Result: All 24 records remain in diagnostic Class C. The flat OBS-082 result was refined into:
+    * C1 contrast-limited: 12
+    * C2 localization-limited: 12
+    * C0 descriptive-only: 0
+    * C3 repair-specificity-limited: 0
+    * C4 promising next-test candidate: 0
+* Failure localization: No record achieved high or moderate direct localization. Direct artifact locus rows = 0; contrast-derived localization remains proxy evidence only.
+* Repair specificity: All 24 records reached R3 relation+carrier-specific annotation, but none reached R4 diagnostic repair-candidate status. No record became hypothesis-ready.
+* Interpretation: OBS-083 shows that the current RIG bottleneck is not reusable-invariance survival itself. Records are now distinguishable as either lacking adequate matched-control contrast or possessing stronger contrast structure but still lacking direct failure-site evidence.
+* Operational consequence: The registry can now diagnose why a record remains non-actionable. Repair specificity cannot mature beyond relation+carrier annotation until failures are localized directly to identifiable contracts, scales, feature families, cohorts, transitions, seams, or boundary structures.
+* Guardrail: OBS-083 performs no interventions and establishes no causality, control, actionability, external generalization, model-independent invariance, or formal topology. C4 remains diagnostic-only and is not equivalent to candidate-ready or actionable status.
+* Next Step: OBS-084 should implement direct failure-site localization, replacing contrast-derived proxies with inspectable failure artifacts tied to specific relation, carrier, contract, scale-band, feature-family, cohort, transition, seam, or boundary loci.
+
+---
