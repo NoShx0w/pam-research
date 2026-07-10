@@ -1,0 +1,15 @@
+artifact_label,relative_path,path,exists,file_type,rows,columns,read_status
+obs081_input_manifest,rig_input_manifest.csv,outputs/rig_registry/rig_input_manifest.csv,True,csv,4.0,3.0,ok
+obs081_relation_registry,rig_relation_registry.csv,outputs/rig_registry/rig_relation_registry.csv,True,csv,24.0,47.0,ok
+obs081_survival_matrix,rig_survival_matrix.csv,outputs/rig_registry/rig_survival_matrix.csv,True,csv,256.0,22.0,ok
+obs081_failure_localization,rig_failure_localization.csv,outputs/rig_registry/rig_failure_localization.csv,True,csv,29.0,11.0,ok
+obs081_geometry_needed_ladder,rig_geometry_needed_ladder.csv,outputs/rig_registry/rig_geometry_needed_ladder.csv,True,csv,24.0,14.0,ok
+obs081_repair_recommendations,rig_repair_recommendations.csv,outputs/rig_registry/rig_repair_recommendations.csv,True,csv,24.0,8.0,ok
+obs081_registry_report,rig_registry_report.md,outputs/rig_registry/rig_registry_report.md,True,md,,,exists_non_csv
+obs082_input_manifest,obs082_intervention_readiness/obs082_input_manifest.csv,outputs/rig_registry/obs082_intervention_readiness/obs082_input_manifest.csv,True,csv,5.0,9.0,ok
+obs082_readiness_scores,obs082_intervention_readiness/obs082_relation_readiness_scores.csv,outputs/rig_registry/obs082_intervention_readiness/obs082_relation_readiness_scores.csv,True,csv,24.0,35.0,ok
+obs082_negative_control_contrasts,obs082_intervention_readiness/obs082_negative_control_contrasts.csv,outputs/rig_registry/obs082_intervention_readiness/obs082_negative_control_contrasts.csv,True,csv,48.0,11.0,ok
+obs082_failure_mode_inventory,obs082_intervention_readiness/obs082_failure_mode_inventory.csv,outputs/rig_registry/obs082_intervention_readiness/obs082_failure_mode_inventory.csv,True,csv,29.0,13.0,ok
+obs082_blockers,obs082_intervention_readiness/obs082_blockers.csv,outputs/rig_registry/obs082_intervention_readiness/obs082_blockers.csv,True,csv,0.0,9.0,ok
+obs082_candidate_intervention_hypotheses,obs082_intervention_readiness/obs082_candidate_intervention_hypotheses.csv,outputs/rig_registry/obs082_intervention_readiness/obs082_candidate_intervention_hypotheses.csv,True,csv,0.0,18.0,ok
+obs082_report,obs082_intervention_readiness/obs082_report.md,outputs/rig_registry/obs082_intervention_readiness/obs082_report.md,True,md,,,exists_non_csv

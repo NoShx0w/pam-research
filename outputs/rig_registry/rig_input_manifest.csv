@@ -1,0 +1,5 @@
+artifact,path,status
+obs080a_dir,outputs/comparisons/obs080a_stability_core_transform_sensitivity,ok
+obs080b_dir,outputs/comparisons/obs080b_stability_core_scale_band_sensitivity,ok
+obs080c_dir,outputs/comparisons/obs080c_feature_family_contract_sensitivity,ok
+obs080d_dir,outputs/comparisons/obs080d_structural_resampling_contract_sensitivity,ok
