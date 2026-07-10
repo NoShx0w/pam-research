@@ -26,10 +26,18 @@ snapshots/
 # Ignore generated outputs by default
 outputs/*
 
-# Keep canonical RIG observatory artifacts
+# Keep canonical RIG registry/readiness artifacts
 !outputs/rig_registry/
-!outputs/rig_registry/**/*.csv
-!outputs/rig_registry/**/*.md
+!outputs/rig_registry/*.csv
+!outputs/rig_registry/*.md
+
+!outputs/rig_registry/obs082_intervention_readiness/
+!outputs/rig_registry/obs082_intervention_readiness/*.csv
+!outputs/rig_registry/obs082_intervention_readiness/*.md
+
+!outputs/rig_registry/obs083_negative_control_localization/
+!outputs/rig_registry/obs083_negative_control_localization/*.csv
+!outputs/rig_registry/obs083_negative_control_localization/*.md
 
 observatory/derived/**
 !observatory/derived/
