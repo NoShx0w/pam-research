@@ -1,0 +1,4 @@
+cluster_family,cluster_column,row_count,unique_clusters,discovery_clusters,confirmation_clusters,replication_clusters,three_way_nonempty,recommended_priority,independence_status
+object,object,168,8,2,4,2,True,1,candidate_only_not_proven
+cohort,cohort,168,6,2,2,2,True,4,candidate_only_not_proven
+case,case,168,3,0,3,0,False,8,candidate_only_not_proven

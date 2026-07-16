@@ -1,0 +1,15 @@
+metric,value,interpretation
+script_version,1.0.0,reconnaissance implementation version
+artifacts_inventoried,195,priority and explicitly included artifacts
+readable_artifacts,195,includes non-tabular artifacts
+tabular_artifacts_read,176,CSV/JSON frames available for schema audit
+schema_columns_inventoried,7607,column-level schema rows
+candidate_join_key_rows,5754,artifact-local and cross-artifact schema checks
+observation_unit_rows,1620,unit-family availability checks
+available_support_families,9,out of 11 predeclared support families
+two_way_partition_candidates,36,schema-level discovery/confirmation feasibility rows
+three_way_partition_candidates,36,schema-level discovery/confirmation/replication feasibility rows
+fl3_confirmation_eligible_records,12,C2/localization-limited records inferred from registry table
+records_with_both_control_families,24,registry-level relation and carrier controls; observation-level admissibility unproven
+strong_schema_provenance_artifacts,0,artifact schemas with at least three core provenance roles
+overall_reconnaissance_status,schema_ready_for_obs084a_discovery_design_with_three_way_partition_candidate,no fatal schema-level blocker found

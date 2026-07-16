@@ -1,0 +1,14 @@
+{
+  "completed_at": "2026-07-14T10:56:24+00:00",
+  "confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+  "confirmation_partition_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+  "note": "One-time reserved confirmation opening. Do not delete or bypass this lock without a documented protocol deviation.",
+  "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+  "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+  "obs084c_script_sha256": "5090aefa7dfde231a95ed65982af45c8f9af40cb323cba84ba199590b8c36c9c",
+  "opened_at": "2026-07-14T10:55:43+00:00",
+  "output_dir": "/Users/rvl/Desktop/LAB/pam-research/outputs/rig_registry/obs084_direct_failure_witness/confirmation",
+  "overall_status": "confirmation_completed_no_fl3_with_capped_reproductions",
+  "schema": "obs084c_confirmation_opening_lock_v1",
+  "status": "confirmation_completed"
+}

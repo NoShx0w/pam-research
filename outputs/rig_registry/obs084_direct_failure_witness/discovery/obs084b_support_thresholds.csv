@@ -1,0 +1,5 @@
+support_family,source_field,threshold_name,threshold_value,fit_partition,direction_rule
+scale_band,transition_midpoint,q33,4.5,discovery_only,ascending transition midpoint
+scale_band,transition_midpoint,q67,5.5,discovery_only,ascending transition midpoint
+seam_relative,seam__core__path_enrichment,q33,0.8625180102440132,discovery_only,higher enrichment/share/contact interpreted as more seam-adjacent
+seam_relative,seam__core__path_enrichment,q67,1.023886642566046,discovery_only,higher enrichment/share/contact interpreted as more seam-adjacent

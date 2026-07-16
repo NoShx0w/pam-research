@@ -1,0 +1,11 @@
+support_family,included_in_discovery_vocabulary,requires_predeclared_discretization,max_conjunction_depth,freeze_status,resolution_status
+object,True,False,2,included,proposed_auto
+cohort,True,False,2,included,proposed_auto
+transition,True,False,2,included,proposed_auto
+scale_band,True,False,2,included,proposed_auto
+contract_or_transform,True,False,2,included,proposed_auto
+feature_family,True,False,2,included,proposed_auto
+seam_relative,True,True,2,included_with_frozen_discretization,proposed_auto
+window,True,False,2,included,proposed_auto
+route_or_path,True,False,2,included,proposed_auto
+provenance_slice,True,False,2,included,proposed_auto

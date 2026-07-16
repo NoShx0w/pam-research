@@ -1,0 +1,78 @@
+{
+  "artifact_hashes": {
+    "obs084a_cluster_unit_selection.csv": "889403071f6143ce742619b2e1a0b4e63717d5a55dbfa2efef51516446823343",
+    "obs084a_partition_balance_final.csv": "9a4f10f1d13f3a79c07c923ca39c81bc73c36db437a445afc1ce682a0bc3c444",
+    "obs084a_reviewed_carrier_feature_manifest.csv": "e2262f2d1d8b6ba0b0caac41d139fa931492438e901a9447f7f541721904ec8a",
+    "obs084a_reviewed_field_roles.csv": "671b6d54b8b49a16c094bdbea7bb50ccc9d057022a65276e24a5fff9efec4258",
+    "obs084a_reviewed_observation_key_spec.csv": "084b7fd6caba88b6e4e912dfd812463c0cd02ea525b671f8e060127bca7404c9",
+    "obs084a_seam_discretization_protocol.csv": "eeda13ff1c7a50d9e07617eb4621f922cf5fbfec22d9e5987ecfb99d4da256ed",
+    "obs084a_source_hash_manifest.csv": "a2d10b0a9513ef9d5d6463f9f2000c066725a166e86a3c9499d1f2bbd1f8fd20",
+    "obs084a_support_vocabulary_freeze.csv": "686a977d56ab8e36f388a5c68dfb69acbccf794a40af89b59a008bc404d0e25a",
+    "obs084a_two_way_partition_manifest.csv": "0169021d820515029dc136c0dca2be20839055bbbe1386ac84b00631cb534789"
+  },
+  "canonical_feature_table": "outputs/comparisons/obs078a_mechanistic_signature_classifier_v2/obs078a_feature_table.csv",
+  "created_at": "2026-07-14T08:16:12+00:00",
+  "discovery_fraction": 0.67,
+  "freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+  "partition_seed": "obs084a-two-way-freeze-v1",
+  "repo_commit": "2647b494eb688388bdad9b88d8dd32c8a5e95f69",
+  "schema": "obs084a_freeze_manifest_v1",
+  "script_version": "1.2.0",
+  "status": "frozen_ready_for_discovery",
+  "technical_gates": [
+    {
+      "detail": "selected key rows=1; scientific key complete/unique and alignment key unique=True",
+      "gate": "observation_key_resolved",
+      "passed": true,
+      "status": "pass"
+    },
+    {
+      "detail": "all six carriers have complete allowed feature manifests; exact canonical carriers match ordered definitions",
+      "gate": "carrier_features_resolved",
+      "passed": true,
+      "status": "pass"
+    },
+    {
+      "detail": "manual-review fields remaining=0",
+      "gate": "field_roles_resolved",
+      "passed": true,
+      "status": "pass"
+    },
+    {
+      "detail": "selected cluster rows=1",
+      "gate": "cluster_unit_selected",
+      "passed": true,
+      "status": "pass"
+    },
+    {
+      "detail": "partitions=['confirmation', 'discovery']",
+      "gate": "two_way_partition_created",
+      "passed": true,
+      "status": "pass"
+    },
+    {
+      "detail": "eligible partition rows=24, passing=24",
+      "gate": "eligible_record_partition_balance",
+      "passed": true,
+      "status": "pass"
+    },
+    {
+      "detail": "included support families=10",
+      "gate": "support_vocabulary_frozen",
+      "passed": true,
+      "status": "pass"
+    },
+    {
+      "detail": "hashed sources=15/15",
+      "gate": "source_hashes_complete",
+      "passed": true,
+      "status": "pass"
+    },
+    {
+      "detail": "auto-proposed rows=161; allow_auto_freeze=True",
+      "gate": "human_review_or_explicit_auto_freeze",
+      "passed": true,
+      "status": "pass"
+    }
+  ]
+}
