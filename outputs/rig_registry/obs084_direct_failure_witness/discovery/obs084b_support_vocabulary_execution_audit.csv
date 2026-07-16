@@ -1,0 +1,11 @@
+support_family,support_column,available_for_site_search,unique_discovery_values,reason
+object,object,True,4.0,
+cohort,cohort,True,6.0,
+transition,transition,True,5.0,
+scale_band,scale_band,True,3.0,
+contract_or_transform,,False,,"record-constant contract/carrier dimension; usable for controls, not within-record localization"
+feature_family,,False,,"record-constant contract/carrier dimension; usable for controls, not within-record localization"
+seam_relative,seam_relative_region,True,3.0,
+window,,False,,no reviewed discrete observation-level field
+route_or_path,dominant_family,True,4.0,
+provenance_slice,,False,,no reviewed discrete observation-level field

@@ -1,0 +1,2 @@
+support_family,source_field,discretization_method,bin_count,threshold_basis,threshold_values_json,bin_labels_json,fit_partition,outcome_blind,resolution_status
+seam_relative,seam__core__path_enrichment,equal_frequency_quantiles,3,quantiles fitted on discovery partition only; then applied unchanged to confirmation,[],"[""near"", ""intermediate"", ""far""]",discovery_only,True,proposed_auto

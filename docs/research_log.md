@@ -1571,3 +1571,169 @@ The RIG registry is scoreable and diagnostically useful, but not yet interventio
 * Next Step: OBS-084 should implement direct failure-site localization, replacing contrast-derived proxies with inspectable failure artifacts tied to specific relation, carrier, contract, scale-band, feature-family, cohort, transition, seam, or boundary loci.
 
 ---
+
+# OBS-084
+
+**DATE:** 2026-07-14
+**STATE:** Fully blinded discovery–confirmation protocol completed for artifact-direct failure-support evaluation; no FL3 witnesses established under reserved confirmation
+
+## Instrument Status
+
+- OBS-081 established the Reusable Invariance Registry (RIG) as the canonical diagnostic registry.
+- OBS-082 evaluated intervention readiness while maintaining diagnostic-only scope.
+- OBS-083 strengthened negative controls, failure localization, and repair specificity without performing interventions.
+- OBS-084a resolved the remaining bridge decisions between the OBS-078–083 evidence spine and the first direct failure-support study by freezing:
+  - scientific observation identity,
+  - carrier definitions,
+  - field roles,
+  - deterministic discovery/confirmation partition,
+  - support vocabulary,
+  - seam discretization protocol,
+  - source identities and manifests.
+- OBS-084b performed the first blinded discovery-only search for artifact-direct failure supports using only the frozen discovery partition.
+- OBS-084c opened the reserved confirmation partition exactly once and evaluated only the sealed OBS-084b candidate family without permitting any additional search, threshold fitting, predicate generation, or candidate modification.
+
+The entire study therefore operated under a complete discovery–confirmation separation.
+
+---
+
+## Core Question
+
+OBS-084 asks:
+
+**Can artifact-indexed direct failure supports be discovered on the frozen discovery partition and independently confirmed on a reserved confirmation partition sufficiently to establish scoped FL3 direct witnesses?**
+
+The objective is not to infer causal mechanisms or intervention targets.
+
+The objective is to determine whether localized artifact-direct failure supports survive independent confirmation under a strictly frozen protocol.
+
+---
+
+## Method
+
+OBS-084 proceeds in three sequential stages.
+
+### OBS-084a — Protocol Freeze
+
+Before any discovery:
+
+- observation identity was frozen,
+- carrier contracts were frozen,
+- structural clustering was frozen,
+- discovery and confirmation partitions were frozen,
+- support vocabulary was frozen,
+- seam discretization methodology was frozen,
+- source identities were cryptographically recorded.
+
+No candidate discovery occurred during this stage.
+
+---
+
+### OBS-084b — Discovery
+
+Using only the frozen discovery partition:
+
+- 24 registry records were evaluated.
+- 1,434 unique record-support addresses were generated.
+- 85 unique support definitions were constructed.
+- 5,736 predicate-indexed discovery tests were executed across four failure predicates.
+- Control-adjusted contrasts were computed using the predeclared carrier-control framework.
+- Candidate supports were filtered through multiplicity, admissibility, and dominance criteria.
+- Thirteen non-dominated FL2 candidate supports were sealed.
+
+No confirmation outcomes were inspected.
+
+---
+
+### OBS-084c — Reserved Confirmation
+
+Confirmation opened the reserved partition exactly once.
+
+Before evaluation:
+
+- freeze identity was verified,
+- partition identity was verified,
+- candidate manifest integrity was verified,
+- threshold reconstruction was independently reproduced from the frozen discovery partition,
+- support definitions were parsed and validated,
+- candidate identities were confirmed unchanged.
+
+Confirmation evaluated only the thirteen sealed candidates.
+
+No new predicates, supports, thresholds, rankings, or candidate generation were permitted.
+
+---
+
+## Results
+
+Discovery reduced 5,736 tested hypotheses to thirteen sealed FL2 candidate supports.
+
+Reserved confirmation evaluated all thirteen candidates.
+
+Confirmation outcomes were:
+
+- 1 candidate reproduced directionally but remained entitlement-capped at FL2.
+- 2 candidates reproduced insufficiently after multiplicity correction.
+- 1 candidate was adequately explained by competing controls.
+- 1 candidate remained uncertainty-limited.
+- 3 candidates showed no confirmation signal.
+- 5 candidates became complement-inadmissible under the reserved confirmation partition.
+
+No candidate satisfied every confirmation requirement required for FL3 promotion.
+
+Accordingly:
+
+**FL3 direct witnesses established: 0**
+
+No discovery candidate was promoted beyond its evidential entitlement.
+
+---
+
+## Interpretation
+
+OBS-084 demonstrates that the complete discovery–confirmation instrument functions as intended.
+
+The protocol successfully:
+
+- prevented discovery/confirmation leakage,
+- preserved frozen study identity,
+- enforced candidate sealing,
+- reproduced discovery thresholds independently,
+- prevented post-hoc hypothesis generation,
+- prevented post-hoc threshold adjustment,
+- prevented post-hoc support modification,
+- refused promotion when confirmation evidence was insufficient.
+
+The absence of FL3 witnesses is therefore an empirical outcome of the reserved confirmation stage rather than a protocol failure.
+
+Several candidates reproduced partially but remained limited by multiplicity, control adjustment, entitlement rules, uncertainty, or complement admissibility.
+
+These outcome classes themselves become diagnostic observations for future observatory studies.
+
+---
+
+## Observatory Consequence
+
+OBS-084 completes the first fully frozen direct failure-support pipeline within the PAM Observatory.
+
+The observatory now possesses an operational end-to-end instrument capable of:
+
+- protocol freezing,
+- blinded discovery,
+- candidate sealing,
+- reserved confirmation,
+- evidence entitlement,
+- conservative witness promotion.
+
+The primary contribution of OBS-084 is therefore methodological rather than positive evidence production.
+
+It demonstrates that artifact-direct failure-support claims can be evaluated under a rigorously provenance-controlled discovery–confirmation architecture without inflation of evidential claims.
+
+---
+
+## Canonical Result
+
+OBS-084 establishes the first complete artifact-direct discovery and reserved-confirmation protocol within the PAM Observatory. Discovery nominated thirteen sealed FL2 candidate supports from 5,736 predicate-indexed tests, but reserved confirmation established no scoped FL3 direct witnesses. The observatory therefore provides evidence that the protocol successfully enforces discovery–confirmation separation and conservative evidential promotion while establishing no confirmed direct failure support, causal origin, repair target, intervention readiness, external generalization, actionability, or formal topology.
+
+---
+
