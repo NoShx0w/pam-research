@@ -1,0 +1,9 @@
+source_id,source_label,target_id,target_label,value,flow_semantics,fraction_of_universe
+all_addresses,All addresses,discovery_feasible,Discovery feasible,1944,discovery structural classification,0.3389121338912134
+all_addresses,All addresses,discovery_infeasible,Discovery infeasible,3792,discovery structural classification,0.6610878661087866
+discovery_feasible,Discovery feasible,both_feasible,Feasible in both partitions,984,cross-partition structural state,0.17154811715481172
+discovery_feasible,Discovery feasible,discovery_only,Discovery feasible only,960,cross-partition structural state,0.16736401673640167
+discovery_infeasible,Discovery infeasible,confirmation_only,Confirmation feasible only,336,cross-partition structural state,0.058577405857740586
+discovery_infeasible,Discovery infeasible,infeasible_both,Infeasible in both partitions,3456,cross-partition structural state,0.602510460251046
+both_feasible,Feasible in both partitions,both_feasible_fl3_entitled,Both feasible and FL3-entitled,528,deterministic entitlement overlay,0.09205020920502092
+both_feasible,Feasible in both partitions,both_feasible_entitlement_capped,Both feasible and entitlement capped,456,deterministic entitlement overlay,0.0794979079497908

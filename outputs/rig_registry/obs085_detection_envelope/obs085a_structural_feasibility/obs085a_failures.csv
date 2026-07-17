@@ -1,0 +1,3 @@
+stage,scope_id,reason,detail,severity
+outcome_estimability,confirmation,predicate_metric_unestimable_for_some_addresses,address_count=4176,warning
+outcome_estimability,discovery,predicate_metric_unestimable_for_some_addresses,address_count=2496,warning

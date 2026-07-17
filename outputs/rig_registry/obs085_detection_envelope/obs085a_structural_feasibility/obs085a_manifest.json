@@ -1,0 +1,225 @@
+{
+  "created_at": "2026-07-17T10:32:55+00:00",
+  "guardrails": [
+    "OBS-084 remains immutable",
+    "no synthetic injection",
+    "no simulated gate-passage probability",
+    "no observed power",
+    "no FL3 promotion",
+    "claim entitlement is a deterministic overlay"
+  ],
+  "input_identity": [
+    {
+      "artifact_path": "outputs/rig_registry/obs083_negative_control_localization/obs083_carrier_control_contrast.csv",
+      "artifact_role": "obs083_carrier_controls",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "58f0451b2b321fc4c192464134fb70566404ed4d169e41dee89204d90f5c37c5"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs083_negative_control_localization/obs083_relation_control_contrast.csv",
+      "artifact_role": "obs083_relation_controls",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "d8362e49c97d1ba8566ab9704b400139e0315c5dd7f6201be891deb8032c70a9"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs083_negative_control_localization/obs083_diagnostic_subclass_assignments.csv",
+      "artifact_role": "obs083_subclasses",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "c3fd28c1bbc31dde900cedf9ed6ea3b3f40cddbfb64d642e5521461b5a186701"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/bridge_resolution/obs084a_freeze_manifest.json",
+      "artifact_role": "obs084a_freeze_manifest",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "03b06c37945d82655814548595281264ef46faa62e40d9a130c8dec46dc0aa8a"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_candidate_freeze_manifest.csv",
+      "artifact_role": "obs084b_candidate_manifest_csv",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "06575ec3bf85143f5ef3c11d18ae785f81019ae5470e2fa587c2ca0da5773f0f"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_candidate_freeze_manifest.json",
+      "artifact_role": "obs084b_candidate_manifest_json",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "4deb25d622ab1ecb377d32468975aea6c332f18c2a88b64aa3cc1c67fef29167"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_discovery_observation_losses.csv",
+      "artifact_role": "obs084b_observation_losses",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "c786394ad527d7879f0bf0e99a2a751868edd0f00f973374ffcff5ae3b860405"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084c_confirmation_opening_lock.json",
+      "artifact_role": "obs084b_opening_lock",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "f47e62b8f67de9ba2678ff6c37c4c735487ee62ed8122415dd8e78e757a3bc3e"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_support_candidate_inventory.csv",
+      "artifact_role": "obs084b_support_inventory",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "dcc01eb3a2402cce13fa37431ea7fd61068f61a10e77a77c99be7a37c8f7deba"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_support_complement_matching.csv",
+      "artifact_role": "obs084b_support_matching",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "cba3817a2ecd9b23a5feb3cf9929905c7ab222f8600a289aadfc9e1a97971fee"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/confirmation/obs084c_candidate_outcomes.csv",
+      "artifact_role": "obs084c_candidate_outcomes",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "8e2a2aaacdfbde875470075f04f51d5f2f1348c184c70aed26299eac9871dd9c"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/confirmation/obs084c_confirmation_manifest.json",
+      "artifact_role": "obs084c_confirmation_manifest",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "101cd3bf0db74f933a9eb4b845685812bdf0562988903fe18f95c23c271aacd4"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/confirmation/obs084c_confirmation_observation_losses.csv",
+      "artifact_role": "obs084c_observation_losses",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "cd5b2055126c9eafe4bc2348484396f544f35011bb26674d08e0d5665ae4e5d4"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs084_direct_failure_witness/confirmation/obs084c_support_complement_validation.csv",
+      "artifact_role": "obs084c_support_validation",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "af238f6c87cf1de253fe46d7a08370451f76648410652b8ee5184d44f2bf97ae"
+    },
+    {
+      "artifact_path": "experiments/studies/obs084c_direct_failure_support_confirmation.py",
+      "artifact_role": "obs084c_validation_script",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "5090aefa7dfde231a95ed65982af45c8f9af40cb323cba84ba199590b8c36c9c"
+    },
+    {
+      "artifact_path": "docs/05_project/085_failure_support_detection_power_and_confirmation_feasibility_protocol.md",
+      "artifact_role": "obs085_protocol",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "b5c852ab7c8abbc8f497b8e4efd0768fb0b45a878ebcef0c8446b3ec568499b9"
+    },
+    {
+      "artifact_path": "outputs/rig_registry/rig_relation_registry.csv",
+      "artifact_role": "rig_registry",
+      "obs084a_freeze_manifest_id": "c360f3b4cd5d65067c8b1cca45800524b6ee5cf7ad31ed43aaedcdb0fcd0566d",
+      "obs084b_candidate_manifest_id": "0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5",
+      "obs084c_confirmation_manifest_id": "bb573a6565be03648d5eab191a768ba1c95e13ab4ead6a55939f252d42dd57cf",
+      "obs084c_opening_lock_id": "7198b2d34bc8c469a54c8a83ad7e6dfe975c084fde947c1992b7ea6882dc26d2",
+      "sha256": "211d6270d948503ffda4a866558ca95fec0bc9fe99a5fe201616b842389ae631"
+    }
+  ],
+  "obs085a_manifest_id": "b1ca8bc6e2ff455e718da8ae3ed19daad844f152076c87b87548958959853550",
+  "output_dir": "outputs/rig_registry/obs085_detection_envelope/obs085a_structural_feasibility",
+  "output_hashes": {
+    "obs085a_claim_entitlement_overlay.csv": "1d5a1be64efd18f2025c1476e615d5338187cd6590dbc92d90a84d2e886f69d0",
+    "obs085a_complement_admissibility.csv": "4af7094cd8b5148828afa21d9fcbe43e2681c5d0ee8f86667689b0fcf7ee68a3",
+    "obs085a_control_availability.csv": "b5050111dd885332259b039fb5c986e1d953d611165f11311e4fb904ba950d13",
+    "obs085a_detection_envelope_summary.csv": "e20caf03696153ebb2e2fb745a6c6da2399955401af6666f2497d7fd6eb54085",
+    "obs085a_effective_evidence.csv": "e7c180bb0d1786dde340cdbde07bcf48d358a5e5f5320398c4055cd828304ced",
+    "obs085a_evidence_feasibility.csv": "bdc5801023fb9f30028f7cbbf90813cb28be3878f09ebc2ff697e97171dc8fd7",
+    "obs085a_failures.csv": "36794ebf5d78fc9b4066c4e7f87a428ce18667c098ae60092b976e903c6aba0a",
+    "obs085a_frozen_discovery_contract_audit.csv": "eea9fbf051d3a597088819f8fd1a60d9e1c1706003472d79df9107670c359735",
+    "obs085a_input_manifest.csv": "4d208d9d455ae9e9d3baf87e2318af6a76c953ec49c5800a3c7c0e33c7d43bb2",
+    "obs085a_joint_target_control_estimability.csv": "c306ee1978ecd8e57420903b8f65a92f37c844b22340289931e82609d9cf9b3c",
+    "obs085a_report.md": "036ae57c377ac8ebd4960b6d9fae47c7c7aaeb53adac269a2e1029acd913a055",
+    "obs085a_structural_gate_matrix.csv": "308c62ec6ca09b2aec024dea688bca15a9029e6425f89b5c1c9535946be0d9d5",
+    "obs085a_structural_state_sankey.html": "13d92c4bf89661e9fe8b17bd0cf65544c70d6f9f6220a41d6286ac6754533ab4",
+    "obs085a_structural_state_sankey_links.csv": "0d5722b4401f639f9a4dad12c2ecda22be61a827f1c6d9f5567434581c6bb233",
+    "obs085a_support_address_inventory.csv": "9e9c486d34838c6a17b08745527496d12e7cb8c8a63e9c770245cb8eda7a8695",
+    "obs085a_support_coverage_matrix.csv": "99494837e166d1600ba6b8a5764b02941e7ef1f42c2290d7dbb0fc68399f606a"
+  },
+  "repo_commit": "9c072feab19132c00d0556faf01c663e6b8eedfd",
+  "schema": "obs085a_structural_evidence_feasibility_v1",
+  "script_path": "experiments/studies/obs085a_structural_evidence_feasibility.py",
+  "script_sha256": "179c93dcd34f97a309f14370b965eb764912c837e98318684afaa3a2360093e3",
+  "script_version": "1.0.1",
+  "status": "structural_evidence_feasibility_completed",
+  "structural_contract": {
+    "claim_entitlement_separate_from_evidence_feasibility": true,
+    "cluster_unit": "object",
+    "gates": {
+      "g10_multiplicity_family_definition": "G10 multiplicity-family definition",
+      "g1_support_presence": "G1 support presence",
+      "g2_complement_presence": "G2 complement presence",
+      "g3_support_cluster_coverage": "G3 support-cluster coverage",
+      "g4_complement_cluster_coverage": "G4 complement-cluster coverage",
+      "g5_class_bearing_coverage": "G5 class-bearing coverage",
+      "g6_matched_complement_admissibility": "G6 matched-complement admissibility",
+      "g7_control_availability": "G7 control availability",
+      "g8_joint_target_control_estimability": "G8 joint target-control estimability",
+      "g9_outcome_estimability": "G9 outcome estimability"
+    },
+    "min_class_rows": 2,
+    "min_complement_clusters": 2,
+    "min_complement_rows": 12,
+    "min_joint_target_control_clusters": 2,
+    "min_shared_clusters": 2,
+    "min_site_clusters": 2,
+    "min_site_rows": 8
+  },
+  "upstream_validation": {
+    "command": [
+      "/Users/rvl/Desktop/LAB/pam-research/.venv/bin/python",
+      "/Users/rvl/Desktop/LAB/pam-research/experiments/studies/obs084c_direct_failure_support_confirmation.py",
+      "--validate-only"
+    ],
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "OBS-084c validation complete: sealed bundle valid; confirmation not opened\nCandidates sealed: 13\nCandidate manifest ID: 0d58d3abd25677683bb29b25c5b4e1fc2fdd1fab83866893c2151a80b97fd4f5"
+  }
+}

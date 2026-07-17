@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OBS-085a structural-state Sankey</title>
+<style>
+:root { color-scheme: light dark; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
+}
+main { max-width: 1420px; margin: 0 auto; padding: 28px; }
+h1 { margin: 0 0 8px; font-size: 28px; }
+p { max-width: 1050px; line-height: 1.55; color: #334155; }
+.figure {
+  margin-top: 24px;
+  overflow-x: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.06);
+}
+svg { display: block; min-width: 1180px; width: 100%; height: auto; }
+.flow { fill: none; opacity: 0.42; }
+.flow:hover { opacity: 0.72; }
+.node { rx: 3; ry: 3; stroke: #ffffff; stroke-width: 1; }
+.node-label { font-size: 14px; font-weight: 650; fill: #0f172a; }
+.node-value { font-size: 12px; fill: #475569; }
+.column-title { font-size: 13px; font-weight: 700; fill: #475569; }
+.audit { margin-top: 24px; max-width: 760px; }
+table { border-collapse: collapse; width: 100%; background: #ffffff; }
+th, td { border-bottom: 1px solid #e2e8f0; padding: 9px 12px; text-align: left; }
+th { font-size: 13px; color: #475569; }
+td:nth-child(2), td:nth-child(3), th:nth-child(2), th:nth-child(3) {
+  text-align: right;
+}
+.note { font-size: 14px; }
+@media (prefers-color-scheme: dark) {
+  body { background: #0f172a; color: #e2e8f0; }
+  p, .note { color: #cbd5e1; }
+  .figure, table { background: #111827; border-color: #334155; }
+  .node-label { fill: #f1f5f9; }
+  .node-value, .column-title { fill: #cbd5e1; }
+  th, td { border-color: #334155; }
+  th { color: #cbd5e1; }
+}
+</style>
+</head>
+<body>
+<main>
+<h1>OBS-085a structural-state Sankey</h1>
+<p>
+Cross-partition structural classification of all predicate-indexed addresses.
+Flows represent mutually exclusive feasibility states and a deterministic
+claim-entitlement overlay. They do not represent sequential gate passage,
+causal attrition, effect existence, or simulated detection probability.
+</p>
+<div class="figure">
+<svg viewBox="0 0 1320 840" role="img"
+  aria-label="OBS-085a cross-partition structural-state Sankey">
+<text class="column-title" x="70" y="48">Address universe</text>
+<text class="column-title" x="340" y="48">Discovery classification</text>
+<text class="column-title" x="650" y="48">Cross-partition state</text>
+<text class="column-title" x="1010" y="48">Entitlement overlay for both-feasible addresses</text>
+<path class="flow" d="M 94.00 212.86 C 217.00 212.86, 217.00 212.86, 340.00 212.86" stroke="#2563eb" stroke-width="185.72"><title>All addresses → Discovery feasible: 1,944 (33.89% of universe)</title></path><path class="flow" d="M 94.00 486.86 C 217.00 486.86, 217.00 510.86, 340.00 510.86" stroke="#64748b" stroke-width="362.28"><title>All addresses → Discovery infeasible: 3,792 (66.11% of universe)</title></path><path class="flow" d="M 364.00 167.00 C 507.00 167.00, 507.00 167.00, 650.00 167.00" stroke="#0f766e" stroke-width="94.01"><title>Discovery feasible → Feasible in both partitions: 984 (17.15% of universe)</title></path><path class="flow" d="M 364.00 259.87 C 507.00 259.87, 507.00 283.87, 650.00 283.87" stroke="#3b82f6" stroke-width="91.72"><title>Discovery feasible → Discovery feasible only: 960 (16.74% of universe)</title></path><path class="flow" d="M 364.00 345.77 C 507.00 345.77, 507.00 369.77, 650.00 369.77" stroke="#7c3aed" stroke-width="32.10"><title>Discovery infeasible → Confirmation feasible only: 336 (5.86% of universe)</title></path><path class="flow" d="M 364.00 526.91 C 507.00 526.91, 507.00 574.91, 650.00 574.91" stroke="#64748b" stroke-width="330.18"><title>Discovery infeasible → Infeasible in both partitions: 3,456 (60.25% of universe)</title></path><path class="flow" d="M 674.00 145.22 C 842.00 145.22, 842.00 145.22, 1010.00 145.22" stroke="#15803d" stroke-width="50.44"><title>Feasible in both partitions → Both feasible + FL3-entitled: 528 (9.21% of universe)</title></path><path class="flow" d="M 674.00 192.23 C 842.00 192.23, 842.00 192.23, 1010.00 192.23" stroke="#b45309" stroke-width="43.56"><title>Feasible in both partitions → Both feasible + entitlement capped: 456 (7.95% of universe)</title></path><rect class="node" x="70.00" y="120.00" width="24.00" height="548.00" fill="#334155"><title>All addresses: 5,736 (100.00% of universe)</title></rect><text class="node-label" x="70.00" y="110.00">All addresses</text><text class="node-value" x="70.00" y="128.00">5,736 (100.0%)</text><rect class="node" x="340.00" y="120.00" width="24.00" height="185.72" fill="#2563eb"><title>Discovery feasible: 1,944 (33.89% of universe)</title></rect><text class="node-label" x="340.00" y="110.00">Discovery feasible</text><text class="node-value" x="340.00" y="128.00">1,944 (33.9%)</text><rect class="node" x="340.00" y="329.72" width="24.00" height="362.28" fill="#64748b"><title>Discovery infeasible: 3,792 (66.11% of universe)</title></rect><text class="node-label" x="340.00" y="319.72">Discovery infeasible</text><text class="node-value" x="340.00" y="337.72">3,792 (66.1%)</text><rect class="node" x="650.00" y="120.00" width="24.00" height="94.01" fill="#0f766e"><title>Feasible in both partitions: 984 (17.15% of universe)</title></rect><text class="node-label" x="650.00" y="110.00">Feasible in both partitions</text><text class="node-value" x="650.00" y="128.00">984 (17.2%)</text><rect class="node" x="650.00" y="238.01" width="24.00" height="91.72" fill="#3b82f6"><title>Discovery feasible only: 960 (16.74% of universe)</title></rect><text class="node-label" x="650.00" y="228.01">Discovery feasible only</text><text class="node-value" x="650.00" y="246.01">960 (16.7%)</text><rect class="node" x="650.00" y="353.72" width="24.00" height="32.10" fill="#7c3aed"><title>Confirmation feasible only: 336 (5.86% of universe)</title></rect><text class="node-label" x="650.00" y="343.72">Confirmation feasible only</text><text class="node-value" x="650.00" y="361.72">336 (5.9%)</text><rect class="node" x="650.00" y="409.82" width="24.00" height="330.18" fill="#64748b"><title>Infeasible in both partitions: 3,456 (60.25% of universe)</title></rect><text class="node-label" x="650.00" y="399.82">Infeasible in both partitions</text><text class="node-value" x="650.00" y="417.82">3,456 (60.3%)</text><rect class="node" x="1010.00" y="120.00" width="24.00" height="50.44" fill="#15803d"><title>Both feasible + FL3-entitled: 528 (9.21% of universe)</title></rect><text class="node-label" x="1010.00" y="110.00">Both feasible + FL3-entitled</text><text class="node-value" x="1010.00" y="128.00">528 (9.2%)</text><rect class="node" x="1010.00" y="170.44" width="24.00" height="43.56" fill="#b45309"><title>Both feasible + entitlement capped: 456 (7.95% of universe)</title></rect><text class="node-label" x="1010.00" y="160.44">Both feasible + entitlement capped</text><text class="node-value" x="1010.00" y="178.44">456 (7.9%)</text>
+</svg>
+</div>
+<section class="audit">
+<h2>Mutually exclusive terminal states</h2>
+<table>
+<thead><tr><th>State</th><th>Addresses</th><th>Universe share</th></tr></thead>
+<tbody>
+<tr><td>Feasible in both partitions</td><td>984</td><td>17.15%</td></tr>
+<tr><td>Discovery feasible only</td><td>960</td><td>16.74%</td></tr>
+<tr><td>Confirmation feasible only</td><td>336</td><td>5.86%</td></tr>
+<tr><td>Infeasible in both partitions</td><td>3,456</td><td>60.25%</td></tr>
+</tbody>
+</table>
+<p class="note">
+The authoritative machine-readable flow values are stored in
+<code>obs085a_structural_state_sankey_links.csv</code>.
+</p>
+</section>
+</main>
+</body>
+</html>
