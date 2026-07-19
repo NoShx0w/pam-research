@@ -1,0 +1,265 @@
+{
+  "claim_ceiling": "simulator qualification; no gate-passage probability",
+  "created_at_utc": "2026-07-18T10:35:24.067106+00:00",
+  "execution": {
+    "control_response_grid": [
+      0.0,
+      0.5,
+      1.0
+    ],
+    "effect_grid": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "master_seed": 85000,
+    "replicates_per_qualification_cell": 128,
+    "smoke": false
+  },
+  "frozen_lineage": {
+    "expected_obs085a_commit": "f98ba656c4e836e90c6ccd737b7f536c4851d5bb",
+    "head_commit": "f98ba656c4e836e90c6ccd737b7f536c4851d5bb",
+    "manifest_hashes_checked": [
+      {
+        "path": "outputs/rig_registry/obs083_negative_control_localization/obs083_carrier_control_contrast.csv",
+        "sha256": "58f0451b2b321fc4c192464134fb70566404ed4d169e41dee89204d90f5c37c5"
+      },
+      {
+        "path": "outputs/rig_registry/obs083_negative_control_localization/obs083_relation_control_contrast.csv",
+        "sha256": "d8362e49c97d1ba8566ab9704b400139e0315c5dd7f6201be891deb8032c70a9"
+      },
+      {
+        "path": "outputs/rig_registry/obs083_negative_control_localization/obs083_diagnostic_subclass_assignments.csv",
+        "sha256": "c3fd28c1bbc31dde900cedf9ed6ea3b3f40cddbfb64d642e5521461b5a186701"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/bridge_resolution/obs084a_freeze_manifest.json",
+        "sha256": "03b06c37945d82655814548595281264ef46faa62e40d9a130c8dec46dc0aa8a"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_candidate_freeze_manifest.csv",
+        "sha256": "06575ec3bf85143f5ef3c11d18ae785f81019ae5470e2fa587c2ca0da5773f0f"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_candidate_freeze_manifest.json",
+        "sha256": "4deb25d622ab1ecb377d32468975aea6c332f18c2a88b64aa3cc1c67fef29167"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_discovery_observation_losses.csv",
+        "sha256": "c786394ad527d7879f0bf0e99a2a751868edd0f00f973374ffcff5ae3b860405"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084c_confirmation_opening_lock.json",
+        "sha256": "f47e62b8f67de9ba2678ff6c37c4c735487ee62ed8122415dd8e78e757a3bc3e"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_support_candidate_inventory.csv",
+        "sha256": "dcc01eb3a2402cce13fa37431ea7fd61068f61a10e77a77c99be7a37c8f7deba"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/discovery/obs084b_support_complement_matching.csv",
+        "sha256": "cba3817a2ecd9b23a5feb3cf9929905c7ab222f8600a289aadfc9e1a97971fee"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/confirmation/obs084c_candidate_outcomes.csv",
+        "sha256": "8e2a2aaacdfbde875470075f04f51d5f2f1348c184c70aed26299eac9871dd9c"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/confirmation/obs084c_confirmation_manifest.json",
+        "sha256": "101cd3bf0db74f933a9eb4b845685812bdf0562988903fe18f95c23c271aacd4"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/confirmation/obs084c_confirmation_observation_losses.csv",
+        "sha256": "cd5b2055126c9eafe4bc2348484396f544f35011bb26674d08e0d5665ae4e5d4"
+      },
+      {
+        "path": "outputs/rig_registry/obs084_direct_failure_witness/confirmation/obs084c_support_complement_validation.csv",
+        "sha256": "af238f6c87cf1de253fe46d7a08370451f76648410652b8ee5184d44f2bf97ae"
+      },
+      {
+        "path": "experiments/studies/obs084c_direct_failure_support_confirmation.py",
+        "sha256": "5090aefa7dfde231a95ed65982af45c8f9af40cb323cba84ba199590b8c36c9c"
+      },
+      {
+        "path": "docs/05_project/085_failure_support_detection_power_and_confirmation_feasibility_protocol.md",
+        "sha256": "b5c852ab7c8abbc8f497b8e4efd0768fb0b45a878ebcef0c8446b3ec568499b9"
+      },
+      {
+        "path": "outputs/rig_registry/rig_relation_registry.csv",
+        "sha256": "211d6270d948503ffda4a866558ca95fec0bc9fe99a5fe201616b842389ae631"
+      }
+    ],
+    "obs085a_manifest_path": "outputs/rig_registry/obs085_detection_envelope/obs085a_structural_feasibility/obs085a_manifest.json",
+    "obs085a_manifest_sha256": "76d9d7d2523a44e4cf4ae70e9ef7a1b7ae492fefe6c5d5ab31181ec7f6b2cbb3",
+    "obs085a_validation_stdout": "OBS-085a validation complete: immutable OBS-084 bundle valid\nFrozen discovery structural contract reproduced exactly: 1,434 support definitions\nPredicate-indexed address universe: 5,736 addresses"
+  },
+  "mandatory_statement": "Monte Carlo precision is not instrument-model certainty. Sensitivity estimates remain conditional on the declared simulation-generating assumptions, particularly given the small number of observed independent object clusters.",
+  "obs085b0_manifest_id": "3015094cef1ee6a3f2b098662b75668109491634be827cd62cffc7b598fc66e6",
+  "output_artifacts": [
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_baseline_object_vectors.csv",
+      "sha256": "624280b15b967228587fcda7562f98f5a4f3201142e80a8403816baf4e39c0df",
+      "size_bytes": 160646
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_covariance_audit.csv",
+      "sha256": "6a6b4ba776b5476f84c6463c52448c8ff2e90e3cf5a88ea6d92adb99ce7006ae",
+      "size_bytes": 34398
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_directionality_audit.csv",
+      "sha256": "466cdf88932e006e2081b872c976862b8e17f069fcce2a68194e9bce0dd994dc",
+      "size_bytes": 121546
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_failures.csv",
+      "sha256": "d71f432117337b0ccfc9aecded57e64084351f01c145a6938cec93e6d1aa2867",
+      "size_bytes": 3211
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_injection_contracts.csv",
+      "sha256": "526fc45e25b763b2134c6449aeb8c0c549c2ef8b5bc201555a9942d8d51249f2",
+      "size_bytes": 6616
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_input_manifest.csv",
+      "sha256": "90e1aa9ae9fbfafb53f3459904a4890339e21f430c7119c26a21b2e94b3d991e",
+      "size_bytes": 2000
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_null_preservation_audit.csv",
+      "sha256": "78f0b7cb442bdcf576b718fedd10aac9bc3393718c32ea8dfad5d7f2eb834eb0",
+      "size_bytes": 23772
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_object_influence_audit.csv",
+      "sha256": "b65411b3aa24035ec6c420b99f6d12819ab39bf9d4da388e7ec41c123cb57113",
+      "size_bytes": 20449
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_qualification_address_manifest.csv",
+      "sha256": "e6c6c6b3c02a8c3544ff9fa698d3d3ab74579b1be618747b384309d4930bb839",
+      "size_bytes": 13513
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_qualification_gate_matrix.csv",
+      "sha256": "4480cced9ef3e46b2d4cbc3c40349f1ebb1acd53a3e4b3588f38e22bd8d45ef1",
+      "size_bytes": 13075
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_qualification_runs.csv",
+      "sha256": "94f7c69f8a5e828dd2e870c56f856ee53394108fa391011fa256f9daa2d67f46",
+      "size_bytes": 84317217
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_report.md",
+      "sha256": "3277c9276e643120797ce74cc77a8792937c96145b41fd72299c63752b5648ad",
+      "size_bytes": 485352
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_reproducibility_audit.csv",
+      "sha256": "df6dc79963c2cbc82fd0436f4ff0046b84b0a2913e225b4c579f4ae2820946d6",
+      "size_bytes": 4929
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_scenario_manifest.csv",
+      "sha256": "2c73534e9ae50f42e63fc6f9da61c2caa98735b494e5d32ddafb96d578aaf372",
+      "size_bytes": 1336
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_simulator_family_summary.csv",
+      "sha256": "0c96a45182175fe3a3d1cab8c32a70773afccb26c868089b1e9c3822c047550b",
+      "size_bytes": 1625
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_simulator_specs.csv",
+      "sha256": "68350c9ddb9a0042d54c329dcfd29d07be2bb95fd18461253b217f15bfafbcf1",
+      "size_bytes": 2142
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b0_simulator_qualification/obs085b0_specificity_audit.csv",
+      "sha256": "1760ee5817ced3798e07dbc50c78157b79ca7411c1ed865ed4b3e5611809e8f9",
+      "size_bytes": 75080
+    }
+  ],
+  "qualification_address_ids": [
+    "03ef63db7584762143dc3914",
+    "1cce3e5fe7c50070e58676c9",
+    "1dbc920edffba9363b404b4e",
+    "2089c8ead568c49eba0d317f",
+    "2f394559fbe5789c99da9eda",
+    "3c58f494c94b8761a568ded4",
+    "5664a919a73350d749e027dc",
+    "571870560547b22e35e1ccb9",
+    "61cef129ca8cc734e59e4f58",
+    "63063743372cd08e7e4c4ed8",
+    "6474bf84525b5f8901e9c847",
+    "71a9a769187d88ddfc17abe2",
+    "7e1bf2a0d61851cecd7b6046",
+    "9a1b8537bb0aac4dd2f70530",
+    "a24a4754e3d139d456235b65",
+    "aa0c3dea0cb178601665f0a3",
+    "abf87c205565392f1e00275c",
+    "bfa569fbae807b7f50c3389f",
+    "c6528334f0026fa6a5d60d51",
+    "c7bb703a3930eb4a7b9b0754",
+    "cba4ba2ba78612dd885992ab",
+    "d10b3aec4edc47fefb2bd92f",
+    "f4f4a9de74337511940dbe01",
+    "fe17c18b39eb86c6e9f982bd"
+  ],
+  "qualification_decision_enabled": true,
+  "qualified_predicate_simulators": [
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "confirmation",
+      "qualification_status": "qualified_with_scope_limit",
+      "simulator_id": "joint_gaussian_regularized_cluster"
+    },
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "confirmation",
+      "qualification_status": "qualified_with_scope_limit",
+      "simulator_id": "joint_wild_cluster_rademacher"
+    },
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "discovery",
+      "qualification_status": "qualified_with_scope_limit",
+      "simulator_id": "joint_gaussian_regularized_cluster"
+    },
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "discovery",
+      "qualification_status": "qualified_with_scope_limit",
+      "simulator_id": "joint_wild_cluster_rademacher"
+    }
+  ],
+  "scenario_ids": [
+    "QS-0d843f10496d42d1e9c6c5e2",
+    "QS-287cf936363fd86ea8ad73f8",
+    "QS-368e7b8f3a8cc86f8ceb08cc",
+    "QS-3dc37edf4af0f7e662412969",
+    "QS-618ec331dca9a7ccd5bdb5bf",
+    "QS-7948d23c1feb1febec450668",
+    "QS-7db6e52a369a2cf095a4d7a6",
+    "QS-ab378fe92eb9d27d2e17fa9c",
+    "QS-b67fc4498c765103002ced37",
+    "QS-eb4593b921cd2cf14df02e94"
+  ],
+  "schema_version": "obs085b0_simulator_qualification_v1",
+  "scope": "diagnostic-only instrument metrology",
+  "script_version": "1.0.2",
+  "simulator_ids": [
+    "joint_empirical_cluster_bootstrap",
+    "joint_wild_cluster_rademacher",
+    "joint_gaussian_regularized_cluster"
+  ],
+  "state": "simulator_qualification_completed",
+  "universe_counts": {
+    "address_universe": 5736,
+    "both_feasible_addresses": 984,
+    "both_feasible_record_scoped_supports": 246
+  }
+}

@@ -1,0 +1,11 @@
+scenario_id,delta,control_response_lambda,replicates,master_seed,qualification_only,sensitivity_estimand_produced,scenario_semantics
+QS-368e7b8f3a8cc86f8ceb08cc,0.0,0.0,128,85000,True,False,null estimator calibration
+QS-3dc37edf4af0f7e662412969,0.25,0.0,128,85000,True,False,injection directionality and target-control response qualification
+QS-7db6e52a369a2cf095a4d7a6,0.25,0.5,128,85000,True,False,injection directionality and target-control response qualification
+QS-7948d23c1feb1febec450668,0.25,1.0,128,85000,True,False,injection directionality and target-control response qualification
+QS-ab378fe92eb9d27d2e17fa9c,0.5,0.0,128,85000,True,False,injection directionality and target-control response qualification
+QS-b67fc4498c765103002ced37,0.5,0.5,128,85000,True,False,injection directionality and target-control response qualification
+QS-618ec331dca9a7ccd5bdb5bf,0.5,1.0,128,85000,True,False,injection directionality and target-control response qualification
+QS-eb4593b921cd2cf14df02e94,1.0,0.0,128,85000,True,False,injection directionality and target-control response qualification
+QS-0d843f10496d42d1e9c6c5e2,1.0,0.5,128,85000,True,False,injection directionality and target-control response qualification
+QS-287cf936363fd86ea8ad73f8,1.0,1.0,128,85000,True,False,injection directionality and target-control response qualification

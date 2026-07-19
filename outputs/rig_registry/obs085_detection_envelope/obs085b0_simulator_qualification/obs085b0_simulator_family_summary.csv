@@ -1,0 +1,13 @@
+simulator_id,failure_predicate,partitions_evaluated,qualified_partitions,not_qualified_partitions,engineering_smoke_partitions,maximum_object_influence,maximum_specificity_ratio,qualification_status
+joint_empirical_cluster_bootstrap,local_criterion_breach,2,0,2,0,3.891314206002181,4.649664349218421,not_qualified
+joint_empirical_cluster_bootstrap,log_loss_attenuation,2,0,2,0,4.3835459761180005,1.5382057401041909,not_qualified
+joint_empirical_cluster_bootstrap,measurement_missingness_concentration,2,0,2,0,0.6730620722491647,0.0,not_qualified
+joint_empirical_cluster_bootstrap,relation_separation_attenuation,2,0,2,0,1.9156537030790275,3.1098012883682524,not_qualified
+joint_gaussian_regularized_cluster,local_criterion_breach,2,0,2,0,2.116883895516029,4.353541139104538,not_qualified
+joint_gaussian_regularized_cluster,log_loss_attenuation,2,0,2,0,6.46832948836936,1.9732629131664288,not_qualified
+joint_gaussian_regularized_cluster,measurement_missingness_concentration,2,2,0,0,0.24630957198743605,0.0,qualified_with_scope_limit
+joint_gaussian_regularized_cluster,relation_separation_attenuation,2,0,2,0,2.42353025001747,2.6543711966305246,not_qualified
+joint_wild_cluster_rademacher,local_criterion_breach,2,0,2,0,6.262626262626263,1.96521401597276,not_qualified
+joint_wild_cluster_rademacher,log_loss_attenuation,2,0,2,0,8.236870329687552,2.611595629805451,not_qualified
+joint_wild_cluster_rademacher,measurement_missingness_concentration,2,2,0,0,0.35129727056072585,0.0,qualified_with_scope_limit
+joint_wild_cluster_rademacher,relation_separation_attenuation,2,0,2,0,4.571039419017612,4.330770866502387,not_qualified
