@@ -1,0 +1,223 @@
+{
+  "authorized_cells": [
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "confirmation",
+      "qualification_status": "qualified_with_scope_limit",
+      "scope_limits_json": "[\"Gaussian tails and covariance shrinkage are declared simulator assumptions\",\"baseline_covariance_preservation_unscorable\",\"missingness mechanism is simulator-defined because frozen baseline is sparse or zero\"]",
+      "simulator_id": "joint_gaussian_regularized_cluster"
+    },
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "confirmation",
+      "qualification_status": "qualified_with_scope_limit",
+      "scope_limits_json": "[\"baseline_covariance_preservation_unscorable\",\"missingness mechanism is simulator-defined because frozen baseline is sparse or zero\",\"wild residual symmetry is a declared model assumption with four clusters\"]",
+      "simulator_id": "joint_wild_cluster_rademacher"
+    },
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "discovery",
+      "qualification_status": "qualified_with_scope_limit",
+      "scope_limits_json": "[\"Gaussian tails and covariance shrinkage are declared simulator assumptions\",\"baseline_covariance_preservation_unscorable\",\"missingness mechanism is simulator-defined because frozen baseline is sparse or zero\",\"structural_leave_one_object_out_unavailability\"]",
+      "simulator_id": "joint_gaussian_regularized_cluster"
+    },
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "discovery",
+      "qualification_status": "qualified_with_scope_limit",
+      "scope_limits_json": "[\"baseline_covariance_preservation_unscorable\",\"missingness mechanism is simulator-defined because frozen baseline is sparse or zero\",\"structural_leave_one_object_out_unavailability\",\"wild residual symmetry is a declared model assumption with four clusters\"]",
+      "simulator_id": "joint_wild_cluster_rademacher"
+    }
+  ],
+  "claim_ceiling": "conditional gate-passage sensitivity only; no classical power, minimum detectable effect, causal attribution, or simulator truth",
+  "created_at_utc": "2026-07-19T11:14:46+00:00",
+  "execution": {
+    "address_limit": null,
+    "complete_replicate_vectors_written": true,
+    "control_response_grid": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "effect_grid": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0,
+      1.5,
+      2.0
+    ],
+    "expected_replicate_rows": 600000,
+    "master_seed": 85100,
+    "replicates_per_cell": 1000,
+    "smoke": false,
+    "written_replicate_rows": 600000
+  },
+  "frozen_address_ids": [
+    "03ef63db7584762143dc3914",
+    "1cce3e5fe7c50070e58676c9",
+    "1dbc920edffba9363b404b4e",
+    "bfa569fbae807b7f50c3389f",
+    "d10b3aec4edc47fefb2bd92f",
+    "fe17c18b39eb86c6e9f982bd"
+  ],
+  "frozen_lineage": {
+    "current_repo_head": "f98ba656c4e836e90c6ccd737b7f536c4851d5bb",
+    "obs085b0_authorized_address_count": 6,
+    "obs085b0_manifest_id": "3015094cef1ee6a3f2b098662b75668109491634be827cd62cffc7b598fc66e6",
+    "obs085b0_manifest_sha256": "81e49148f6b716f0f6731cf9a805357e1d27ecc358a4d8f0e0361ff087b14d51",
+    "obs085b0_output_hashes_checked": 17,
+    "obs085b0_qualified_cell_count": 4,
+    "obs085b0_scope_limits": [
+      "Gaussian tails and covariance shrinkage are declared simulator assumptions",
+      "baseline_covariance_preservation_unscorable",
+      "missingness mechanism is simulator-defined because frozen baseline is sparse or zero",
+      "structural_leave_one_object_out_unavailability",
+      "wild residual symmetry is a declared model assumption with four clusters"
+    ],
+    "obs085b0_script_sha256_actual": "9d00c997437d8cea485a24b7309364b8c1675c2dac7051a532de506f3e98c9c6",
+    "obs085b0_script_sha256_expected": "9d00c997437d8cea485a24b7309364b8c1675c2dac7051a532de506f3e98c9c6",
+    "obs085b0_script_version": "1.0.2",
+    "obs085b0_state": "simulator_qualification_completed"
+  },
+  "gate_contract": {
+    "alpha": 0.1,
+    "bootstrap": "exact object-cluster bootstrap when n^n <= 4096",
+    "cluster_unit": "object",
+    "m13_status": "not_identified_for_authorized_missingness_panel",
+    "minimum_control_adjusted_effect": 0.05,
+    "minimum_direction_consistency": 0.75,
+    "minimum_effect": 0.1,
+    "minimum_positive_control_share": 0.5,
+    "multiplicity_family": "M1_fixed_predeclared_address",
+    "permutation": "exact one-sided object-cluster sign flip when 2^n <= 4096"
+  },
+  "mandatory_statements": [
+    "Monte Carlo precision is not simulator-model certainty.",
+    "Between-simulator spread is not a confidence interval.",
+    "Conditional gate passage does not establish a minimum detectable effect.",
+    "Conditional gate passage cannot increase frozen claim entitlement."
+  ],
+  "obs085b_manifest_id": "90eacf9a6b96e73875dcef146d8641efe58d511d62d82ee0115f5da03952f84a",
+  "output_artifacts": [
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_address_curve_summary.csv",
+      "sha256": "074f4a3752bbd4f61cb42d88d5b2a7b7effa32d6ebfd0b60092265099e24deec",
+      "size_bytes": 14915
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_address_manifest.csv",
+      "sha256": "c55c1efae8d18e8f74da79756158ba58910a9cd55a6ccad75d30747e24822aaf",
+      "size_bytes": 3444
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_authorized_cells.csv",
+      "sha256": "4ed5245c15f4e018e8b67d7b10242d966b3a85f5e3a0055016a61401d6c44db9",
+      "size_bytes": 2596
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_entitlement_overlay.csv",
+      "sha256": "c41d197bf5270993634060906ce274372503d89e61b1190167dcef0494e9fb90",
+      "size_bytes": 33097
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_failure_combinations.csv",
+      "sha256": "796590468cdd67a78aad799af36bef0ef9e9e5480df838ef1cf459e620902293",
+      "size_bytes": 961994
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_failures.csv",
+      "sha256": "49aec4e591dc9dabf1dbf1bac0f611bd6d7a0bdd59c83a83cfaa36d4718be47f",
+      "size_bytes": 38
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_gate_contract.csv",
+      "sha256": "1b293650737b2d1f891abf9060efbceff7b98f6e4982873461105ca445e9d23e",
+      "size_bytes": 2067
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_gate_failure_summary.csv",
+      "sha256": "27a247886e69b597ae98d34e56a9d1fcf115ddcd0fc9e9180390d407d03606ce",
+      "size_bytes": 147997
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_gate_passage_summary.csv",
+      "sha256": "61a8681ec26921f0dfc6565ce59c4c2fc0e127fc2c88cbedb9315611b0fc60f0",
+      "size_bytes": 280367
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_input_manifest.csv",
+      "sha256": "2c651e31a763c95ad6e0378ce9fd7723f2d95cccccf532ad6c0909fd35600835",
+      "size_bytes": 2412
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_minimum_tested_effect.csv",
+      "sha256": "10d5820e081b2cee84271f028f705637b62b16aa54399bd570a3ad6a46d0ee5d",
+      "size_bytes": 61878
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_null_calibration.csv",
+      "sha256": "a4312b69220e5ebea8a8000ccaa4dc1cefa22de1154d2fd7f20b282b797b9ec9",
+      "size_bytes": 360
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_ordered_gate_passage.csv",
+      "sha256": "207e3cc0a175dea2c37b0262e9f75e6158b24e22f973bd29e0e7de0f1f00ba0e",
+      "size_bytes": 1663524
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_replicate_outcomes.csv.gz",
+      "sha256": "8eb7ba362ff8e799d355649aae4a8a88b638db822a6447b498166c316803f696",
+      "size_bytes": 21269626
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_report.md",
+      "sha256": "14348577d70b79d34b3b7ff33945a1b3d23ea6e9733780744878d3b3882ea927",
+      "size_bytes": 16252
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_scenario_manifest.csv",
+      "sha256": "671a2fa6c1da8c9a1fa381ff0e8ad9a4347cf51a13809220d8897c05f8f02db1",
+      "size_bytes": 3273
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085b_conditional_gate_passage_sensitivity/obs085b_simulator_envelope.csv",
+      "sha256": "75cc9664ce13b6aa5360cfbb1a7b539580a816499ec6ed6727cede1d09bab515",
+      "size_bytes": 81200
+    }
+  ],
+  "scenario_ids": [
+    "BS-011a0c603aa10e8ed779f2d5",
+    "BS-01bc28268e93dc910e331392",
+    "BS-0b6535c86615bd2ef99704b6",
+    "BS-0ea9ecc769eeb0f5d5e7d5af",
+    "BS-0fbf8adee07e241802dbaac2",
+    "BS-1986b1f16ffa29a77e2c0050",
+    "BS-2825e630f4c5487cb997971a",
+    "BS-2f1165e3814d64b754a1a278",
+    "BS-36275dd0a117d16dd0982de7",
+    "BS-6158ce693345d379a6e101af",
+    "BS-6a546d336684ecf6fd1ad1b3",
+    "BS-7b11bc1c6b07af88edb8068b",
+    "BS-807d5b9beeaad018721528b7",
+    "BS-86908245b500f51dceb1a9bd",
+    "BS-8db185df478614abb3ca98f3",
+    "BS-984fc7b996a68b9acc730b5e",
+    "BS-a3427a0f910730161bf52fa0",
+    "BS-b31295a564809e9330eec836",
+    "BS-b7b55020470aa0011fae8c36",
+    "BS-bb78dabdf033bd429a9980b0",
+    "BS-d4112dec03bd16d785b972b8",
+    "BS-e36baf63813fec681418d6ce",
+    "BS-eb4c5c34e89010c6f92d6af3",
+    "BS-fdf9aaf236c4b1e795e2a680",
+    "BS-ffb5cea59a0eeab43b25edd6"
+  ],
+  "schema_version": "obs085b_conditional_gate_passage_sensitivity_v1",
+  "scope": "conditional simulator-qualified gate-passage metrology",
+  "script_version": "1.0.0",
+  "state": "conditional_gate_passage_sensitivity_completed",
+  "summary_row_count": 600
+}

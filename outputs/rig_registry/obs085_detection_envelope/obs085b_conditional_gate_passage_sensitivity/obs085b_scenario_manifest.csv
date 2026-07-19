@@ -1,0 +1,26 @@
+scenario_id,delta,control_response_lambda,replicates,master_seed,engineering_smoke,conditional_estimand,scenario_semantics
+BS-8db185df478614abb3ca98f3,0.0,0.0,1000,85100,False,True,null gate-passage calibration
+BS-86908245b500f51dceb1a9bd,0.25,0.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-6158ce693345d379a6e101af,0.25,0.25,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-0ea9ecc769eeb0f5d5e7d5af,0.25,0.5,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-e36baf63813fec681418d6ce,0.25,1.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-2f1165e3814d64b754a1a278,0.5,0.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-b7b55020470aa0011fae8c36,0.5,0.25,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-bb78dabdf033bd429a9980b0,0.5,0.5,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-011a0c603aa10e8ed779f2d5,0.5,1.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-ffb5cea59a0eeab43b25edd6,0.75,0.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-fdf9aaf236c4b1e795e2a680,0.75,0.25,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-36275dd0a117d16dd0982de7,0.75,0.5,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-984fc7b996a68b9acc730b5e,0.75,1.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-d4112dec03bd16d785b972b8,1.0,0.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-b31295a564809e9330eec836,1.0,0.25,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-2825e630f4c5487cb997971a,1.0,0.5,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-7b11bc1c6b07af88edb8068b,1.0,1.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-eb4c5c34e89010c6f92d6af3,1.5,0.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-0fbf8adee07e241802dbaac2,1.5,0.25,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-a3427a0f910730161bf52fa0,1.5,0.5,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-01bc28268e93dc910e331392,1.5,1.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-0b6535c86615bd2ef99704b6,2.0,0.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-1986b1f16ffa29a77e2c0050,2.0,0.25,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-807d5b9beeaad018721528b7,2.0,0.5,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection
+BS-6a546d336684ecf6fd1ad1b3,2.0,1.0,1000,85100,False,True,conditional frozen-gate passage under declared missingness injection

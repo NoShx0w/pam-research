@@ -1,0 +1,5 @@
+partition,simulator_id,addresses,macro_mean_null_gate_passage,maximum_address_null_gate_passage,macro_mean_null_target_contrast
+confirmation,joint_gaussian_regularized_cluster,6,0.0,0.0,0.0
+confirmation,joint_wild_cluster_rademacher,6,0.0,0.0,0.0
+discovery,joint_gaussian_regularized_cluster,6,0.0,0.0,0.0
+discovery,joint_wild_cluster_rademacher,6,0.0,0.0,0.0
