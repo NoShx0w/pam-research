@@ -1,0 +1,146 @@
+{
+  "analysis_contract": {
+    "cluster_grid": [
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      12
+    ],
+    "coverage_plateau_definition": "earliest tested k whose empirically passable cell set is unchanged at every larger tested k",
+    "dominant_failure_margin": 0.1,
+    "gate_order": [
+      "support_available_pass",
+      "complement_admissible_pass",
+      "effect_direction_reproduced_pass",
+      "target_contrast_positive_pass",
+      "minimum_effect_pass",
+      "cluster_uncertainty_pass",
+      "raw_statistical_threshold_pass",
+      "multiplicity_adjusted_threshold_pass",
+      "control_adjusted_contrast_pass",
+      "control_specificity_pass"
+    ],
+    "leave_one_gate_out_semantics": "diagnostic only; all other frozen gates remain required",
+    "nonmonotone_tolerance": 0.02,
+    "plateau_epsilon": 0.01,
+    "reliability_targets": [
+      0.5,
+      0.8,
+      0.9
+    ]
+  },
+  "claim_ceiling": "diagnostic localization only; no observed witness, causal attribution, simulator truth, retrospective gate modification, or entitlement increase",
+  "created_at_utc": "2026-07-22T10:18:47+00:00",
+  "execution": {
+    "address_limit": null,
+    "cell_trajectory_rows": 600,
+    "chunk_size": 100000,
+    "coverage_plateau_start_k": 6,
+    "frozen_replicate_rows_analyzed": 4200000,
+    "frozen_summary_rows_selected": 4200,
+    "persistent_nonpassage_cells": 264,
+    "smoke": false
+  },
+  "frozen_lineage": {
+    "current_repo_head": "83cbdb6bfb6cb185646c178578890eb4c02a5f21",
+    "obs085c_manifest_id": "3341203b8c1e0024847fa054548a3c2ad6c263f271f22c947069281f4cde00ac",
+    "obs085c_manifest_sha256": "713dc5bd37d234de9f4c0a8bf366058478f99cfc79c11252f38026f4117b0e9e",
+    "obs085c_output_commit": "83cbdb6bfb6cb185646c178578890eb4c02a5f21",
+    "obs085c_output_hashes_checked": 26,
+    "obs085c_script_commit": "f40b442dc06e9d9ae19466e01b73a2314485d1dc",
+    "obs085c_script_sha256": "b3d850a2da3ce43d8d44661729b793ae4e438acb41039468d8cb70dd9221926b"
+  },
+  "mandatory_statements": [
+    "OBS-085b and OBS-085c remain frozen and unchanged.",
+    "Leave-one-gate-out passage is a localization diagnostic, not an alternative evidence result.",
+    "A localized bottleneck does not justify gate removal.",
+    "Prospective template replication is not additional observed evidence.",
+    "Coverage plateau is distinct from passage-probability saturation.",
+    "OBS-085d cannot create an observed witness or increase claim entitlement."
+  ],
+  "obs085d_manifest_id": "32884243ca122cf8b88a39d9511b157da02e8456dfa11eec47f7c647bd018023",
+  "output_artifacts": [
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_address_design_profiles.csv",
+      "sha256": "876ee0fdda379b44a58a19bca5ade893e49b4cd3edce3a306cbc50cc72cb274a",
+      "size_bytes": 5417
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_cell_trajectory_classification.csv",
+      "sha256": "2eef2fd5c8561a5ff91bc75945a77c73e975709bc305b7577f0eef0917c19478",
+      "size_bytes": 351205
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_design_stopping_table.csv",
+      "sha256": "c426c170b2e20dde5dc2354019d5977421d7a64073dbda9bc4656512de45473f",
+      "size_bytes": 6338
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_effective_support_summary.csv",
+      "sha256": "de76577cfd49b7d4050f6ecc5a6942b741a139edc510b1433155abfc135d4f3d",
+      "size_bytes": 1945855
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_entitlement_overlay.csv",
+      "sha256": "cd4706e8cff71b79362c7cd2445771b0b0a10c029b047027ddca6ad6d287c299",
+      "size_bytes": 1933
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_failures.csv",
+      "sha256": "49aec4e591dc9dabf1dbf1bac0f611bd6d7a0bdd59c83a83cfaa36d4718be47f",
+      "size_bytes": 38
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_first_failure_summary.csv",
+      "sha256": "d910fbb11ecd02d40c9e50bacd783204a7039a7f91f2d1ea6c8b79ff61236a6d",
+      "size_bytes": 15131425
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_gate_removal_diagnostics.csv",
+      "sha256": "2e7a42ffa89bb9f0d884a3a733e5ecdbf442130863a03873c61adc0d3b53f10b",
+      "size_bytes": 16880216
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_input_manifest.csv",
+      "sha256": "e70a541f851762def089eae0ba58df63c2c24f103fb99a698801288a4a484388",
+      "size_bytes": 8386
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_marginal_support_value.csv",
+      "sha256": "ce90d4da3757663c55188fa1998d7abe55722e455e886601c63d191653e063a1",
+      "size_bytes": 5304
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_partition_concordance.csv",
+      "sha256": "e256273227be0e205a585d5e5d4e4cc88bd63b1b6642971f6207cb655bba8191",
+      "size_bytes": 101776
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_plateau_decomposition.csv",
+      "sha256": "d9714f70cd5bb367902e5ace129220dabf8e658a9d4b7ce5462b3e5df3fd2155",
+      "size_bytes": 684535
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_report.md",
+      "sha256": "ffc70a0ed8b2be1bb81f20a5cd47dde1cf42804343af0721ed899595298b8c72",
+      "size_bytes": 9076
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_simulator_concordance.csv",
+      "sha256": "eaadf44a446b2212b332bdfccbe0f99d8529128eec113fc61cf6698c207cd32f",
+      "size_bytes": 94128
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085d_campaign_bottleneck_localization/obs085d_terminal_blocker_summary.csv",
+      "sha256": "4f1c0b819a017c05d173e7d31b4a4023d2af240a079dee7e1527641dac696abe",
+      "size_bytes": 43398068
+    }
+  ],
+  "schema_version": "obs085d_campaign_bottleneck_localization_v1",
+  "scope": "deterministic artifact-only prospective campaign bottleneck localization",
+  "script_version": "1.0.0",
+  "state": "campaign_bottleneck_localization_completed"
+}

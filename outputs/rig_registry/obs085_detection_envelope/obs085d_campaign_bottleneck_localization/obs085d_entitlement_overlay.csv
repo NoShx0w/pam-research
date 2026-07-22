@@ -1,0 +1,17 @@
+entitlement_status,partition,simulator_id,plateau_limiting_class,address_effect_control_cells,addresses,empirically_passable_cells,persistent_nonpassage_cells,maximum_gate_passage_probability,mean_final_gate_passage_probability
+fl3_entitled,confirmation,joint_gaussian_regularized_cluster,empirically_passable,48,2,48,0,1.0,0.4817916666666667
+fl3_entitled,confirmation,joint_gaussian_regularized_cluster,mixed_gate_limited,27,3,0,27,0.0,0.0
+fl3_entitled,confirmation,joint_wild_cluster_rademacher,empirically_passable,48,2,48,0,1.0,0.4831666666666667
+fl3_entitled,confirmation,joint_wild_cluster_rademacher,mixed_gate_limited,27,3,0,27,0.0,0.0
+fl3_entitled,discovery,joint_gaussian_regularized_cluster,empirically_passable,24,1,24,0,1.0,0.746375
+fl3_entitled,discovery,joint_gaussian_regularized_cluster,mixed_gate_limited,51,3,0,51,0.0,0.0
+fl3_entitled,discovery,joint_wild_cluster_rademacher,empirically_passable,24,1,24,0,1.0,0.7461666666666668
+fl3_entitled,discovery,joint_wild_cluster_rademacher,mixed_gate_limited,51,3,0,51,0.0,0.0
+fl3_entitlement_capped,confirmation,joint_gaussian_regularized_cluster,empirically_passable,48,2,48,0,0.932,0.48020833333333335
+fl3_entitlement_capped,confirmation,joint_gaussian_regularized_cluster,mixed_gate_limited,27,3,0,27,0.0,0.0
+fl3_entitlement_capped,confirmation,joint_wild_cluster_rademacher,empirically_passable,48,2,48,0,0.933,0.4843541666666667
+fl3_entitlement_capped,confirmation,joint_wild_cluster_rademacher,mixed_gate_limited,27,3,0,27,0.0,0.0
+fl3_entitlement_capped,discovery,joint_gaussian_regularized_cluster,empirically_passable,48,2,48,0,1.0,0.5101041666666667
+fl3_entitlement_capped,discovery,joint_gaussian_regularized_cluster,mixed_gate_limited,27,3,0,27,0.0,0.0
+fl3_entitlement_capped,discovery,joint_wild_cluster_rademacher,empirically_passable,48,2,48,0,1.0,0.509875
+fl3_entitlement_capped,discovery,joint_wild_cluster_rademacher,mixed_gate_limited,27,3,0,27,0.0,0.0
