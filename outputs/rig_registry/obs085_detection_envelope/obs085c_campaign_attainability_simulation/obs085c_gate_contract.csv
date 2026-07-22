@@ -1,0 +1,11 @@
+gate_name,gate_order,estimand_field,pass_rule,threshold,provenance,required_for_overall_pass
+support_available_pass,1,target support and metric availability,metric present and focal support has at least one row,>= 1 support row,frozen address/support identity,True
+complement_admissible_pass,2,focal/complement rows and shared object clusters,"site rows, complement rows, and shared clusters meet frozen minima",site >= 8; complement >= 8; shared objects >= 2,OBS-085a structural evidence contract,True
+effect_direction_reproduced_pass,3,target_response_from_simulated_null,positive injected target response for delta > 0,> 1e-12,OBS-085b0 direct injection-response qualification estimand,True
+target_contrast_positive_pass,4,target_contrast,focal support missingness contrast is positive,> 0,frozen positive failure direction,True
+minimum_effect_pass,5,target_contrast,focal support missingness contrast reaches declared minimum effect,>= 0.1,predeclared OBS-085b missingness contrast gate,True
+cluster_uncertainty_pass,6,object-cluster bootstrap and leave-one-object-out diagnostics,"bootstrap lower bound positive, direction consistency sufficient, and >=2 LOO estimates",CI low > 0; direction consistency >= 0.75; LOO successful >= 2,OBS-084c cluster-sensitivity form; object retained as dependence unit,True
+raw_statistical_threshold_pass,7,one-sided object-cluster sign-flip p-value,raw p-value reaches declared alpha,p <= 0.1,fixed-address conditional randomization diagnostic,True
+multiplicity_adjusted_threshold_pass,8,M1 adjusted p-value,fixed-address M1 adjusted p-value reaches alpha,q_M1 <= 0.1,M1 only; M13 not identified for the missingness panel,True
+control_adjusted_contrast_pass,9,target contrast minus median frozen-control contrast,median control-adjusted contrast reaches declared minimum,>= 0.05,OBS-084c control-adjusted effect form,True
+control_specificity_pass,10,share of target-minus-control contrasts that are positive,positive target-minus-control share reaches declared minimum,>= 0.5,OBS-084c positive control-adjusted share form,True

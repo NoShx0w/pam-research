@@ -1,0 +1,413 @@
+{
+  "authorized_cells": [
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "confirmation",
+      "qualification_status": "qualified_with_scope_limit",
+      "simulator_id": "joint_gaussian_regularized_cluster"
+    },
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "confirmation",
+      "qualification_status": "qualified_with_scope_limit",
+      "simulator_id": "joint_wild_cluster_rademacher"
+    },
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "discovery",
+      "qualification_status": "qualified_with_scope_limit",
+      "simulator_id": "joint_gaussian_regularized_cluster"
+    },
+    {
+      "failure_predicate": "measurement_missingness_concentration",
+      "partition": "discovery",
+      "qualification_status": "qualified_with_scope_limit",
+      "simulator_id": "joint_wild_cluster_rademacher"
+    }
+  ],
+  "claim_ceiling": "prospective conditional design simulation only; no observed witness, classical power, causal attribution, simulator truth, or entitlement increase",
+  "created_at_utc": "2026-07-21T23:29:55+00:00",
+  "execution": {
+    "address_limit": null,
+    "base_simulation_count": 600000,
+    "bootstrap_draws_for_ambiguous_vectors": 2048,
+    "complete_replicate_vectors_written": true,
+    "expected_nested_replicate_rows": 4200000,
+    "master_seed": 85200,
+    "replicate_sharding": "one gzip CSV per prospective cluster count",
+    "replicates_per_base_cell": 1000,
+    "smoke": false,
+    "written_nested_replicate_rows": 4200000
+  },
+  "frozen_address_ids": [
+    "03ef63db7584762143dc3914",
+    "1cce3e5fe7c50070e58676c9",
+    "1dbc920edffba9363b404b4e",
+    "bfa569fbae807b7f50c3389f",
+    "d10b3aec4edc47fefb2bd92f",
+    "fe17c18b39eb86c6e9f982bd"
+  ],
+  "frozen_gate_contract": {
+    "alpha": 0.1,
+    "effect_direction_tolerance": 1e-12,
+    "minimum_complement_rows": 8,
+    "minimum_control_adjusted_effect": 0.05,
+    "minimum_direction_consistency": 0.75,
+    "minimum_effect": 0.1,
+    "minimum_positive_control_share": 0.5,
+    "minimum_shared_clusters": 2,
+    "minimum_site_rows": 8
+  },
+  "frozen_lineage": {
+    "current_repo_head": "f40b442dc06e9d9ae19466e01b73a2314485d1dc",
+    "obs085b0_commit": "639de230120e76514fcf5a742a457cf9c98492c7",
+    "obs085b_commit": "c1e9649c0eda6545d0a46ceafc11cff58130371f",
+    "obs085b_manifest_id": "90eacf9a6b96e73875dcef146d8641efe58d511d62d82ee0115f5da03952f84a",
+    "obs085b_manifest_sha256": "cc979d333b75a1a14f9c3d9be969e2af2ff817a2a9b6fce275b14421db4b2eb4",
+    "obs085b_output_hashes_checked": 17,
+    "obs085b_script_sha256": "cb1ac506dcf3d93c67c6743da4128dc0dd17a52106316dcb1c01e603b821fed6",
+    "obs085b_script_version": "1.0.0",
+    "obs085b_state": "conditional_gate_passage_sensitivity_completed"
+  },
+  "mandatory_statements": [
+    "OBS-085b remains frozen and structurally unattainable with at most three effective clusters.",
+    "Prospective template replication is not additional observed evidence.",
+    "Structural attainability is not reliable gate passage.",
+    "Monte Carlo precision is not simulator-model certainty.",
+    "Between-simulator spread is not a confidence interval.",
+    "OBS-085c cannot increase frozen claim entitlement."
+  ],
+  "obs085c_manifest_id": "3341203b8c1e0024847fa054548a3c2ad6c263f271f22c947069281f4cde00ac",
+  "output_artifacts": [
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_address_manifest.csv",
+      "sha256": "c55c1efae8d18e8f74da79756158ba58910a9cd55a6ccad75d30747e24822aaf",
+      "size_bytes": 3444
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_attainability_map.csv",
+      "sha256": "561a699ed6144cb8362f3874647f8891fcbce2d5e1fd3af7b04935f764abeefa",
+      "size_bytes": 2269
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_authorized_cells.csv",
+      "sha256": "4ed5245c15f4e018e8b67d7b10242d966b3a85f5e3a0055016a61401d6c44db9",
+      "size_bytes": 2596
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_campaign_curve_summary.csv",
+      "sha256": "b24343213be82dab9df31753f00d7ad0f6150656a38b9e0c69ac422ce4c8353b",
+      "size_bytes": 62036
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_design_manifest.csv",
+      "sha256": "91f0dd490d098cd01bf112fedacbc578f94a148befedc25541992f61f5214d0e",
+      "size_bytes": 1645
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_entitlement_overlay.csv",
+      "sha256": "edee5bda1a8b3b4538414f66b3c2fc959111819a02b5d6f3666a6b2408071956",
+      "size_bytes": 133447
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_failure_combinations.csv",
+      "sha256": "15214093098efe0b69f2209c81e38506156964be4ffd8ae10e626a7ec0e89a89",
+      "size_bytes": 1959099
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_failures.csv",
+      "sha256": "49aec4e591dc9dabf1dbf1bac0f611bd6d7a0bdd59c83a83cfaa36d4718be47f",
+      "size_bytes": 38
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_gate_contract.csv",
+      "sha256": "1b293650737b2d1f891abf9060efbceff7b98f6e4982873461105ca445e9d23e",
+      "size_bytes": 2067
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_gate_failure_summary.csv",
+      "sha256": "72522ad89845e679fbe7bbd75ca7a410879d02077186086dadadc2b06c38d135",
+      "size_bytes": 6729224
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_gate_passage_summary.csv",
+      "sha256": "cb836818d94f8d0e5b1dff769dc5ff4ccfff639635408e1ac3ff7dbd93779787",
+      "size_bytes": 3105395
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_input_manifest.csv",
+      "sha256": "de3833c3c7fd7014ddfeb2d8a7830831293fb73b83c41071ac96aa37e5178cd8",
+      "size_bytes": 2264
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_minimum_required_clusters.csv",
+      "sha256": "c1b20fe14883f3b18a255acaa07c9df8c2cdcff0e57770642167f34fd24420f5",
+      "size_bytes": 369360
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_ordered_gate_passage.csv",
+      "sha256": "7e280909a00981978fb3a2942861bcb7d4db8103e2318a8efbb880cbeb06f1ce",
+      "size_bytes": 759101
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_report.md",
+      "sha256": "8993056755b0295c69f720696973f0d536f9185aab4d9d34cd5d1a49e7f14449",
+      "size_bytes": 18156
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_scenario_manifest.csv",
+      "sha256": "52d23eac75239b99fd3a7ee6a9f1e9ffde764aededfc2dc61381cac33cb6755d",
+      "size_bytes": 27308
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_simulator_envelope.csv",
+      "sha256": "94a55024ed8ebb3e94c5c2182728725af2b05b8b946bf7990191967a037b4f3d",
+      "size_bytes": 160423
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_source_template_audit.csv",
+      "sha256": "9f846b41e379992790de0d9b4a6badd85aba6c6f5679bee92d4c5a1eb00ed532",
+      "size_bytes": 20916
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/obs085c_uncertainty_engine_audit.csv",
+      "sha256": "438b22dea5abd151c93a8bafc68ddd0184ba7f6ae6c58d99428373c719192c14",
+      "size_bytes": 10836
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/replicates/obs085c_replicates_k03.csv.gz",
+      "sha256": "11c15877895836466d65450c3006a384450792acb2e74003e4c802458fb0c467",
+      "size_bytes": 26736747
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/replicates/obs085c_replicates_k04.csv.gz",
+      "sha256": "21ad44916caa9b59a280d897cf229c2271fe338a07aac221d7d4533b32193507",
+      "size_bytes": 29481501
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/replicates/obs085c_replicates_k05.csv.gz",
+      "sha256": "8e0e2cf468f3d59d6b289685e4a3e9aa31f81a1fd9234710dd0bc0dc3416c016",
+      "size_bytes": 31917462
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/replicates/obs085c_replicates_k06.csv.gz",
+      "sha256": "ef2f5ccfede1c6475d9110403573f9d4c418f18c8d2da3b54788d74dadbebb32",
+      "size_bytes": 33530632
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/replicates/obs085c_replicates_k08.csv.gz",
+      "sha256": "73280b7aacb69bc86444df22afc7fa53f25f85c2b07f01a20f1b5e1da40fd830",
+      "size_bytes": 36295482
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/replicates/obs085c_replicates_k10.csv.gz",
+      "sha256": "fe306d6f1a689ec37c975e8fc99b6bd90c56b176bc8f54cf410489dccabcf229",
+      "size_bytes": 38759845
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs085_detection_envelope/obs085c_campaign_attainability_simulation/replicates/obs085c_replicates_k12.csv.gz",
+      "sha256": "6d377fbed8ecf4d1dad010b4b33db035f6877dc1d450e26b4936c7806c4e9553",
+      "size_bytes": 40892933
+    }
+  ],
+  "prospective_cluster_grid": [
+    3,
+    4,
+    5,
+    6,
+    8,
+    10,
+    12
+  ],
+  "prospective_expansion_contract": {
+    "dependence_unit": "synthetic prospective object cluster",
+    "gaussian_extension": "frozen original-address covariance fit; new joint residual draws per prospective object",
+    "nesting": "requested k values are prefixes of one maximum-k campaign replicate",
+    "sign_flip": "exact meet-in-the-middle subset count",
+    "source_policy": "joint cluster-template bootstrap with replacement",
+    "uncertainty": "exact certificates plus deterministic percentile bootstrap only for ambiguous vectors",
+    "wild_extension": "independent Rademacher multiplier per prospective object on jointly cloned source residual template"
+  },
+  "scenario_ids": [
+    "CS-018950136999421cc06ba625",
+    "CS-01a1d123d730a7cf59a1abc6",
+    "CS-02878cbd91abe9cbe95c52dd",
+    "CS-02d9a8c43576026b521e7252",
+    "CS-0a692859acfa2ef37da4ab01",
+    "CS-0c4c212a7f2b2b36b0b368cd",
+    "CS-0c871475b529cddf96a3f200",
+    "CS-0cdbdbc3f32746ff03ed0306",
+    "CS-0fb7173352565665845e86ac",
+    "CS-107ae89002ffe0f6fc278471",
+    "CS-1087abb19acba5a137d5c49f",
+    "CS-11ed356dc28d7862b49a4164",
+    "CS-157bf8b5437cf8e8643acf68",
+    "CS-17bc9504e2970e6606ebb0dc",
+    "CS-189f3644650138f926f6acff",
+    "CS-1a99d52229a40dbae9a187aa",
+    "CS-1ab68d0d559749c333e60fcc",
+    "CS-1b0f741fddcc947a12f11b5d",
+    "CS-1fbad2f3d474c7161c6aed57",
+    "CS-2098eae7ab7aed0edbbd7903",
+    "CS-21c5e25612d76002a17f832a",
+    "CS-21dd3107e775321df2beb828",
+    "CS-21e6ce41260fe8dd82a4d364",
+    "CS-21ff57cb49b3b20809865313",
+    "CS-23f27a11b5d8de993a8900a4",
+    "CS-251cb4368c6dd09357860ea9",
+    "CS-266414e75cb4b68680e8ed54",
+    "CS-266bd4a4d1dd1e9e709506fc",
+    "CS-2b591601b228307264f5936c",
+    "CS-2bb220ebc48bb0e97892821f",
+    "CS-2bcb6c9633fa6035aeaadab8",
+    "CS-2cece79f2cfa1480011297d8",
+    "CS-2d25b22e4958e1fdbed4bb58",
+    "CS-2daf6019ac8bd3dbf1484d89",
+    "CS-2f6946e9cb1069ea80c38ad6",
+    "CS-3044dce4350d8451f97c2a0a",
+    "CS-3111a4cb89b710c90e33e14c",
+    "CS-3256be98c8765e7ae055618b",
+    "CS-3282d5ef2391e6e093033d8a",
+    "CS-32e4a7cfcaac31c70b5836ea",
+    "CS-35f8141814fa04506a6884d6",
+    "CS-36ad53b91f50950930ff0d97",
+    "CS-370b78065a5b7d30ca08ebf8",
+    "CS-3821caaa69e4b49d78fed4ee",
+    "CS-384ff01cf1e263eff584f911",
+    "CS-3be91a6d3ddfb0f0fadd6c8a",
+    "CS-3ddad9bd8208486d1c10d254",
+    "CS-419f2eb25ad0a6b63f6db38f",
+    "CS-498d7127a97c66e5a084a6b4",
+    "CS-4a5ed6527ea236d24d45e865",
+    "CS-4bcf69ea0b8f44690c2bef4b",
+    "CS-4cf0f7a7ba12d56bab2a716a",
+    "CS-4e74b3fd57dbd20349df082a",
+    "CS-51d0bca1c623d77d2eaed39d",
+    "CS-52b36ba5cdf56e7763ec317d",
+    "CS-52e9680d64ce3df80c1680a8",
+    "CS-5345bc53822e8ab5dd8794d7",
+    "CS-56850921ec617a5f02bc87a7",
+    "CS-58adf251636b2e36db9aa412",
+    "CS-5a090f246f4b31f70d66f1f5",
+    "CS-5b8e7585ddeba4adfa378aae",
+    "CS-5bfc9f849b7e97274949ad50",
+    "CS-5e961711656e8ed9af297611",
+    "CS-5ea95972cdedc30f176eb514",
+    "CS-5fbd449f82f78780f63e5915",
+    "CS-60825502233b89b1be20314b",
+    "CS-613d6e11888af858f57ac8d9",
+    "CS-6276c55922ffad43ff1f27b1",
+    "CS-62846b4fc774a8630dd1a419",
+    "CS-65975a962089ead7e71a2e3e",
+    "CS-69115786d0ee6c442a1c003e",
+    "CS-696a2e6d98471ae27fe3f393",
+    "CS-6c519d13fc6b353934ba23c1",
+    "CS-6ea04e5e9a0f6abcb872aff4",
+    "CS-6ecf55a3ac60e265b405627e",
+    "CS-6f6ffe6320af5811a60f632a",
+    "CS-70ea45896a1f2f12f83e4e0d",
+    "CS-71702ec7dbb40e3119d7a84d",
+    "CS-72223448bfb29dc53263d2ca",
+    "CS-72b424060e795b71d61ae85f",
+    "CS-7560d2b6345302d1c0919b06",
+    "CS-7a3432b462cdb985387d56b2",
+    "CS-7b1d29dde59d74fea94cde9d",
+    "CS-7bb83384d69c0f9f409bea08",
+    "CS-7e75e8f66243c096c860fab0",
+    "CS-7eb2d2555a8c59beccba0186",
+    "CS-7f01e666e1e9df7c8d63b18b",
+    "CS-7f3b18b5a617f527a5b40d34",
+    "CS-7f88aa3d710d94fd331a96cb",
+    "CS-7f8ab2cae145a937fe9d4888",
+    "CS-7ff4a2a5a5d69960f9c95547",
+    "CS-802d14914994280fc314dcaa",
+    "CS-8377fcb238534ad87a59b83e",
+    "CS-8472bef5a21c79135b7ac927",
+    "CS-85f44f9fdfcb466047e18719",
+    "CS-87b787af26c1dd0410d30b5e",
+    "CS-8939da1f238eeead62b68c8b",
+    "CS-8a8b78ceddd10409d0e10435",
+    "CS-8add681a3baf4080d11155b6",
+    "CS-8b713a6e577346855813da36",
+    "CS-8e62f14383b7eae63cb3941d",
+    "CS-8ec2fd603fdf1ec2642f19d5",
+    "CS-8f2725de36d07c4a2b2417bc",
+    "CS-8faa87336de629aa89038d0c",
+    "CS-92046ce8bdc11855cfc9bb39",
+    "CS-9343b96fe495e9f8d6985b90",
+    "CS-936e7c784a1c0bfe0c0ec1c8",
+    "CS-9474dfcc844570e680eddc37",
+    "CS-9658e3a2e344abb6d6256bc1",
+    "CS-96cff888761dd8445ee8bbdd",
+    "CS-98e70b148c0b0fc8876f154f",
+    "CS-9ae035c81e61f0131f36b99c",
+    "CS-9b95a29717cdd20543e1d887",
+    "CS-9bc3cb646a8a5d7a92e9bc41",
+    "CS-9cdec452ab473ede6f31cc2b",
+    "CS-9f07b6b4d5ede33ab166f02d",
+    "CS-a22d26be1bfb4e3ec63d145b",
+    "CS-a23d0bc24812513adae875eb",
+    "CS-a36d5459724ec494b2302e0d",
+    "CS-a3b3170921138c8fa91b1c15",
+    "CS-a3b665a430de820fcb70300a",
+    "CS-a3de0b0c722aae7444ff64a1",
+    "CS-a75d577bcbd4168d304de91f",
+    "CS-aa74fb88335931e4e98c0840",
+    "CS-acf02a34b0944e4ce87f8512",
+    "CS-ada512e491bb41406fe78da7",
+    "CS-adeb04a5cd53fb643218784f",
+    "CS-ae17c7c854d09ae0f0b20d67",
+    "CS-ae406e92d3a2233d8cb9df31",
+    "CS-aed85a40147fcde122ba0ae0",
+    "CS-af463cd315e58a10ac9b6a20",
+    "CS-b06d226f6f5a4264111e3bf4",
+    "CS-b26d3873d38e3b58eb8b2ce1",
+    "CS-bbbe56da6053bff6a237c985",
+    "CS-bc478f02722b968f0c081ded",
+    "CS-becdfa746b9a39d1602e7094",
+    "CS-becec4487068c35fe760e16e",
+    "CS-c01e25b14002d3c5d804cca8",
+    "CS-c2bea8521361414c1730db9b",
+    "CS-c3a99d3f00478c06aaedf1e7",
+    "CS-c3eabcee149187541fa76ac3",
+    "CS-c605a05c2344c54bef6e205c",
+    "CS-c6f19a1d0feac087cff3d71e",
+    "CS-c7b0b4df35f8c053a6e73b22",
+    "CS-c988f755b4d0ce1c020733bf",
+    "CS-cb3dbcf6e1d6a3787323f4cf",
+    "CS-cbd0605eeece753e4109d0d8",
+    "CS-cdb48e978401c75eb2992ba8",
+    "CS-cdf84381328d7bbae5d39bd6",
+    "CS-cf0e5037bc507685b8c19a15",
+    "CS-d11a2f3fc87ab774a881221c",
+    "CS-d29cdfc923777ced81fc7649",
+    "CS-d520b33ad29d47499fa43050",
+    "CS-d6d4e6ce1cf7fb868f4cda3b",
+    "CS-d8165f86df18134e0c5a0c78",
+    "CS-dbf7667c837a68a54df126dc",
+    "CS-dc608b4302a9b923709a3342",
+    "CS-df3fbc7ee6c82072f42dd06a",
+    "CS-e19de2261cf5e2037940f7b3",
+    "CS-e5686b67b639290daf34a02f",
+    "CS-e58d5475cbefcde321ca8f32",
+    "CS-e89ab61a293779320f31e1f4",
+    "CS-ea26edfc95d1c3de598b3533",
+    "CS-ea29477aaa5bc1b8e77060b3",
+    "CS-eaeedb0bfdb64f97bdc3d39c",
+    "CS-ec5b10bce56cd1906bd8c770",
+    "CS-f05d212ae398c67684689529",
+    "CS-f1fe22ea48ddc08f052f554e",
+    "CS-f36fa57d0e0eeba226ef24ac",
+    "CS-f6bd94eb12030489f1e92a53",
+    "CS-fb546e656ceec14c2cc39eab",
+    "CS-fb9424388d04fbfec5e810a8",
+    "CS-fe51dda8a4d37b0d613a4d84",
+    "CS-ff5eb1d146f8c26020914632",
+    "CS-ff949eb5bc9bcc5eab0aca93"
+  ],
+  "schema_version": "obs085c_campaign_attainability_simulation_v1",
+  "scope": "prospective independent-object campaign attainability metrology",
+  "script_version": "1.0.0",
+  "state": "campaign_attainability_simulation_completed",
+  "summary_row_count": 4200
+}
