@@ -1,0 +1,10 @@
+rule_order,replacement_rule_id,condition_id,frozen_rule,decision,outcome_dependency_allowed,rule_status
+1,RR-001,replacement_source,replacement may use only the preassigned reserve pool for the same protocol profile and partition role,allow_with_constraints,False,frozen
+2,RR-002,replacement_trigger,replacement may occur only after an allowed prespecified structural exclusion code,allow_with_constraints,False,frozen
+3,RR-003,partition_preservation,a discovery object may be replaced only by a discovery-reserve object and confirmation only by confirmation reserve,required,False,frozen
+4,RR-004,cluster_separation,replacement may not introduce an effective cluster used by the opposite partition,required,False,frozen
+5,RR-005,allocation_preservation,replacement restores but never enlarges the frozen nominal analysis quota,required,False,frozen
+6,RR-006,selection_order,choose the next reserve object by the frozen assignment rank without discretion,required,False,frozen
+7,RR-007,outcome_blindness,"effect direction, magnitude, gate result, p-value, candidate passage, and simulator resemblance are prohibited replacement inputs",required,False,frozen
+8,RR-008,reserve_exhaustion,"when no valid same-role reserve remains, apply the structural continue-or-futility rule; do not migrate objects",required,False,frozen
+9,RR-009,audit_record,"write original object, exclusion code, reserve object, partition, ranks, timestamps, and hashes before analysis resumes",required,False,frozen

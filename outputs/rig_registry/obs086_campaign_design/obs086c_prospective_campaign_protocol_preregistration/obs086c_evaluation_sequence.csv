@@ -1,0 +1,19 @@
+step_order,evaluation_step_id,partition_scope,frozen_action,search_or_threshold_modification_allowed,step_status
+1,validate_frozen_lineage,both,validate all upstream hashes and manifests,False,preregistered_not_executed
+2,validate_activation_record,both,confirm evidence-independent profile activation,False,preregistered_not_executed
+3,verify_seed_commitment_and_roster_manifest,both,verify commit–reveal prerequisites,False,preregistered_not_executed
+4,generate_and_hash_partition_assignment,both,assign exact quotas without cross-partition clusters,False,preregistered_not_executed
+5,apply_frozen_admissibility_rules,both,finalize structural exclusions and replacements,False,preregistered_not_executed
+6,freeze_final_partition_rosters,both,write immutable discovery and confirmation roster hashes,False,preregistered_not_executed
+7,construct_frozen_carrier,discovery,construct only the profile-declared carrier,False,preregistered_not_executed
+8,compute_frozen_support_statistics,discovery,apply frozen support definitions and cluster accounting,False,preregistered_not_executed
+9,run_discovery_only_candidate_procedure,discovery,no confirmation access; no threshold fitting,False,preregistered_not_executed
+10,seal_discovery_candidate_identity,discovery,"freeze predicate, support, complement, controls, metrics, and candidate family",False,preregistered_not_executed
+11,write_and_verify_discovery_manifest,discovery,all discovery artifacts must hash-verify,False,preregistered_not_executed
+12,evaluate_confirmation_opening_prerequisites,confirmation,all opening conditions must pass,False,preregistered_not_executed
+13,create_one_time_confirmation_opening_lock,confirmation,open reserved confirmation exactly once,False,preregistered_not_executed
+14,construct_confirmation_carrier_unchanged,confirmation,reuse frozen discovery definitions without modification,False,preregistered_not_executed
+15,evaluate_only_discovery_sealed_candidate,confirmation,"no support, predicate, threshold, or candidate search",False,preregistered_not_executed
+16,apply_frozen_confirmation_gate_conjunction,confirmation,retain all failures and multiplicity denominator,False,preregistered_not_executed
+17,write_claim_entitlement_decision,confirmation,cap claim at profile entitlement ceiling,False,preregistered_not_executed
+18,complete_confirmation_lock_and_manifest,confirmation,write final hashes and completion state,False,preregistered_not_executed

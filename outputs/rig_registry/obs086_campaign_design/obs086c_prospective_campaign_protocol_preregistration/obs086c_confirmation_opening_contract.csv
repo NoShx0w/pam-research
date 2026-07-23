@@ -1,0 +1,11 @@
+prerequisite_order,opening_condition_id,opening_prerequisite,required_value,failure_action,override_allowed
+1,CO-001,discovery_roster_frozen_and_hashed,True,do_not_open_confirmation,False
+2,CO-002,discovery_exclusions_and_replacements_finalized,True,do_not_open_confirmation,False
+3,CO-003,discovery_evaluation_complete,True,do_not_open_confirmation,False
+4,CO-004,candidate_identity_and_candidate_family_sealed,True,do_not_open_confirmation,False
+5,CO-005,discovery_artifact_manifest_written,True,do_not_open_confirmation,False
+6,CO-006,all_discovery_artifact_hashes_verified,True,do_not_open_confirmation,False
+7,CO-007,confirmation_roster_hash_matches_preopening_commitment,True,do_not_open_confirmation,False
+8,CO-008,no_prior_confirmation_opening_lock_or_completion_manifest_exists,True,do_not_open_confirmation,False
+9,CO-LOCK,exclusive confirmation opening lock is created before any confirmation outcome-bearing value is read,True,invalidate_confirmation_execution,False
+10,CO-ONCE,confirmation_partition_opened_exactly_once,True,invalidate_repeat_opening_or_rerun,False

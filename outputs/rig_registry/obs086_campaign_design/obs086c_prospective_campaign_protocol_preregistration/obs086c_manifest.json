@@ -1,0 +1,218 @@
+{
+  "claim_ceiling": "prospective protocol freeze only; no activation, assignment, seed reveal, simulation, observed evidence, passage guarantee, causal attribution, actionability, external generalization, formal topology, or entitlement increase",
+  "created_at_utc": "2026-07-23T10:45:00+00:00",
+  "execution": {
+    "activation_contract_rows": 5,
+    "admissibility_rule_rows": 12,
+    "assignments_performed": 0,
+    "confirmation_opening_rows": 10,
+    "confirmations_opened": 0,
+    "continue_futility_rule_rows": 40,
+    "evaluation_sequence_rows": 18,
+    "exclusion_reason_rows": 20,
+    "executable_protocol_profiles": 5,
+    "failures": 0,
+    "gate_contract_rows": 13,
+    "globally_selected_campaigns": 0,
+    "held_references": 1,
+    "monitoring_rule_rows": 19,
+    "new_simulations": 0,
+    "observed_evidence_inspected": 0,
+    "replacement_rule_rows": 9,
+    "reserve_recommendation_rows": 10
+  },
+  "frozen_lineage": {
+    "current_repo_head": "dbd0b2171c854934ea6bd23dfbeecc80b44d7dbb",
+    "obs085d_manifest_id": "",
+    "obs086a_manifest_id": "df6714be8b7e0ccaffd7b9df56e067db14426ee98f60c0aefb98bab3da2e72d7",
+    "obs086b_commit": "dbd0b2171c854934ea6bd23dfbeecc80b44d7dbb",
+    "obs086b_manifest_id": "d32f61955a41abf1ecd036863a766fbf0617fb2a0bf0a34b691487f9bed94119",
+    "obs086b_manifest_sha256": "0adbab5209bf3ac4d8ee36df43ebcb5db0150a066d47235440b65e77f4c157d2",
+    "obs086b_output_artifacts_validated": 13,
+    "obs086b_script_sha256": "0f9b4704f0ad3499f713bc0b0ce05c13ac4d37aea21776f45ad1ac26b85b6147",
+    "obs086b_state": "robust_campaign_family_selection_completed",
+    "protocol_semantic_anchor_count": 3,
+    "protocol_semantic_anchor_set_sha256": "bac9b246ed604888adcd4ae8a017b8c87922d8f1941cc00e76550bc57f39eda1"
+  },
+  "held_reference_set": {
+    "held_count": 1,
+    "held_ids_sha256": "74e17337d9c0522145ab7086ae5e09cc281cc2c3977423eb413019c4805b3625"
+  },
+  "mandatory_statements": [
+    "OBS-086b remains frozen and unchanged.",
+    "Exactly five protocol profiles are registered and none is activated.",
+    "The OBS-086b low-coverage hold remains nonactivatable.",
+    "No new simulation or observed-evidence evaluation was performed.",
+    "Delta and control_response_lambda remain uncertainty axes.",
+    "Discovery and confirmation remain separate and may not be pooled.",
+    "Assignment uses a frozen commit\u2013reveal algorithm after roster freeze.",
+    "Admissibility, replacement, monitoring, and futility decisions are outcome-blind.",
+    "Confirmation may be opened exactly once after discovery sealing and hash verification.",
+    "No frozen evidence gate may be weakened or substituted.",
+    "Passing all gates cannot elevate an entitlement-capped profile.",
+    "OBS-086c cannot create a witness or increase claim entitlement."
+  ],
+  "obs086c_manifest_id": "b33913e01a2a57fecfd9e4af5f473f386b501dde951d9704768e36a771849fda",
+  "output_artifacts": [
+    {
+      "artifact_name": "activation_contract",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_activation_contract.csv",
+      "sha256": "81fa4803144d3aaaa58e07790ffef75908434a131e98fcf0139343ec851667d4",
+      "size_bytes": 6909
+    },
+    {
+      "artifact_name": "admissibility_rules",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_admissibility_rules.csv",
+      "sha256": "8327d48215e1a6d5705c20f83d01fe8ab33467bd4d874e714b8338911a3ee6eb",
+      "size_bytes": 2590
+    },
+    {
+      "artifact_name": "claim_entitlement",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_claim_entitlement_table.csv",
+      "sha256": "05cf8fe49bd21f110e8866c9ed770fefa3f375b6e433b1245ad1604c837ef7be",
+      "size_bytes": 1790
+    },
+    {
+      "artifact_name": "confirmation_opening",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_confirmation_opening_contract.csv",
+      "sha256": "9f8af166fa46ef6673f6d8b6e8eb941945ed438888928b805ae6bc94f7594a28",
+      "size_bytes": 1079
+    },
+    {
+      "artifact_name": "continue_futility",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_continue_futility_rules.csv",
+      "sha256": "aedfed2cb48f794dd6cf7933c1758e6b1fd66c4a36b12f634ed45e80a045bfda",
+      "size_bytes": 11222
+    },
+    {
+      "artifact_name": "evaluation_sequence",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_evaluation_sequence.csv",
+      "sha256": "434a88a8d510321f732d108d711484ea051f2f04f5389af7b1fad00713e53159",
+      "size_bytes": 2440
+    },
+    {
+      "artifact_name": "exclusion_codes",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_exclusion_reason_codes.csv",
+      "sha256": "81c76152358f85b49713f0539d303740996c3d0638ce37b0008042ba2e1b922f",
+      "size_bytes": 3036
+    },
+    {
+      "artifact_name": "failures",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_failures.csv",
+      "sha256": "49aec4e591dc9dabf1dbf1bac0f611bd6d7a0bdd59c83a83cfaa36d4718be47f",
+      "size_bytes": 38
+    },
+    {
+      "artifact_name": "gate_contract",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_gate_contract.csv",
+      "sha256": "10b6b98c2aa49d97f6043df46f1bbf90721a8ea4e7ae294a1bebd5a40ad704b3",
+      "size_bytes": 5155
+    },
+    {
+      "artifact_name": "held_register",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_held_family_register.csv",
+      "sha256": "764eb9d3ce0dc404d632d7ec60b26f5028132a6075fe476936572328f7efe81c",
+      "size_bytes": 703
+    },
+    {
+      "artifact_name": "input_manifest",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_input_manifest.csv",
+      "sha256": "ee621d649e7f2e454127519ef9527588cb3052eabc6b6e93dc19d27660e9f235",
+      "size_bytes": 4087
+    },
+    {
+      "artifact_name": "monitoring_rules",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_effective_support_monitoring_rules.csv",
+      "sha256": "0fdb0fdb352cca86a2d1a8089672ad067b4bda1c3a57e19fd53748bc629fbaf2",
+      "size_bytes": 2711
+    },
+    {
+      "artifact_name": "observation_identity",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_observation_identity_contract.csv",
+      "sha256": "efb14faeaba5574004dab4edbb864df2ec25d3bb29b410e985cbd7cb594de5e2",
+      "size_bytes": 2020
+    },
+    {
+      "artifact_name": "partition_assignment",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_partition_assignment_contract.csv",
+      "sha256": "b53ad6a4917cb5f9f79d67e02757abd8b1aca4e615c0f5bc3a42ed4a325d0682",
+      "size_bytes": 7774
+    },
+    {
+      "artifact_name": "profile_registry",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_protocol_profile_registry.csv",
+      "sha256": "6e85534539d8fa3592815064034254f56d2145a0225e4ebee0de7d3c1bc8e9ad",
+      "size_bytes": 2965
+    },
+    {
+      "artifact_name": "protocol_freeze",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_protocol_freeze_table.csv",
+      "sha256": "f048ee832573f55c20384092da3768e6df4a3095356392d97e3ec10249e79587",
+      "size_bytes": 3271
+    },
+    {
+      "artifact_name": "replacement_rules",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_replacement_rules.csv",
+      "sha256": "71a137f9758265d29d9e92b04675729825cc998d425660785f013b0ff019d7c7",
+      "size_bytes": 1488
+    },
+    {
+      "artifact_name": "report",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_report.md",
+      "sha256": "a22827b55f3df98f06d5983aa8b17209e05e84ff4d05cab93ce6f1056ce32e79",
+      "size_bytes": 7538
+    },
+    {
+      "artifact_name": "reserve_recommendations",
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086c_prospective_campaign_protocol_preregistration/obs086c_reserve_pool_recommendations.csv",
+      "sha256": "18739774aaf2d69119cc8e4746c4d9fab1d9718780008b7e496ee42d690d45ad",
+      "size_bytes": 4973
+    }
+  ],
+  "protocol_contract": {
+    "assignment_algorithm_id": "sha256_commit_reveal_cluster_blocked_object_assignment_v1",
+    "cluster_grid": [
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      12
+    ],
+    "confirmation_opening_count": "exactly_once",
+    "entitlement_increase": "prohibited",
+    "executable_profile_count": 5,
+    "gate_modification": "prohibited",
+    "globally_selected_campaign_count": 0,
+    "held_reference_count": 1,
+    "minimum_effective_clusters_for_exact_gate_at_alpha_0_10": 4,
+    "outcome_dependent_continue_or_futility": "prohibited",
+    "outcome_dependent_exclusion": "prohibited",
+    "outcome_dependent_replacement": "prohibited",
+    "partition_pooling": "prohibited",
+    "post_freeze_object_migration": "prohibited",
+    "reliability_targets": [
+      0.5,
+      0.8,
+      0.9
+    ],
+    "reserve_recommendation_rule": "ceil(partition nominal analysis objects / frozen origin minimum support efficiency)",
+    "reserve_semantics": "screening and same-partition replacement recommendation only; analysis quota unchanged",
+    "scientific_observation_key": [
+      "case",
+      "object",
+      "cohort",
+      "scale_index_from",
+      "scale_index_to"
+    ]
+  },
+  "protocol_profile_set": {
+    "profile_count": 5,
+    "profile_ids_sha256": "4b40a5b10ba0b7aeecf3d889489976b32e1ecd84007bbd8cb40cb9aad25d4646"
+  },
+  "schema_version": "obs086c_prospective_campaign_protocol_preregistration_v1",
+  "scope": "deterministic artifact-only prospective campaign protocol preregistration",
+  "script_version": "1.0.0",
+  "state": "prospective_campaign_protocol_preregistration_completed"
+}

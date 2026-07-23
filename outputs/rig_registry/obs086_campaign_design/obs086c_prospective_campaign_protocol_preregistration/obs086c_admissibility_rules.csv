@@ -1,0 +1,13 @@
+rule_order,admissibility_rule_id,condition_id,frozen_predicate,failure_exclusion_code,evaluation_stage,outcome_dependency_allowed,rule_status
+1,AD-001,source_object_identity_complete,"canonical_object_id is present, parseable, and provenance-stable",EX-001_missing_or_invalid_object_identity,pre_analysis_before_discovery_outcomes,False,frozen
+2,AD-002,scientific_observation_key_complete,all frozen scientific-observation key fields are present,EX-002_incomplete_scientific_observation_key,pre_analysis_before_discovery_outcomes,False,frozen
+3,AD-003,scientific_observation_key_unique,observation_key is unique at the frozen scientific-observation grain,EX-003_duplicate_scientific_observation_identity,pre_analysis_before_discovery_outcomes,False,frozen
+4,AD-004,effective_cluster_identity_resolved,effective_cluster_id is present and structurally interpretable,EX-004_unresolvable_effective_cluster_identity,pre_analysis_before_discovery_outcomes,False,frozen
+5,AD-005,required_carrier_complete,all profile-required carrier fields are present and finite where required,EX-005_missing_required_carrier,pre_analysis_before_discovery_outcomes,False,frozen
+6,AD-006,prespecified_measurement_available,the frozen measurement can be computed without threshold or definition changes,EX-006_failed_prespecified_measurement,pre_analysis_before_discovery_outcomes,False,frozen
+7,AD-007,required_control_available,the frozen control record and fields are available under the profile contract,EX-007_missing_required_control,pre_analysis_before_discovery_outcomes,False,frozen
+8,AD-008,provenance_integrity_verified,"source paths, hashes, lineage identifiers, and transformation provenance verify",EX-008_invalid_provenance,pre_analysis_before_discovery_outcomes,False,frozen
+9,AD-009,schema_valid,"all required fields, types, and finite-value constraints pass the frozen schema",EX-009_schema_invalid,pre_analysis_before_discovery_outcomes,False,frozen
+10,AD-010,partition_assignment_valid,"assignment hash, quotas, role labels, and commit–reveal verification pass",EX-010_partition_assignment_invalid,pre_analysis_before_discovery_outcomes,False,frozen
+11,AD-011,cross_partition_cluster_separation,no effective_cluster_id or canonical_object_id crosses partitions,EX-011_cross_partition_cluster_or_object_overlap,pre_analysis_before_discovery_outcomes,False,frozen
+12,AD-012,outcome_blind_admissibility,"admissibility was decided without effect, direction, p-value, gate, or candidate status",EX-012_outcome_access_before_admissibility_freeze,pre_analysis_before_discovery_outcomes,False,frozen
