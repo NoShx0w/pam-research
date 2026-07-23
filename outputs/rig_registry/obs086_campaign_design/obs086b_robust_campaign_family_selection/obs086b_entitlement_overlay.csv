@@ -1,0 +1,14 @@
+entitlement_status,reliability_target,pareto_status,protocol_selection_status,operational_families,maximum_stress_test_coverage,minimum_total_nominal_objects,entitlement_preserved,entitlement_interpretation
+fl3_entitled,0.5,nondominated_operational_family,pareto_frontier_outside_near_maximum_band,3,0.6,10,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitled,0.5,nondominated_operational_family,protocol_selected_for_preregistration_review,1,0.68,24,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitled,0.8,nondominated_operational_family,pareto_frontier_outside_near_maximum_band,4,0.44,12,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitled,0.8,nondominated_operational_family,pareto_near_maximum_not_protocol_selected,1,0.6,24,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitled,0.8,nondominated_operational_family,protocol_selected_for_preregistration_review,1,0.56,20,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitled,0.9,nondominated_operational_family,pareto_frontier_outside_near_maximum_band,4,0.44,16,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitled,0.9,nondominated_operational_family,protocol_selected_for_preregistration_review,1,0.52,24,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitlement_capped,0.5,nondominated_operational_family,pareto_frontier_outside_near_maximum_band,3,0.6,13,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitlement_capped,0.5,nondominated_operational_family,pareto_near_maximum_not_protocol_selected,1,0.72,20,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitlement_capped,0.5,nondominated_operational_family,protocol_selected_for_preregistration_review,1,0.68,18,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitlement_capped,0.8,nondominated_operational_family,pareto_frontier_outside_near_maximum_band,2,0.36,16,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitlement_capped,0.8,nondominated_operational_family,protocol_selected_for_preregistration_review,1,0.56,20,True,Pareto retention and protocol selection cannot create a witness or increase entitlement
+fl3_entitlement_capped,0.9,nondominated_operational_family,protocol_hold_low_coverage,1,0.4,20,True,Pareto retention and protocol selection cannot create a witness or increase entitlement

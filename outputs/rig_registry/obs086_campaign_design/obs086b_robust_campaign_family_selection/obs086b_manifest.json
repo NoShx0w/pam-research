@@ -1,0 +1,159 @@
+{
+  "claim_ceiling": "prospective family selection only; no observed witness, causal attribution, simulator truth, gate modification, partition pooling, guaranteed passage, stress-axis selection, or entitlement increase",
+  "created_at_utc": "2026-07-23T09:01:48+00:00",
+  "execution": {
+    "address_limit": null,
+    "address_recommendation_rows": 18,
+    "dominance_relations": 0,
+    "failures": 0,
+    "operational_family_rows": 24,
+    "pareto_family_rows": 24,
+    "protocol_held_family_rows": 1,
+    "protocol_selected_family_rows": 5,
+    "rejected_family_rows": 0,
+    "scenario_evaluation_rows": 600,
+    "selected_addresses": 2,
+    "smoke": false
+  },
+  "frozen_lineage": {
+    "current_repo_head": "96704612b3e16fd2b0c56413932aed83ba070493",
+    "obs086a_commit": "96704612b3e16fd2b0c56413932aed83ba070493",
+    "obs086a_manifest_id": "df6714be8b7e0ccaffd7b9df56e067db14426ee98f60c0aefb98bab3da2e72d7",
+    "obs086a_manifest_sha256": "ab5f3a1c4123d7ac621747b7965c34583097dc970b9b9078978100525207bc91",
+    "obs086a_output_artifacts_validated": 12,
+    "obs086a_paired_rows": 450,
+    "obs086a_partition_rows": 900,
+    "obs086a_script_sha256": "d2a4724d17774faebf0f93306d6fa34489143fc1545fbe462d301b76eb97d4d6",
+    "obs086a_sealed_rows": 87
+  },
+  "mandatory_statements": [
+    "OBS-086a remains frozen and unchanged.",
+    "Delta and control_response_lambda are uncertainty axes, not selectable campaign settings.",
+    "Discovery and confirmation remain separate and may not be pooled.",
+    "No interpolation or extrapolation beyond the frozen support grid was performed.",
+    "Stress-test coverage is combinatorial and is not a real-world probability.",
+    "The Pareto frontier is preserved separately from protocol selection.",
+    "A protocol-selected family is prospective only and does not guarantee passage.",
+    "A low-coverage protocol hold is not authorized for preregistration advancement.",
+    "No frozen evidence gate may be weakened on the basis of family selection.",
+    "OBS-086b cannot create a witness or increase claim entitlement."
+  ],
+  "obs086b_manifest_id": "d32f61955a41abf1ecd036863a766fbf0617fb2a0bf0a34b691487f9bed94119",
+  "output_artifacts": [
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_address_recommendations.csv",
+      "sha256": "5a9e11f85d4608487546703bfe68b56360bd0ab5b320f18e31519ff68f68ff49",
+      "size_bytes": 7617
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_family_dominance_table.csv",
+      "sha256": "e6a4d09f08d228941ae79b0536756973019d16e1c112ba5c7a19be15daef0fe7",
+      "size_bytes": 342
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_entitlement_overlay.csv",
+      "sha256": "ddaa5dce651c949c324a0df34693efd3ab59fcbbb63d0b5d73cd1730b036b841",
+      "size_bytes": 2785
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_failures.csv",
+      "sha256": "49aec4e591dc9dabf1dbf1bac0f611bd6d7a0bdd59c83a83cfaa36d4718be47f",
+      "size_bytes": 38
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_operational_family_summary.csv",
+      "sha256": "7aa29a6f17fb06149a2604566fdb293d073b5e5f62c1ecb505d5e1bda9120f2d",
+      "size_bytes": 25970
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_held_campaign_families.csv",
+      "sha256": "a5dcdcedd82e96f2d2eb8695faea8dad6eee56579dbacbc9de70945b1b24ee68",
+      "size_bytes": 3155
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_input_manifest.csv",
+      "sha256": "f59ea4e87dfa51d05051612729bf7289f07b8ca93be5107b34321be7c8788758",
+      "size_bytes": 2985
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_pareto_frontier.csv",
+      "sha256": "7aa29a6f17fb06149a2604566fdb293d073b5e5f62c1ecb505d5e1bda9120f2d",
+      "size_bytes": 25970
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_protocol_freeze_table.csv",
+      "sha256": "45b3bfb52466fdeb4cf9ef48ab663ca2922f6994961ff0a29065899bd66d66db",
+      "size_bytes": 7075
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_rejected_campaign_families.csv",
+      "sha256": "3e57e5a9d4b20bc80c7cc5c1dcd78deafd1e6ce30b543bbe7042c973e8f42781",
+      "size_bytes": 1852
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_report.md",
+      "sha256": "4572bfbb9c4fd587c1cc1fa95ce4cc9fa78095fd067bcb91f7552c8c11ecb11a",
+      "size_bytes": 19125
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_scenario_allocation_evaluation.csv",
+      "sha256": "72f363af479e30e396c496752daf0bed8596bf5e1a5c3225049a5c0b7d082ef7",
+      "size_bytes": 225748
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086b_robust_campaign_family_selection/obs086b_selected_campaign_families.csv",
+      "sha256": "f9603a1bebe91617329f33868e8e19e4ca89c7acf0e6ee79891bf47e2f773643",
+      "size_bytes": 7061
+    }
+  ],
+  "pareto_family_set": {
+    "family_count": 24,
+    "family_ids_sha256": "8864c8eae2804da51ea61cf406609ffd1f366a6f0ae1841b539dfc1fdca84de3"
+  },
+  "protocol_held_family_set": {
+    "family_count": 1,
+    "family_ids_sha256": "2b540d7c9c6af695b466667abfab40d3bbf1a7320a521b2faec71efead4ae709"
+  },
+  "protocol_selected_family_set": {
+    "family_count": 5,
+    "family_ids_sha256": "89b5be7ebb514835e27ba6f3139c399427175a821d7e498f35ff8f91c6684a07"
+  },
+  "schema_version": "obs086b_robust_campaign_family_selection_v1_0_1",
+  "scope": "deterministic artifact-only robust campaign-family Pareto retention and protocol selection",
+  "script_version": "1.0.1",
+  "selection_contract": {
+    "cluster_grid": [
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      12
+    ],
+    "dominance_epsilon": 1e-12,
+    "dominance_rule": "no_more total nominal objects; no_less defensible stress coverage; no_lower worst-case paired probability; no_more partition imbalance; at least one strict improvement",
+    "extrapolation": "prohibited",
+    "family_key": [
+      "address_id",
+      "reliability_target",
+      "discovery_nominal_k",
+      "confirmation_nominal_k"
+    ],
+    "fixed_allocation_rule": "evaluate each unique OBS-086a sealed allocation across all frozen stress-test cells",
+    "low_coverage_hold_rule": "when no near-maximum family reaches majority coverage, retain one lexicographically preferred near-maximum family as a non-advancing hold",
+    "nonmonotonicity_rule": "materially nonmonotone scenario evaluations are held and excluded from defensible coverage",
+    "paired_probability_rule": "minimum of discovery and confirmation simulator-robust probabilities at fixed partition k",
+    "protocol_minimum_defensible_coverage": 0.5,
+    "protocol_near_maximum_cell_shortfall": 1,
+    "protocol_selection_rule": "within each address-target group preserve the Pareto frontier; enter families within one stress cell of maximum coverage; require majority coverage; choose minimum total objects, minimum imbalance, highest minimum defensible probability, highest median all-scenario probability, lowest partition gap, lowest simulator spread, then stable family ID",
+    "reliability_targets": [
+      0.5,
+      0.8,
+      0.9
+    ],
+    "scenario_coverage_semantics": "combinatorial coverage of frozen simulator stress-test cells, not a probability over real campaigns",
+    "stress_scenarios_per_address_target": 25
+  },
+  "state": "robust_campaign_family_selection_completed"
+}
