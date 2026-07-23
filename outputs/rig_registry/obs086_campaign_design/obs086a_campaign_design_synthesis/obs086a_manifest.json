@@ -1,0 +1,129 @@
+{
+  "claim_ceiling": "prospective design synthesis only; no observed witness, causal attribution, simulator truth, gate modification, partition pooling, guaranteed passage, or entitlement increase",
+  "created_at_utc": "2026-07-23T06:53:30+00:00",
+  "design_contract": {
+    "cluster_grid": [
+      3,
+      4,
+      5,
+      6,
+      8,
+      10,
+      12
+    ],
+    "high_attrition_efficiency_threshold": 0.3333333333333333,
+    "moderate_attrition_efficiency_threshold": 0.5,
+    "nonmonotonicity_rule": "materially nonmonotone trajectories are held rather than sealed",
+    "partition_pairing_rule": "discovery and confirmation must independently reach the target",
+    "probability_semantics": "frozen conditional gate-passage probability",
+    "reliability_targets": [
+      0.5,
+      0.8,
+      0.9
+    ],
+    "scenario_axis_semantics": "delta and control_response_lambda are simulator stress-test axes, not observed facts or operationally selectable campaign settings",
+    "selected_support_rule": "minimum tested k reaching the target; no interpolation or extrapolation",
+    "simulator_robustness_rule": "minimum conditional gate-passage probability across both qualified simulators at each tested k"
+  },
+  "execution": {
+    "address_limit": null,
+    "address_summary_rows": 18,
+    "failures": 0,
+    "paired_design_rows": 450,
+    "partition_design_rows": 900,
+    "sealed_candidate_rows": 87,
+    "selected_addresses": 6,
+    "smoke": false
+  },
+  "frozen_lineage": {
+    "current_repo_head": "e78160bc6f88c7edce45dee83755c8b7caea7d3f",
+    "obs085c_manifest_id": "3341203b8c1e0024847fa054548a3c2ad6c263f271f22c947069281f4cde00ac",
+    "obs085d_commit": "e78160bc6f88c7edce45dee83755c8b7caea7d3f",
+    "obs085d_manifest_id": "32884243ca122cf8b88a39d9511b157da02e8456dfa11eec47f7c647bd018023",
+    "obs085d_manifest_sha256": "701bba1cd6973f61169b5301ab0c34df870e6abca9d192639c602b8368e8362d",
+    "obs085d_output_artifacts_validated": 15,
+    "obs085d_script_sha256": "4ac0b63d6784388f75546893c2e74eaf09589188ad8dac82a193402cf4ddfe6d",
+    "obs085d_state": "campaign_bottleneck_localization_completed"
+  },
+  "mandatory_statements": [
+    "OBS-085c and OBS-085d remain frozen and unchanged.",
+    "Simulator stress-test axes are not observed or operationally selectable campaign properties.",
+    "Discovery and confirmation remain separate and may not be pooled.",
+    "No numeric extrapolation beyond the frozen tested support grid was performed.",
+    "A sealed candidate is prospective only and does not guarantee passage.",
+    "Nominal support is not equivalent to effective support.",
+    "No frozen evidence gate may be weakened on the basis of this synthesis.",
+    "OBS-086a cannot create a witness or increase claim entitlement."
+  ],
+  "obs086a_manifest_id": "df6714be8b7e0ccaffd7b9df56e067db14426ee98f60c0aefb98bab3da2e72d7",
+  "output_artifacts": [
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_address_decision_summary.csv",
+      "sha256": "47c72dd05fd5104ec265a4d0d877aafa6aa8b829c27d2133bd1984b84619f2b0",
+      "size_bytes": 9103
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_entitlement_overlay.csv",
+      "sha256": "cde4eb5bc921d9ba3b55cce1a8d5c53fe2b61f6a2c7590dcd5f01d5034af3704",
+      "size_bytes": 3590
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_failures.csv",
+      "sha256": "49aec4e591dc9dabf1dbf1bac0f611bd6d7a0bdd59c83a83cfaa36d4718be47f",
+      "size_bytes": 38
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_input_manifest.csv",
+      "sha256": "7e2c77b1134aad857900702b365c0e4bef5f770ce7ce06a3f820dfb0ae044eee",
+      "size_bytes": 3232
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_outside_tested_envelope.csv",
+      "sha256": "b7d82df5a9590975b60913c5ae2901d2589710785d4d3955b42d600de2681f9f",
+      "size_bytes": 241265
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_paired_partition_designs.csv",
+      "sha256": "1bd932d098eaf4dced13dbddb9ef881873a1e49ea6a462ba0fd15f9c93c69b82",
+      "size_bytes": 272165
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_partition_design_envelope.csv",
+      "sha256": "464a23e53ec1814efb9a07cd24680312f98ebeac82344ddd15c058a46510d421",
+      "size_bytes": 1074581
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_partition_allocation_plan.csv",
+      "sha256": "8763062e06b725706a801896f9b99701a19a75c8759b1eb382ee3ace5cda1be5",
+      "size_bytes": 69755
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_protocol_decision_rules.csv",
+      "sha256": "348ebb98ed61b08b63ae62266123d6cc40bdb153ddbd00fa39553f0b0ff86930",
+      "size_bytes": 2347
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_report.md",
+      "sha256": "f99f408da9646a553d0672a7770471b13076ef7d1cac70a264152e3f7f80866d",
+      "size_bytes": 11092
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_sealed_candidate_set.csv",
+      "sha256": "f6c8e0e1afdd0e3fb562039653d392a3c38d7f885474dd291cfca6db59e3d597",
+      "size_bytes": 72665
+    },
+    {
+      "artifact_path": "outputs/rig_registry/obs086_campaign_design/obs086a_campaign_design_synthesis/obs086a_support_attrition_summary.csv",
+      "sha256": "5d75fa90c8885089e7affc936eb132e3687f87866b9774397fd592d1af80908a",
+      "size_bytes": 11155
+    }
+  ],
+  "schema_version": "obs086a_campaign_design_synthesis_v1",
+  "scope": "deterministic artifact-only prospective campaign-design synthesis",
+  "script_version": "1.0.0",
+  "sealed_candidate_set": {
+    "candidate_count": 87,
+    "candidate_ids_sha256": "c2f6fb6a3051ce897870e08c6eb0f1a09afc053c0f0fadd69ee81c1ffa1b46d7"
+  },
+  "state": "campaign_design_synthesis_completed"
+}

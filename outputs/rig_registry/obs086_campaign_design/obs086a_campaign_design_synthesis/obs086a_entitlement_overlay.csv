@@ -1,0 +1,23 @@
+entitlement_status,reliability_target,paired_design_action,scenario_conditioned_designs,addresses,sealed_candidate_designs,maximum_paired_robust_final_probability,median_paired_robust_final_probability,entitlement_preserved,entitlement_interpretation
+fl3_entitled,0.5,no_go_simulator_discordance,1,1,0,0.486,0.486,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.5,no_go_under_frozen_contract,51,3,0,0.0,0.0,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.5,outside_tested_reliability_envelope_no_extrapolation,6,1,0,0.297,0.288,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.5,seal_for_targeted_design_evaluation,17,1,17,1.0,0.977,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.8,no_go_under_frozen_contract,51,3,0,0.0,0.0,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.8,outside_tested_reliability_envelope_no_extrapolation,9,1,0,0.549,0.294,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.8,seal_for_targeted_design_evaluation,15,1,15,1.0,0.977,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.9,no_go_partition_discordance,1,1,0,0.898,0.898,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.9,no_go_under_frozen_contract,51,3,0,0.0,0.0,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.9,outside_tested_reliability_envelope_no_extrapolation,10,1,0,0.811,0.2955,True,design eligibility does not create a witness or increase entitlement
+fl3_entitled,0.9,seal_for_targeted_design_evaluation,13,1,13,1.0,0.984,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.5,no_go_under_frozen_contract,51,3,0,0.0,0.0,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.5,outside_tested_reliability_envelope_no_extrapolation,6,1,0,0.261,0.2405,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.5,seal_for_targeted_design_evaluation,18,1,18,0.927,0.9085000000000001,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.8,no_go_partition_discordance,3,1,0,0.761,0.665,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.8,no_go_under_frozen_contract,51,3,0,0.0,0.0,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.8,outside_tested_reliability_envelope_no_extrapolation,7,1,0,0.552,0.252,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.8,seal_for_targeted_design_evaluation,14,1,14,0.927,0.9175,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.9,no_go_partition_discordance,5,1,0,0.895,0.88,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.9,no_go_under_frozen_contract,51,3,0,0.0,0.0,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.9,outside_tested_reliability_envelope_no_extrapolation,9,1,0,0.665,0.252,True,design eligibility does not create a witness or increase entitlement
+fl3_entitlement_capped,0.9,seal_for_targeted_design_evaluation,10,1,10,0.927,0.9205000000000001,True,design eligibility does not create a witness or increase entitlement
