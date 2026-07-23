@@ -1737,3 +1737,25 @@ OBS-084 establishes the first complete artifact-direct discovery and reserved-co
 
 ---
 
+# OBS-085 — Detection envelope and campaign attainability
+
+**Date:** 2026-07-23
+**State:** Detection-envelope and prospective campaign-attainability sequence completed; the frozen evidence gate becomes mathematically attainable at four effective independent clusters, while empirical coverage plateaus at 336 of 600 tested cells and the remaining 264 cells are localized as conjunctive mixed-gate limitations. No FL3 witness was created and claim entitlement remains unchanged.
+
+* Question: Under the frozen OBS-084 artifact-direct failure-support contract, is gate passage structurally and empirically attainable, how much effective independent support is required, and why does additional nominal support fail to produce universal passage?
+* Method: Executed a four-stage downstream sensitivity sequence without reopening OBS-084 discovery or changing its evidence contract: OBS-085a audited structural feasibility; OBS-085b0 qualified simulators; OBS-085b measured existing-support passage sensitivity; OBS-085c ran prospective nested-support campaigns; OBS-085d deterministically localized campaign bottlenecks from the completed artifacts.
+* Artifacts: OBS-085c produced 600,000 base simulations, 4,200,000 nested replicate rows, and 4,200 summary cells with no execution failures. OBS-085d validated all 26 campaign artifacts, reconstructed frozen gate outcomes, classified 600 cell trajectories, and performed leave-one-gate-out, support-efficiency, partition, and simulator analyses.
+* Structural attainability: With three effective independent clusters, the minimum exact sign-flip p-value is 0.125, above the frozen α = 0.10; passage is therefore mathematically impossible. The first attainable design occurs at four effective independent clusters, where the minimum raw p-value is 0.0625.
+* Empirical coverage: Passable cells increased from 0/600 at k=3 to 307/600 at k=4, 334/600 at k=5, and 336/600 at k=6. The exact passable set then remained fixed through k=8, k=10, and k=12.
+* Coverage plateau: The final tested envelope contains 336 empirically passable cells (56%) and 264 persistently non-passing cells (44%). Additional support after k=6 improved passage probabilities within the existing passable set but did not expand that set.
+* Reliability: At nominal k=12, 141 cells reached passage probability ≥0.50, 122 reached ≥0.80, and 107 reached ≥0.90. Mathematical attainability and empirical passability therefore do not imply reliable or universal passage.
+* Nominal versus effective support: Global nominal-support efficiency was approximately 0.291. At nominal k=12, mean effective support was 3.497 clusters and the median was 2; only 41.5% of replicates retained at least four effective clusters.
+* Bottleneck localization: All 264 persistent non-passing cells were classified as mixed_gate_limited, with no single dominant failure category and no single-gate removal sufficient to rescue the full cells. Leave-one-gate-out analysis produced replicate-level rescues mainly for control_adjusted_contrast_pass (68,435) and minimum_effect_pass (933), but these are diagnostic counterfactuals rather than alternative evidence results.
+* Simulator sensitivity: The two qualified simulators showed complete agreement on empirical passability (1.000), low mean absolute probability difference (0.00508), and high first-pass-k agreement (0.953) within the narrow qualified family.
+* Partition sensitivity: Discovery and confirmation agreed much less strongly: empirical-passability agreement and first-pass-k agreement were both 0.520, with mean absolute probability difference 0.06652. Campaign design must therefore remain partition-specific.
+* Interpretation: OBS-085 converts the OBS-084 negative confirmation result into a bounded detection-envelope result. The original support structure could not pass the frozen exact test; larger effective support can make passage possible for selected cells, but nominal expansion alone cannot overcome the residual conjunctive gate ceiling.
+* Guardrail: OBS-085 creates no FL3 witness and provides no observed failure support, causal mechanism, simulator truth, universal attainability result, or justification for weakening the frozen gates. All findings are prospective, scenario-conditioned, partition-specific, and support-grid-specific.
+* Next Step: OBS-086 should evaluate prospective acquisition designs that preserve sufficient effective independent support in both discovery and confirmation, while maintaining the frozen evidence contract and determining whether the expected evidential gain justifies genuine new-data acquisition.
+
+---
+
